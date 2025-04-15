@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  nodejs:
+    name: Node.js
+    runs-on: ubuntu-latest
+    concurrency: ci-nodejs-${{ github.ref }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Packages
+        run: pnpm install
+
+      - name: Build Server
+        run: pnpm run build
+        working-directory: ./server
+
+      - name: Build Client
+        run: pnpm run build
+        working-directory: ./client
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    concurrency: ci-lint-${{ github.ref }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
+
+      - name: Run Biome
+        run: biome ci .
