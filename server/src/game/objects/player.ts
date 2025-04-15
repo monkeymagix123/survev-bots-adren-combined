@@ -1010,7 +1010,7 @@ export class Player extends BaseGameObject {
                 break;
             case "last_man":
                 this.health = 100;
-                this.boost = 400;
+                //this.boost = 400;
                 this.giveHaste(GameConfig.HasteType.Windwalk, 5);
                 break;
             case "medic":
@@ -1242,7 +1242,7 @@ export class Player extends BaseGameObject {
         } else if (type === "fabricate") {
             this.fabricateRefillTicker = PerkProperties.fabricate.refillInterval;
         } else if (type === "leadership") {
-            this.boost = 400;
+            //this.boost = 400;
         }
 
         this.recalculateScale();
@@ -1661,7 +1661,7 @@ export class Player extends BaseGameObject {
                             target.wearingPan = false;
                         }
 
-                        if (target.hasPerk("leadership")) target.boost = 400;
+                        //if (target.hasPerk("leadership")) target.boost = 400;
                         target.setDirty();
                         target.setGroupStatuses();
                         this.game.pluginManager.emit("playerRevived", target);
