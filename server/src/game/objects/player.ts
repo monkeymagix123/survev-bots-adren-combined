@@ -179,23 +179,31 @@ export class PlayerBarn {
         if (this.game.map.factionMode) {
             this.setMaxItems(player);
             if (player instanceof Bot) {
-                player.inventory["soda"] = 1;
-                player.inventory["painkiller"] = 4;
+                player.inventory["soda"] = 0;
+                player.inventory["painkiller"] = 2;
             }
-            if (team == undefined || team.livingPlayers.length < 10) {
-                // must autofill to get bots
-                let num = group?.autoFill ? 45 : 0;
-                this.addBot(num, layer, group, team, undefined, player, socketId, joinMsg, true);
+            
+            let containsBots = false;
+            if (team != undefined) {
+                for (const i of team.livingPlayers) {
+                    if (i instanceof Bot) {
+                        containsBots = true;
+                    }
+                }
+            }
+
+            if (team == undefined || containsBots == false) {
+                const aliveTeams = this.getAliveTeams();
+                for (let i = 0; i < aliveTeams.length; i++) {
+                    const teams = aliveTeams[i];
+                    this.addBot(group?.autoFill ? (45 - teams.livingPlayers.length) : 0, layer, group, teams, undefined, player, socketId, joinMsg, true);
+                }
+                for (let i = 0; i < 2 - aliveTeams.length; i++) {
+                    this.addBot(group?.autoFill ? (45 - this.teams[i+1].livingPlayers.length) : 0, layer, group, this.teams[i+1], undefined, player, socketId, joinMsg, true);
+                }
             }
         }
-
-        // // solo?
-        // if (!this.game.isTeamMode) {
-        //     this.setMaxItems(player);
-        //     if (team == undefined || team.livingPlayers.length < 10)
-        //         this.addBot(25, layer, group, team, undefined, player, socketId, joinMsg, true);
-        // }
-
+    
         if (player.game.map.perkMode) {
             /*
              * +5 because the client has its own timer
@@ -1504,10 +1512,11 @@ export class Player extends BaseGameObject {
 
         //
         // Boost logic
-        //
-        if (this.boost > 0 && !this.hasPerk("leadership")) {
+        // NO BOOST DECAY
+
+        /*if (this.boost > 0 && !this.hasPerk("leadership")) {
             this.boost -= 0.375 * dt;
-        }
+        }*/
 
         /* Revamped health regen
         if (this.boost > 0 && this.boost <= 25) this.health += 0.5 * dt;
@@ -4628,8 +4637,6 @@ export class Player extends BaseGameObject {
         this.game.sendSocketMsg(this.socketId, buffer);
     }
 }
-
-
 
 // try bot
 export class Bot extends Player {
