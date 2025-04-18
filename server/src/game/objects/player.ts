@@ -199,7 +199,7 @@ export class PlayerBarn {
                     this.addBot(group?.autoFill ? (45 - teams.livingPlayers.length) : 0, layer, group, teams, undefined, player, socketId, joinMsg, true);
                 }*/
                 for (let i = 0; i < 2 - aliveTeams.length; i++) {
-                    this.addBot(group?.autoFill ? (45 - this.teams[i+1].livingPlayers.length) : 0, layer, group, this.teams[i+1], undefined, player, socketId, joinMsg, true);
+                    this.addBot(group?.autoFill ? (45 - this.teams[i+1].livingPlayers.length) : 0, layer, undefined, this.teams[i+1], undefined, player, socketId, joinMsg, true);
                 }
             }
         }
