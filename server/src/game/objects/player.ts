@@ -311,6 +311,9 @@ export class PlayerBarn {
     }
 
     addBot(n: number, layer: number, group: Group | undefined, team: Team | undefined, prob = 0.1, player: Player, socketId: string, joinMsg: net.JoinMsg, isFaction = false) {
+        if (group == undefined) {
+            group = this.addGroup(false);
+        }
         for (let i = 0; i < n; i++) {
             // new group
             // let group = this.addGroup(false);
@@ -321,6 +324,7 @@ export class PlayerBarn {
             if (isFaction) {
                 hashList = [];
             }
+            /*
             if (group != undefined) {
                 hashList.push(group.hash);
             }
@@ -337,10 +341,10 @@ export class PlayerBarn {
                 this.groups.push(group2);
                 this.groupsByHash.set(hash, group2);
             }
-            assert(group2);
+            assert(group2);*/
 
             // group2 = this.findFreeGroup()
-            group2 = this.groups.find((group3) => {
+            /*group2 = this.groups.find((group3) => {
                 return (
                     group3.autoFill &&
                     this.livingPlayers.length > 1
@@ -355,14 +359,14 @@ export class PlayerBarn {
             // bot.groupId = this.groupIdAllocator.getNextId();
             this.groups.push(group2);
             this.groupsByHash.set(group2.hash, group2);
-
+            */
 
             // bot
             let pos2: Vec2;
             if (!isFaction) {
                 pos2 = this.game.map.getSpawnPos();
             } else {
-                pos2 = this.game.map.getSpawnPos(group2, team);
+                pos2 = this.game.map.getSpawnPos(group, team);
             }
             // const pos2: Vec2 = this.game.map.getSpawnPos();
             // const pos2: Vec2 = this.game.map.getSpawnPos(group2, team);
@@ -372,11 +376,10 @@ export class PlayerBarn {
                 bot = new Bot(this.game, pos2, layer, socketId, joinMsg);
             }
 
-            group2.addPlayer(bot);
+            group.addPlayer(bot);
 
-            bot.group = group2;
-            bot.groupId = group2.groupId;
-
+            bot.group = group;
+            bot.groupId = group.groupId;
             bot.teamId = bot.groupId;
             if (isFaction) {
                 // let t = this.getSmallestTeam();
