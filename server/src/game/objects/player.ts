@@ -1,3 +1,4 @@
+import { get } from "http";
 import {
     GameObjectDefs,
     type LootDef,
@@ -46,6 +47,26 @@ import { BaseGameObject, type DamageParams, type GameObject } from "./gameObject
 import type { Loot } from "./loot";
 import type { MapIndicator } from "./mapIndicator";
 import type { Obstacle } from "./obstacle";
+
+// For random names
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+let cachedNames: string[] | null = null;
+function loadNames(): string[] {
+    if (cachedNames) return cachedNames;
+    const data = readFileSync(resolve(__dirname, 'usernames.txt'), 'utf-8');
+    cachedNames = data
+        .split('\n')
+        .map(name => name.trim())
+        .filter(name => name.length > 0);
+    return cachedNames;
+}
+function getRandomName(): string {
+    const names = loadNames();
+    if (names.length === 0) return '';
+    const randomIndex = Math.floor(Math.random() * names.length);
+    return names[randomIndex];
+}
 
 interface Emote {
     playerId: number;
@@ -182,7 +203,7 @@ export class PlayerBarn {
                 player.inventory["soda"] = 0;
                 player.inventory["painkiller"] = 2;
             }
-            
+
             let containsBots = false;
             if (team != undefined) {
                 for (const i of team.livingPlayers) {
@@ -194,16 +215,18 @@ export class PlayerBarn {
 
             if (team == undefined || containsBots == false) {
                 const aliveTeams = this.getAliveTeams();
-                /*for (let i = 0; i < aliveTeams.length; i++) {
+                /* Fill in current player's team
+                for (let i = 0; i < aliveTeams.length; i++) {
                     const teams = aliveTeams[i];
                     this.addBot(group?.autoFill ? (45 - teams.livingPlayers.length) : 0, layer, group, teams, undefined, player, socketId, joinMsg, true);
-                }*/
+                }
+                */
                 for (let i = 0; i < 2 - aliveTeams.length; i++) {
-                    this.addBot(group?.autoFill ? (45 - this.teams[i+1].livingPlayers.length) : 0, layer, this.addGroup(false), this.teams[i+1], undefined, player, socketId, joinMsg, true);
+                    this.addBot(group?.autoFill ? (50 - this.teams[i + 1].livingPlayers.length) : 0, layer, this.addGroup(false), this.teams[i + 1], undefined, player, socketId, joinMsg, true);
                 }
             }
         }
-    
+
         if (player.game.map.perkMode) {
             /*
              * +5 because the client has its own timer
@@ -324,42 +347,6 @@ export class PlayerBarn {
             if (isFaction) {
                 hashList = [];
             }
-            /*
-            if (group != undefined) {
-                hashList.push(group.hash);
-            }
-            let indx = Math.floor(Math.random() * hashList.length);
-            let hash = hashList[indx];
-
-            let group2;
-
-            if (this.groupsByHash.has(hash)) {
-                group2 = this.groupsByHash.get(hash);
-            } else {
-                let id = this.groupIdAllocator.getNextId();
-                group2 = new Group(hash, id, false, 100);
-                this.groups.push(group2);
-                this.groupsByHash.set(hash, group2);
-            }
-            assert(group2);*/
-
-            // group2 = this.findFreeGroup()
-            /*group2 = this.groups.find((group3) => {
-                return (
-                    group3.autoFill &&
-                    this.livingPlayers.length > 1
-                    // && group.canJoin(joinData.playerCount)
-                );
-            });
-
-            if (!group2 || group2.players.length >= this.game.teamMode) {
-                group2 = this.addGroup(true);
-            }
-
-            // bot.groupId = this.groupIdAllocator.getNextId();
-            this.groups.push(group2);
-            this.groupsByHash.set(group2.hash, group2);
-            */
 
             // bot
             let pos2: Vec2;
@@ -376,6 +363,7 @@ export class PlayerBarn {
                 bot = new Bot(this.game, pos2, layer, socketId, joinMsg);
             }
 
+            bot.name = "Bot-" + getRandomName();
             group.addPlayer(bot);
 
             bot.group = group;
@@ -408,18 +396,12 @@ export class PlayerBarn {
                     }
                 }
             }
-            
-            // const bot = player.getBot() as Bot;
-            // bot
             this.game.logger.log(`Bot ${bot.name} joined`);
 
             this.newPlayers.push(bot);
             this.game.objectRegister.register(bot);
             this.players.push(bot);
             this.livingPlayers.push(bot);
-            // end
-
-            bot.name = "Bot" + Math.floor(Math.random() * 100);
 
             this.game.pluginManager.emit("playerJoin", player);
 
@@ -467,7 +449,7 @@ export class PlayerBarn {
                     const randomPlayer = plyrs.length != 0
                         ? plyrs[util.randomInt(0, plyrs.length - 1)]
                         : promotablePlayers[
-                            util.randomInt(0, promotablePlayers.length - 1)
+                        util.randomInt(0, promotablePlayers.length - 1)
                         ];
                     randomPlayer.promoteToRole(scheduledRole.role);
                 }
@@ -598,9 +580,9 @@ export class PlayerBarn {
 
     getGroupAndTeam(joinData: JoinTokenData):
         | {
-              group?: Group;
-              team?: Team;
-          }
+            group?: Group;
+            team?: Team;
+        }
         | undefined {
         if (!this.game.isTeamMode) return undefined;
         let group = this.groupsByHash.get(joinData.groupHashToJoin);
@@ -1949,9 +1931,9 @@ export class Player extends BaseGameObject {
                         if (
                             this.bagSizes[closestLoot.type] &&
                             this.inventory[closestLoot.type] >=
-                                this.bagSizes[closestLoot.type][
-                                    this.getGearLevel(this.backpack)
-                                ]
+                            this.bagSizes[closestLoot.type][
+                            this.getGearLevel(this.backpack)
+                            ]
                         ) {
                             break;
                         }
@@ -2343,7 +2325,7 @@ export class Player extends BaseGameObject {
         if (
             player.playerStatusDirty ||
             player.playerStatusTicker >
-                net.getPlayerStatusUpdateRate(this.game.map.factionMode)
+            net.getPlayerStatusUpdateRate(this.game.map.factionMode)
         ) {
             let statuses = this.game.modeManager.getPlayerStatuses(player);
             if (statuses.length > 255) {
@@ -2482,10 +2464,11 @@ export class Player extends BaseGameObject {
         const indicators = this.game.mapIndicatorBarn.mapIndicators;
         for (let i = 0; i < indicators.length; i++) {
             const indicator = indicators[i];
+            // players are ALWAYS VISIBLE
             if (indicator.dirty || !this.visibleMapIndicators.has(indicator)) {
                 updateMsg.mapIndicators.push(indicator);
                 this.visibleMapIndicators.add(indicator);
-            }
+            } 
             if (indicator.dead) {
                 this.visibleMapIndicators.delete(indicator);
             }
@@ -2533,7 +2516,7 @@ export class Player extends BaseGameObject {
                 if (groupExistsOrAlive || teamExistsOrAlive) {
                     playerToSpec =
                         spectatablePlayers[
-                            util.randomInt(0, spectatablePlayers.length - 1)
+                        util.randomInt(0, spectatablePlayers.length - 1)
                         ];
                 } else {
                     let attempts = 0;
@@ -2559,7 +2542,7 @@ export class Player extends BaseGameObject {
                     playerToSpec =
                         aliveKiller ??
                         spectatablePlayers[
-                            util.randomInt(0, spectatablePlayers.length - 1)
+                        util.randomInt(0, spectatablePlayers.length - 1)
                         ];
                 }
                 break;
@@ -2851,6 +2834,7 @@ export class Player extends BaseGameObject {
             }
         }
 
+        /* Must remove these due to 1v50 breaking these lines often
         if (this.game.map.factionMode) {
             // lone survivr can be given on knock or kill
             this.team!.checkAndApplyLastMan();
@@ -2858,8 +2842,7 @@ export class Player extends BaseGameObject {
             //golden airdrops depend on alive counts, so we only do this logic on kill
             if (this.game.planeBarn.canDropSpecialAirdrop()) {
                 this.game.planeBarn.addSpecialAirdrop();
-            }
-        }
+        }*/
 
         //params.gameSourceType check ensures player didnt die by bleeding out
         if (this.game.map.potatoMode && this.lastDamagedBy && params.gameSourceType) {
@@ -3125,7 +3108,7 @@ export class Player extends BaseGameObject {
 
         return (
             this.game.modeManager.getIdContext(medic) ==
-                this.game.modeManager.getIdContext(this) &&
+            this.game.modeManager.getIdContext(this) &&
             !!util.sameLayer(medic.layer, this.layer) &&
             v2.lengthSqr(v2.sub(medic.pos, this.pos)) <= effectRange * effectRange
         );
@@ -3238,9 +3221,9 @@ export class Player extends BaseGameObject {
     shouldAcceptInput(input: number): boolean {
         return this.downed
             ? (input === GameConfig.Input.Revive && this.hasPerk("self_revive")) || // Players can revive themselves if they have the self-revive perk.
-                  (input === GameConfig.Input.Cancel &&
-                      this.game.modeManager.isReviving(this)) || // Players can cancel their own revives (if they are reviving themself, which is only true if they have the perk).
-                  input === GameConfig.Input.Interact // Players can interact with obstacles while downed.
+            (input === GameConfig.Input.Cancel &&
+                this.game.modeManager.isReviving(this)) || // Players can cancel their own revives (if they are reviving themself, which is only true if they have the perk).
+            input === GameConfig.Input.Interact // Players can interact with obstacles while downed.
             : true;
     }
 
@@ -4641,15 +4624,13 @@ export class Player extends BaseGameObject {
     }
 }
 
-// try bot
 export class Bot extends Player {
-    // test
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
-        // super(game, pos, socketId, joinMsg);
         super(game, pos, layer, socketId, joinMsg);
 
         // prob use same joinMsg?
 
+        
         this.name = "Bot";
         this.isMobile = false;
         // change default outfit
@@ -4707,7 +4688,7 @@ export class Bot extends Player {
     protected target: Player | undefined;
 
     protected targetTimer: number;
-    
+
     // switch target timer
     update(dt: number): void {
         super.update(dt);
@@ -4745,7 +4726,7 @@ export class Bot extends Player {
         //     closestPlayer = closestPlayer2;
         //     closestDist = closestDist2;
         // }
-        
+
 
         if (closestPlayer != undefined) {
             this.setPartDirty();
@@ -4766,7 +4747,7 @@ export class Bot extends Player {
 
             let x = this.getClosestPlayer(true, true, false); // assume no enemies in range
             // lead bots out
-            if(this.isVisible(x) && this.indoors) {
+            if (this.isVisible(x) && this.indoors) {
                 this.moveTowards(x, 0, 1);
             }
 
@@ -4817,7 +4798,7 @@ export class Bot extends Player {
             // start timer
             this.targetTimer = 0.4 + Math.random() * 0.1;
         }
-        
+
         this.target = closestPlayer;
     }
 
@@ -5051,10 +5032,6 @@ export class DumBot extends Bot {
 
     // new one
     move(): void {
-        // if (this.downed && this.actionType != GameConfig.Action.Revive) {
-        //     this.revive(this);
-        // }
-
 
         if (this.downed || this.dead) {
             return;
@@ -5065,8 +5042,6 @@ export class DumBot extends Bot {
             return;
         }
 
-        // yay moves towards closest!
-
         // for role promotion
         if (this.weaponManager.curWeapIdx === GameConfig.WeaponSlot.Melee) {
             this.weaponManager.setCurWeapIndex(GameConfig.WeaponSlot.Primary);
@@ -5075,13 +5050,6 @@ export class DumBot extends Bot {
 
         this.newTarget();
         let closestPlayer = this.target;
-
-        // check if player nearby
-        // if (closestPlayer2 != undefined && closestDist2 < 6 * GameConfig.player.reviveRange) {
-        //     closestPlayer = closestPlayer2;
-        //     closestDist = closestDist2;
-        // }
-        
 
         if (closestPlayer != undefined) {
             this.setPartDirty();

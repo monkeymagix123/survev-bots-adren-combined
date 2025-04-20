@@ -107,6 +107,7 @@ const mapDef: PartialMapDef = {
     gameConfig: {
         planes: {
             timings: [
+                /*
                 {
                     circleIdx: 1,
                     wait: 10,
@@ -191,7 +192,7 @@ const mapDef: PartialMapDef = {
                         wait: 1.5,
                         delay: 1,
                     },
-                },
+                },*/
             ],
             crates: [{ name: "airdrop_crate_03", weight: 1 }],
         },
