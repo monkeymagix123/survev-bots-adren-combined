@@ -156,7 +156,7 @@ export const GameConfig = {
         downedRezMoveSpeed: 2,
         downedDamageBuffer: 0.1, //time buffer after being downed where a player can't take damage
         keepZoomWhileDowned: false,
-        reviveDuration: 8,
+        reviveDuration: 5,
         reviveRange: 5,
         crawlTime: 0.75,
         teammateSpawnRadius: 5, // radius of circle that teammates spawn inside of, relative to the first player on the team to join

@@ -201,7 +201,8 @@ export class PlayerBarn {
             this.setMaxItems(player);
             if (player instanceof Bot) {
                 player.inventory["soda"] = 0;
-                player.inventory["painkiller"] = 2;
+                player.inventory["painkiller"] = 0;
+                player.boost = 100;
             }
 
             let containsBots = false;
@@ -357,11 +358,12 @@ export class PlayerBarn {
             }
             // const pos2: Vec2 = this.game.map.getSpawnPos();
             // const pos2: Vec2 = this.game.map.getSpawnPos(group2, team);
-            let r = Math.random();
+            /*let r = Math.random();
             let bot = new DumBot(this.game, pos2, layer, socketId, joinMsg);
             if (r < prob) {
                 bot = new Bot(this.game, pos2, layer, socketId, joinMsg);
-            }
+            }*/
+            const bot = new Bot(this.game, pos2, layer, socketId, joinMsg);
 
             bot.name = "Bot-" + getRandomName();
             group.addPlayer(bot);
@@ -4627,17 +4629,9 @@ export class Player extends BaseGameObject {
 export class Bot extends Player {
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         super(game, pos, layer, socketId, joinMsg);
-
-        // prob use same joinMsg?
-
-        
         this.name = "Bot";
         this.isMobile = false;
-        // change default outfit
         this.setOutfit("outfitDarkGloves");
-
-        // this.toMouseDir = this.posOld; // ???
-
         const loadout = this.loadout;
 
         // set random weapons
@@ -4697,21 +4691,13 @@ export class Bot extends Player {
 
     // new one
     move(): void {
-        // if (this.downed && this.actionType != GameConfig.Action.Revive) {
-        //     this.revive(this);
-        // }
-
-
         if (this.downed || this.dead) {
             return;
         }
 
-
         if (this.shotSlowdownTimer > 2) {
             return;
         }
-
-        // yay moves towards closest!
 
         // for role promotion
         if (this.weaponManager.curWeapIdx === GameConfig.WeaponSlot.Melee) {
@@ -4720,13 +4706,6 @@ export class Bot extends Player {
 
         this.newTarget();
         let closestPlayer = this.target;
-
-        // check if player nearby
-        // if (closestPlayer2 != undefined && closestDist2 < 6 * GameConfig.player.reviveRange) {
-        //     closestPlayer = closestPlayer2;
-        //     closestDist = closestDist2;
-        // }
-
 
         if (closestPlayer != undefined) {
             this.setPartDirty();
@@ -4939,54 +4918,35 @@ export class Bot extends Player {
         }
     }
 
+    runAway(): void {
+        this.moveUp = !this.moveUp;
+        this.moveDown = !this.moveDown;
+        this.moveLeft = !this.moveLeft;
+        this.moveRight = !this.moveRight;
+    }
+
     heal(): void {
         let r1 = Math.random();
 
         // heal up
-        if (this.health < 30 && this.actionItem != "medkit") {
-            if (r1 < 0.7) {
-                this.moveUp = !this.moveUp;
-                this.moveDown = !this.moveDown;
-            }
+        if (this.inventory.medkit > 0 && this.health < 30 && this.actionItem != "medkit") {
+            this.runAway();
+            this.useHealingItem("medkit");
+            return;
         }
-        if (this.health < 65 && this.actionItem != "bandage") {
-            if (r1 < 0.7) {
-                this.moveUp = !this.moveUp;
-                this.moveDown = !this.moveDown;
-            }
-            // if (r2 < 0.7) {
-            //     this.moveLeft = !this.moveLeft;
-            //     this.moveRight = !this.moveRight;
-            // }
-            // this.cancelAction();
+        if (this.inventory.bandage > 0 && this.health < 65 && this.actionItem != "bandage") {
+            this.runAway();
             this.useHealingItem("bandage");
             return;
         }
-        // adren up, run away
-        if (this.boost < 50 && this.actionItem != "painkiller") {
-            if (r1 < 0.7) {
-                this.moveUp = !this.moveUp;
-                this.moveDown = !this.moveDown;
-            }
-            // if (r2 < 0.95) {
-            //     this.moveLeft = !this.moveLeft;
-            //     this.moveRight = !this.moveRight;
-            // }
-            // this.cancelAction();
+        if (this.inventory.painkiller > 0 && this.actionItem != "painkiller") {
+            this.runAway();
             this.useBoostItem("painkiller");
             return;
         }
-        if (this.boost < 75 && this.actionItem != "soda") {
-            // this.cancelAction();
+        if (this.inventory.soda > 0 && this.actionItem != "soda") {
             this.useBoostItem("soda");
-            if (r1 < 0.7) {
-                this.moveUp = !this.moveUp;
-                this.moveDown = !this.moveDown;
-            }
-            // if (r2 < 0.95) {
-            //     this.moveLeft = !this.moveLeft;
-            //     this.moveRight = !this.moveRight;
-            // }
+            this.runAway();
             return;
         }
     }
@@ -5036,7 +4996,6 @@ export class DumBot extends Bot {
         if (this.downed || this.dead) {
             return;
         }
-
 
         if (this.shotSlowdownTimer > 2) {
             return;
