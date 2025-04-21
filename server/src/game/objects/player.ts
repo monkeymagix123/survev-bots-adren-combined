@@ -1,4 +1,5 @@
 import { get } from "http";
+import namesData from "./names.json";
 import {
     GameObjectDefs,
     type LootDef,
@@ -47,26 +48,6 @@ import { BaseGameObject, type DamageParams, type GameObject } from "./gameObject
 import type { Loot } from "./loot";
 import type { MapIndicator } from "./mapIndicator";
 import type { Obstacle } from "./obstacle";
-
-// For random names
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-let cachedNames: string[] | null = null;
-function loadNames(): string[] {
-    if (cachedNames) return cachedNames;
-    const data = readFileSync(resolve(__dirname, 'usernames.txt'), 'utf-8');
-    cachedNames = data
-        .split('\n')
-        .map(name => name.trim())
-        .filter(name => name.length > 0);
-    return cachedNames;
-}
-function getRandomName(): string {
-    const names = loadNames();
-    if (names.length === 0) return '';
-    const randomIndex = Math.floor(Math.random() * names.length);
-    return names[randomIndex];
-}
 
 interface Emote {
     playerId: number;
@@ -223,7 +204,7 @@ export class PlayerBarn {
                 }
                 */
                 for (let i = 0; i < 2 - aliveTeams.length; i++) {
-                    this.addBot(group?.autoFill ? (50 - this.teams[i + 1].livingPlayers.length) : 0, layer, this.addGroup(false), this.teams[i + 1], undefined, player, socketId, joinMsg, true);
+                    this.addBot((50 - this.teams[i + 1].livingPlayers.length), layer, this.addGroup(false), this.teams[i + 1], undefined, player, socketId, joinMsg, true);
                 }
             }
         }
@@ -356,34 +337,16 @@ export class PlayerBarn {
             } else {
                 pos2 = this.game.map.getSpawnPos(group, team);
             }
-            // const pos2: Vec2 = this.game.map.getSpawnPos();
-            // const pos2: Vec2 = this.game.map.getSpawnPos(group2, team);
-            /*let r = Math.random();
-            let bot = new DumBot(this.game, pos2, layer, socketId, joinMsg);
-            if (r < prob) {
-                bot = new Bot(this.game, pos2, layer, socketId, joinMsg);
-            }*/
+
             const bot = new Bot(this.game, pos2, layer, socketId, joinMsg);
 
-            bot.name = "Bot-" + getRandomName();
+            bot.name = "Bot-" + namesData.names[Math.floor(Math.random() * namesData.names.length)];;
             group.addPlayer(bot);
 
             bot.group = group;
             bot.groupId = group.groupId;
             bot.teamId = bot.groupId;
             if (isFaction) {
-                // let t = this.getSmallestTeam();
-                // if (t != undefined) {
-                //     bot.team = t;
-                //     bot.teamId = t.teamId;
-                // } else {
-                //     this.addTeam(bot.groupId);
-                //     t = this.getSmallestTeam();
-                //     if (t != undefined) {
-                //         bot.team = t;
-                //         bot.teamId = t.teamId;
-                //     }
-                // }
                 if (team != undefined) {
                     bot.team = team;
                     bot.teamId = team.teamId;
