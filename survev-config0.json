@@ -1,31 +1,31 @@
 {
-  "apiKey": "j0wo7RY0pYgD6W2mEy2wLa7VE4olUPD1r2hZma8FU6o=",
-  "gameServer": {
-    "apiServerUrl": "http://35.209.193.213/api"
-  },
-  "regions": {
-    "na": {
-      "https": false,
-      "address": "35.209.193.213:8001",
-      "l10n": "index-north-america"
-    }
-  },
-  "thisRegion": "na",
-  "modes": [
-    {
-      "mapName": "potato",
-      "teamMode": 1,
-      "enabled": true
+    "apiKey": "j0wo7RY0pYgD6W2mEy2wLa7VE4olUPD1r2hZma8FU6o=",
+    "gameServer": {
+        "apiServerUrl": "http://35.209.193.213/api"
     },
-    {
-      "mapName": "cobalt",
-      "teamMode": 2,
-      "enabled": true
+    "regions": {
+        "na": {
+            "https": false,
+            "address": "35.209.193.213:8001",
+            "l10n": "index-north-america"
+        }
     },
-    {
-      "mapName": "faction",
-      "teamMode": 4,
-      "enabled": true
-    }
-  ]
+    "thisRegion": "na",
+    "modes": [
+        {
+            "mapName": "potato",
+            "teamMode": 1,
+            "enabled": true
+        },
+        {
+            "mapName": "cobalt",
+            "teamMode": 2,
+            "enabled": true
+        },
+        {
+            "mapName": "faction",
+            "teamMode": 4,
+            "enabled": true
+        }
+    ]
 }

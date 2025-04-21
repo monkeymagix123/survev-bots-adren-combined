@@ -203,7 +203,16 @@ export class PlayerBarn {
                 }
                 */
                 for (let i = 0; i < 2 - aliveTeams.length; i++) {
-                    this.addBot((50 - this.teams[i + 1].livingPlayers.length), layer, this.addGroup(false), this.teams[i + 1], undefined, player, socketId, joinMsg, true);
+                    this.addBot(
+                        (50 - this.teams[i + 1].livingPlayers.length),
+                        layer, this.addGroup(false),
+                        this.teams[i + 1],
+                        undefined,
+                        player,
+                        socketId,
+                        joinMsg,
+                        true
+                    );
                 }
             }
         }
@@ -314,7 +323,17 @@ export class PlayerBarn {
         }
     }
 
-    addBot(n: number, layer: number, group: Group | undefined, team: Team | undefined, _prob = 0.1, player: Player, socketId: string, joinMsg: net.JoinMsg, isFaction = false) {
+    addBot(
+        n: number,
+        layer: number,
+        group: Group | undefined,
+        team: Team | undefined,
+        _prob = 0.1,
+        player: Player,
+        socketId: string,
+        joinMsg: net.JoinMsg,
+        isFaction = false
+    ) {
         if (group == undefined) {
             group = this.addGroup(false);
         }
@@ -364,8 +383,7 @@ export class PlayerBarn {
                 bot.playerStatusDirty = true;
             }
 
-            if (isFaction)
-                this.setMaxItems(bot);
+            if (isFaction) this.setMaxItems(bot);
 
             // 50v50: team id 1 for red, 2 for blue
         }
@@ -400,11 +418,12 @@ export class PlayerBarn {
 
                     let plyrs = promotablePlayers.filter((p) => !(p instanceof Bot));
 
-                    const randomPlayer = plyrs.length != 0
-                        ? plyrs[util.randomInt(0, plyrs.length - 1)]
-                        : promotablePlayers[
-                        util.randomInt(0, promotablePlayers.length - 1)
-                        ];
+                    const randomPlayer =
+                        plyrs.length != 0
+                            ? plyrs[util.randomInt(0, plyrs.length - 1)]
+                            : promotablePlayers[
+                            util.randomInt(0, promotablePlayers.length - 1)
+                            ];
                     randomPlayer.promoteToRole(scheduledRole.role);
                 }
             }
@@ -4536,7 +4555,7 @@ export class Player extends BaseGameObject {
         if (this.boost >= 50) {
             this.speed += GameConfig.player.boostMoveSpeed;
         }*/
-        this.speed += GameConfig.player.boostMoveSpeed * Math.floor((this.boost / 50));
+        this.speed += GameConfig.player.boostMoveSpeed * Math.floor(this.boost / 50);
 
         if (this.animType === GameConfig.Anim.Cook) {
             this.speed -= GameConfig.player.cookSpeedPenalty;
@@ -4579,7 +4598,13 @@ export class Player extends BaseGameObject {
 }
 
 export class Bot extends Player {
-    constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
+    constructor(
+        game: Game,
+        pos: Vec2,
+        layer: number,
+        socketId: string,
+        joinMsg: net.JoinMsg
+    ) {
         super(game, pos, layer, socketId, joinMsg);
         this.name = "Bot";
         this.isMobile = false;
@@ -4664,7 +4689,10 @@ export class Bot extends Player {
 
             let k = this.shootLead ? 0.2 + 0.05 * Math.random() : 0;
 
-            this.dir = v2.directionNormalized(this.posOld, v2.add(closestPlayer.pos, v2.mul(closestPlayer.moveVel, k)));
+            this.dir = v2.directionNormalized(
+                this.posOld,
+                v2.add(closestPlayer.pos, v2.mul(closestPlayer.moveVel, k))
+            );
         }
 
         this.shootHold = false;
@@ -4696,13 +4724,19 @@ export class Bot extends Player {
         }
 
         // if (this.game.gas.isInGas(this.pos)) {
-        if (this.dist2(this.pos, this.game.gas.currentPos) >= (this.game.gas.currentRad ** 2) * 0.9) {
+        if (
+            this.dist2(this.pos, this.game.gas.currentPos) >=
+            (this.game.gas.currentRad ** 2) * 0.9
+        ) {
             // try to move out of gas
             this.moveTo(this.game.gas.currentPos.x, this.game.gas.currentPos.y);
         }
 
         const curWeap = GameObjectDefs[this.weaponManager.activeWeapon] as GunDef;
-        if (this.shotSlowdownTimer > 0 && curWeap.fireDelay - this.shotSlowdownTimer > 0.25) {
+        if (
+            this.shotSlowdownTimer > 0 &&
+            curWeap.fireDelay - this.shotSlowdownTimer > 0.25
+        ) {
             this.weaponManager.setCurWeapIndex(1 - this.weaponManager.curWeapIdx);
         }
     }
