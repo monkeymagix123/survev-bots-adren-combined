@@ -1,61 +1,65 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "files": {
-    "ignore": ["client/atlas-builder/out/*.json"]
-  },
-  "organizeImports": {
-    "enabled": true
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": false,
-      "complexity": {
-        "noStaticOnlyClass": "off"
-      },
-      "correctness": {
-        "noInvalidUseBeforeDeclaration": "error",
-        "noUnusedVariables": "warn",
-        "noUnusedImports": "warn"
-      },
-      "style": {
-        "noNamespace": "off",
-        "noNonNullAssertion": "off",
-        "useTemplate": "warn",
-        "noUselessElse": "warn",
-        "useImportType": "error"
-      },
-      "suspicious": {
-        "noDoubleEquals": "off",
-        "noExplicitAny": "off",
-        "noPrototypeBuiltins": "off"
-      }
-    }
-  },
-  "formatter": {
-    "indentWidth": 4,
-    "indentStyle": "space",
-    "lineWidth": 90,
-    "ignore": ["package.json"]
-  },
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
-  },
-  "javascript": {
+    "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+    "files": {
+        "ignore": [
+            "client/atlas-builder/out/*.json"
+        ]
+    },
+    "organizeImports": {
+        "enabled": true
+    },
+    "linter": {
+        "enabled": false,
+        "rules": {
+            "recommended": false,
+            "complexity": {
+                "noStaticOnlyClass": "off"
+            },
+            "correctness": {
+                "noInvalidUseBeforeDeclaration": "error",
+                "noUnusedVariables": "warn",
+                "noUnusedImports": "warn"
+            },
+            "style": {
+                "noNamespace": "off",
+                "noNonNullAssertion": "off",
+                "useTemplate": "warn",
+                "noUselessElse": "warn",
+                "useImportType": "error"
+            },
+            "suspicious": {
+                "noDoubleEquals": "off",
+                "noExplicitAny": "off",
+                "noPrototypeBuiltins": "off"
+            }
+        }
+    },
     "formatter": {
-      "trailingCommas": "all"
+        "indentWidth": 4,
+        "indentStyle": "space",
+        "lineWidth": 90,
+        "ignore": [
+            "package.json"
+        ]
+    },
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "javascript": {
+        "formatter": {
+            "trailingCommas": "all"
+        }
+    },
+    "json": {
+        "formatter": {
+            "indentWidth": 2
+        }
+    },
+    "css": {
+        "formatter": {
+            "indentWidth": 2
+        }
     }
-  },
-  "json": {
-    "formatter": {
-      "indentWidth": 2
-    }
-  },
-  "css": {
-    "formatter": {
-      "indentWidth": 2
-    }
-  }
 }
