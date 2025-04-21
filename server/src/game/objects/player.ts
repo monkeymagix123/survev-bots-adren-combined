@@ -1,5 +1,3 @@
-import { get } from "http";
-import namesData from "./names.json";
 import {
     GameObjectDefs,
     type LootDef,
@@ -47,6 +45,7 @@ import { WeaponManager, throwableList } from "../weaponManager";
 import { BaseGameObject, type DamageParams, type GameObject } from "./gameObject";
 import type { Loot } from "./loot";
 import type { MapIndicator } from "./mapIndicator";
+import namesData from "./names.json";
 import type { Obstacle } from "./obstacle";
 
 interface Emote {
@@ -315,21 +314,11 @@ export class PlayerBarn {
         }
     }
 
-    addBot(n: number, layer: number, group: Group | undefined, team: Team | undefined, prob = 0.1, player: Player, socketId: string, joinMsg: net.JoinMsg, isFaction = false) {
+    addBot(n: number, layer: number, group: Group | undefined, team: Team | undefined, _prob = 0.1, player: Player, socketId: string, joinMsg: net.JoinMsg, isFaction = false) {
         if (group == undefined) {
             group = this.addGroup(false);
         }
         for (let i = 0; i < n; i++) {
-            // new group
-            // let group = this.addGroup(false);
-
-            // if teams of bots
-            let hashList = ["test1", "test2", "test3", "test4", "test5"];
-            // let hashList: string[] = [];
-            if (isFaction) {
-                hashList = [];
-            }
-
             // bot
             let pos2: Vec2;
             if (!isFaction) {
@@ -340,7 +329,7 @@ export class PlayerBarn {
 
             const bot = new Bot(this.game, pos2, layer, socketId, joinMsg);
 
-            bot.name = "Bot-" + namesData.names[Math.floor(Math.random() * namesData.names.length)];;
+            bot.name = `Bot-${namesData.names[Math.floor(Math.random() * namesData.names.length)]}`;
             group.addPlayer(bot);
 
             bot.group = group;
@@ -2433,7 +2422,7 @@ export class Player extends BaseGameObject {
             if (indicator.dirty || !this.visibleMapIndicators.has(indicator)) {
                 updateMsg.mapIndicators.push(indicator);
                 this.visibleMapIndicators.add(indicator);
-            } 
+            }
             if (indicator.dead) {
                 this.visibleMapIndicators.delete(indicator);
             }
@@ -2803,7 +2792,7 @@ export class Player extends BaseGameObject {
         if (this.game.map.factionMode) {
             // lone survivr can be given on knock or kill
             this.team!.checkAndApplyLastMan();
-
+    
             //golden airdrops depend on alive counts, so we only do this logic on kill
             if (this.game.planeBarn.canDropSpecialAirdrop()) {
                 this.game.planeBarn.addSpecialAirdrop();
@@ -4595,7 +4584,6 @@ export class Bot extends Player {
         this.name = "Bot";
         this.isMobile = false;
         this.setOutfit("outfitDarkGloves");
-        const loadout = this.loadout;
 
         // set random weapons
         // currently mosin + spas12
@@ -4679,8 +4667,6 @@ export class Bot extends Player {
             this.dir = v2.directionNormalized(this.posOld, v2.add(closestPlayer.pos, v2.mul(closestPlayer.moveVel, k)));
         }
 
-        let dd = 1;
-
         this.shootHold = false;
         this.shootStart = false;
 
@@ -4747,7 +4733,7 @@ export class Bot extends Player {
     msgStream = new net.MsgStream(new ArrayBuffer(65536));
 
     // only thing using socketId
-    sendData(buffer: ArrayBuffer | Uint8Array): void {
+    sendData(_buffer: ArrayBuffer | Uint8Array): void {
         // this.game.sendSocketMsg(this.socketId, buffer);
         this.move();
     }
@@ -4889,8 +4875,6 @@ export class Bot extends Player {
     }
 
     heal(): void {
-        let r1 = Math.random();
-
         // heal up
         if (this.inventory.medkit > 0 && this.health < 30 && this.actionItem != "medkit") {
             this.runAway();
@@ -4979,8 +4963,6 @@ export class DumBot extends Bot {
             this.dir = v2.directionNormalized(this.posOld, closestPlayer.pos);
         }
 
-        let dd = 1;
-
         this.shootHold = false;
         this.shootStart = false;
 
@@ -5021,7 +5003,7 @@ export class DumBot extends Bot {
     msgStream = new net.MsgStream(new ArrayBuffer(65536));
 
     // only thing using socketId
-    sendData(buffer: ArrayBuffer | Uint8Array): void {
+    sendData(__idbuffer: ArrayBuffer | Uint8Array): void {
         // this.game.sendSocketMsg(this.socketId, buffer);
         this.move();
     }

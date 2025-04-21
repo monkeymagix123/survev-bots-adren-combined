@@ -388,9 +388,9 @@ export class Obstacle extends BaseGameObject {
             if (params.gameSourceType) {
                 const sourceDef = GameObjectDefs[params.gameSourceType] as
                     | {
-                          armorPiercing?: boolean;
-                          stonePiercing?: boolean;
-                      }
+                        armorPiercing?: boolean;
+                        stonePiercing?: boolean;
+                    }
                     | undefined;
                 armorPiercing = sourceDef?.armorPiercing ?? false;
                 stonePiercing = sourceDef?.stonePiercing ?? false;
