@@ -13,6 +13,11 @@
     "thisRegion": "na",
     "modes": [
         {
+            "mapName": "faction",
+            "teamMode": 4,
+            "enabled": true
+        },
+        {
             "mapName": "potato",
             "teamMode": 1,
             "enabled": true
@@ -20,11 +25,6 @@
         {
             "mapName": "cobalt",
             "teamMode": 2,
-            "enabled": true
-        },
-        {
-            "mapName": "faction",
-            "teamMode": 4,
             "enabled": true
         }
     ]
