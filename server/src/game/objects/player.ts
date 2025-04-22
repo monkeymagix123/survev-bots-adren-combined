@@ -4786,7 +4786,7 @@ export class Bot extends Player {
     // test
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         // super(game, pos, socketId, joinMsg);
-        super(game, pos, layer, socketId, joinMsg);
+        super(game, pos, layer, socketId, joinMsg, "0.0.0.0", "0.0.0.0", null);
 
         // prob use same joinMsg?
 
