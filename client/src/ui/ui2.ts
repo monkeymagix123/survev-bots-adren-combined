@@ -1125,7 +1125,7 @@ export class UiManager2 {
             for (let T = 0; T < v.length; T++) {
                 I += v[T];
             }
-            for (let P = state.boost / 100, C = 0; C < dom.boost.bars.length; C++) {
+            for (let P = state.boost / 400, C = 0; C < dom.boost.bars.length; C++) {
                 const A = v[C] / I;
                 const O = math.clamp(P / A, 0, 1);
                 P = math.max(P - A, 0);

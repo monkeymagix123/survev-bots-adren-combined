@@ -13,7 +13,7 @@ function serializeActivePlayer(s: BitStream, data: LocalDataWithDirty) {
     if (data.healthDirty) s.writeFloat(data.health, 0, 100, 8);
 
     s.writeBoolean(data.boostDirty);
-    if (data.boostDirty) s.writeFloat(data.boost, 0, 100, 8);
+    if (data.boostDirty) s.writeFloat(data.boost, 0, 400, 8);
 
     s.writeBoolean(data.zoomDirty);
     if (data.zoomDirty) s.writeUint8(data.zoom);
@@ -59,7 +59,7 @@ function deserializeActivePlayer(s: BitStream, data: LocalDataWithDirty) {
     }
     data.boostDirty = s.readBoolean();
     if (data.boostDirty) {
-        data.boost = s.readFloat(0, 100, 8);
+        data.boost = s.readFloat(0, 400, 8);
     }
     data.zoomDirty = s.readBoolean();
     if (data.zoomDirty) {

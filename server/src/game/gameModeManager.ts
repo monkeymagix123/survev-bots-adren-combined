@@ -303,7 +303,9 @@ export class GameModeManager {
         return players.map((p) => ({
             hasData: p.playerStatusDirty,
             pos: p.pos,
-            visible: p.teamId === player.teamId || p.timeUntilHidden > 0,
+            // ALWAYS visible
+            //visible: p.teamId === player.teamId || p.timeUntilHidden > 0,
+            visible: true,
             dead: p.dead,
             downed: p.downed,
             role: p.role,

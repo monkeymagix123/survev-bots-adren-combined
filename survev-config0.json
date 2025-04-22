@@ -1,19 +1,19 @@
 {
     "apiKey": "j0wo7RY0pYgD6W2mEy2wLa7VE4olUPD1r2hZma8FU6o=",
     "gameServer": {
-        "apiServerUrl": "https://new-client.tailf587b3.ts.net/api"
+        "apiServerUrl": "http://35.209.193.213/api"
     },
     "regions": {
         "na": {
-            "https": true,
-            "address": "new-server.tailf587b3.ts.net",
+            "https": false,
+            "address": "35.209.193.213:8001",
             "l10n": "index-north-america"
         }
     },
     "thisRegion": "na",
     "modes": [
         {
-            "mapName": "main",
+            "mapName": "potato",
             "teamMode": 1,
             "enabled": true
         },

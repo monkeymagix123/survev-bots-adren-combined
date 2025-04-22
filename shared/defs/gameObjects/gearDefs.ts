@@ -318,7 +318,7 @@ const BoostDefs: Record<string, BoostDef> = {
     soda: {
         name: "Soda",
         type: "boost",
-        useTime: 3,
+        useTime: 1,
         boost: 25,
         lootImg: {
             sprite: "loot-medical-soda.img",
@@ -340,7 +340,7 @@ const BoostDefs: Record<string, BoostDef> = {
     painkiller: {
         name: "Pills",
         type: "boost",
-        useTime: 5,
+        useTime: 2,
         boost: 50,
         lootImg: {
             sprite: "loot-medical-pill.img",
@@ -396,7 +396,7 @@ const HealDefs: Record<string, HealDef> = {
     bandage: {
         name: "Bandage",
         type: "heal",
-        useTime: 3,
+        useTime: 2,
         heal: 15,
         maxHeal: 100,
         lootImg: {
@@ -419,7 +419,7 @@ const HealDefs: Record<string, HealDef> = {
     healthkit: {
         name: "Med Kit",
         type: "heal",
-        useTime: 6,
+        useTime: 4,
         heal: 100,
         maxHeal: 100,
         lootImg: {
