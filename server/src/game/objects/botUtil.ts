@@ -49,6 +49,9 @@ import type { Obstacle } from "./obstacle";
 
 import { Player, Bot, DumBot} from "./player";
 
+import { MapObjectDefs } from "../../../../shared/defs/mapObjectDefs";
+import { ObstacleDef } from "../../../../shared/defs/mapObjectsTyping";
+
 export class BotUtil {
     // basic utilities
     static dist2(a: Vec2, b: Vec2) {
@@ -69,6 +72,12 @@ export class BotUtil {
             return true;
 
         return false;
+    }
+
+    static randomSym(n: number): number {
+        let r = Math.random();
+
+        return (2 * r - 1) * n;
     }
 
     // actual advanced functions / utilities
@@ -179,9 +188,31 @@ export class BotUtil {
         return (this.getAllPlayers(bot, true).includes(player));
     }
 
-    static randomSym(n: number): number {
-        let r = Math.random();
+    static getCollidingObstacles(bot: Player, needDestructible = false): Obstacle[] {
+        const coll1 = collider.createCircle(bot.posOld, bot.rad * 2);
+        // const coll = bot.collider;
+        
+        let o = bot.game.grid.intersectCollider(coll1).filter((obj) => 
+            obj.__type === ObjectType.Obstacle,
+        );
 
-        return (2 * r - 1) * n;
+        o.filter((obj) => !obj.dead && !obj.destroyed && obj.collidable,);
+
+        const coll = collider.createCircle(bot.posOld, bot.rad * 1.1);
+
+        let o2 : Obstacle[] = [];
+
+        for (let i = 0; i < o.length; i++) {
+            let obj = o[i];
+            if (collider.intersect(coll, obj.collider)) {
+                o2.push(obj);
+            }
+        }
+
+        if (needDestructible) {
+            o2 = o2.filter((obj) => obj.destructible && !(MapObjectDefs[obj.type] as ObstacleDef).armorPlated && !(MapObjectDefs[obj.type] as ObstacleDef).stonePlated,);
+        }
+
+        return o2;
     }
 }

@@ -4901,6 +4901,13 @@ export class Bot extends Player {
             // don't heal if some guy is shooting
             if (BotUtil.noNearbyBullet(this))
                 this.heal();
+
+            let obs = BotUtil.getCollidingObstacles(this, true);
+            if (obs.length > 0) {
+                this.shootStart = true;
+                this.shootHold = true;
+                this.dir = v2.directionNormalized(this.posOld, obs[0].pos);
+            }
         } else if (closestPlayer != undefined) {
             this.shootHold = true;
             this.shootStart = true;
@@ -4998,7 +5005,7 @@ export class Bot extends Player {
         }
 
         // move in a straight line if no bullets in sight
-        if (BotUtil.noNearbyBullet(this)) {
+        if (!this.game.map.factionMode && BotUtil.noNearbyBullet(this)) {
             chance = 1;
         }
 
