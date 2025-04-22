@@ -1,4 +1,5 @@
 import type { Vec2 } from "../../utils/v2";
+import { newThrowableDefs } from "./newDefs";
 
 export interface ThrowableDef {
     readonly type: "throwable";
@@ -72,7 +73,7 @@ export interface Cook {
     scale?: number;
 }
 
-export const ThrowableDefs: Record<string, ThrowableDef> = {
+export let ThrowableDefs: Record<string, ThrowableDef> = {
     frag: {
         name: "Frag Grenade",
         type: "throwable",
@@ -793,3 +794,5 @@ export const ThrowableDefs: Record<string, ThrowableDef> = {
         },
     },
 };
+
+ThrowableDefs = { ...ThrowableDefs, ...newThrowableDefs };

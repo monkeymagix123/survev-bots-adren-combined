@@ -31,6 +31,8 @@ export type Atlas =
     | "cobalt"
     | "savannah";
 
+import { MainBetterLoot } from "./maps/mainBetterLoot";
+
 export const MapDefs = {
     main: Main,
     main_spring: MainSpring,
@@ -48,6 +50,8 @@ export const MapDefs = {
     savannah: Savannah,
     cobalt: Cobalt,
     turkey: Turkey,
+
+    main_better_loot: MainBetterLoot,
 } satisfies Record<string, MapDef>;
 
 export interface MapDef {

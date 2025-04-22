@@ -149,6 +149,11 @@ class Projectile implements AbstractObject {
                 sprite = halloweenSpriteMap[sprite] || sprite;
             }
             this.sprite.texture = PIXI.Texture.from(sprite);
+            // m79 bullet
+            if (sprite.includes("40mm")) {
+                this.sprite.texture = PIXI.Texture.from("/img/new/proj-shell-40mm.png");
+                this.imgScale *= 0.1;
+            }
             this.sprite.tint = imgDef.tint;
             this.sprite.alpha = 1;
 

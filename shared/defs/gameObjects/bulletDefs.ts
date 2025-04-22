@@ -1,4 +1,5 @@
 import { defineSkin } from "../../utils/util";
+import { newBulletDefs } from "./newDefs";
 
 export interface BulletDef {
     readonly type: "bullet";
@@ -840,4 +841,4 @@ const SkinDefs: Record<string, BulletDef> = {
     }),
 };
 
-export const BulletDefs: Record<string, BulletDef> = { ...BaseDefs, ...SkinDefs };
+export const BulletDefs: Record<string, BulletDef> = { ...BaseDefs, ...SkinDefs, ...newBulletDefs };

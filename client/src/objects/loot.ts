@@ -20,6 +20,8 @@ import { Pool } from "./objectPool";
 import type { Emitter, ParticleBarn } from "./particles";
 import type { AbstractObject, Player } from "./player";
 
+import { newGuns } from "../../../shared/defs/newGuns";
+
 export class Loot implements AbstractObject {
     __id!: number;
     __type!: ObjectType.Loot;
@@ -119,6 +121,20 @@ export class Loot implements AbstractObject {
                 0.8;
             this.sprite.scale.set(innerScale, innerScale);
             this.sprite.texture = PIXI.Texture.from(itemDef.lootImg?.sprite);
+            // new guns
+            newGuns.forEach((newgun) => {
+                if (itemDef.lootImg?.sprite.includes(newgun)) {
+                    let lootImg = itemDef.lootImg.sprite;
+                    this.sprite.texture = PIXI.Texture.from(`/img/new/${lootImg}`);
+                    if (newgun === "m134")
+                        this.sprite.scale.set(0.037);
+                    else if (newgun === "pkm")
+                        this.sprite.scale.set(0.14);
+                    // this.sprite.scale.set(0.1);
+                    else
+                        this.sprite.scale.set(0.09);
+                }
+            });
             this.sprite.tint = itemDef.lootImg?.tint;
             this.container.texture = itemDef.lootImg.border
                 ? PIXI.Texture.from(itemDef.lootImg.border)
@@ -145,6 +161,16 @@ export class Loot implements AbstractObject {
             this.sprite.rotation = (itemDef as MeleeDef)?.lootImg?.rot
                 ? (itemDef as MeleeDef).lootImg.rot!
                 : 0;
+            
+            // dont rescale if new
+            let isoldgun = true;
+            newGuns.forEach((newgun) => {
+                if (itemDef.lootImg.sprite.includes(newgun)) {
+                    isoldgun = false;
+                }
+            });
+
+            if (isoldgun)
             this.sprite.scale.x = (itemDef as MeleeDef).lootImg.mirror
                 ? -innerScale
                 : innerScale;

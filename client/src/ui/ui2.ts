@@ -27,6 +27,9 @@ import type { Obstacle } from "../objects/obstacle";
 import type { Player, PlayerBarn } from "../objects/player";
 import type { Localization } from "./localization";
 
+import { newGuns } from "../../../shared/defs/newGuns";
+import { GunDefs } from "../../../shared/defs/gameObjects/gunDefs";
+
 const maxKillFeedLines = 6;
 const touchHoldDuration = 0.75 * 1000;
 const perkUiCount = 3;
@@ -1166,6 +1169,11 @@ export class UiManager2 {
                 }
                 R.type.innerHTML = q;
                 R.image.src = helpers.getSvgFromGameType(L.type);
+                newGuns.forEach((newgun) => {
+                    if (L.type.includes(newgun)) {
+                        R.image.src = `img/new/${GunDefs[newgun].lootImg.sprite}`; 
+                    }
+                });
                 R.image.style.display = j ? "inline" : "none";
                 R.image.style.transform = F;
             }
@@ -1688,6 +1696,7 @@ export function loadStaticDomImages() {
         "ui-loot-308sub": "img/loot/loot-ammo-box.svg",
         "ui-loot-flare": "img/loot/loot-ammo-box.svg",
         "ui-loot-45acp": "img/loot/loot-ammo-box.svg",
+        "ui-loot-40mm": "img/loot/loot-ammo-box.svg", // duh??
     };
 
     for (const [id, img] of Object.entries(lootImages)) {

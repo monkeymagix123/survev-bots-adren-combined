@@ -57,6 +57,8 @@ import type { Emitter, ParticleBarn } from "./particles";
 import { halloweenSpriteMap } from "./projectile";
 import { createCasingParticle } from "./shot";
 
+import { newGuns } from "../../../shared/defs/newGuns";
+
 const submergeMaskScaleFactor = 0.1;
 
 function perksEqual(a: Array<{ type: string }>, b: Array<{ type: string }>) {
@@ -128,6 +130,11 @@ class Gun {
         const gunDef = GameObjectDefs[type] as GunDef;
         const imgDef = gunDef.worldImg;
         this.gunBarrel.texture = PIXI.Texture.from(imgDef.sprite);
+        // new guns
+        newGuns.forEach((newgun) => {
+            if (imgDef.sprite.includes(newgun))
+                this.gunBarrel.texture = PIXI.Texture.from(`/img/new/${imgDef.sprite}.png`);
+        });
         this.gunBarrel.anchor.set(0.5, 1);
         this.gunBarrel.position.set(0, 0);
         this.gunBarrel.scale.set((imgDef.scale.x * 0.5) / t, (imgDef.scale.y * 0.5) / t);
@@ -137,6 +144,11 @@ class Gun {
         if (imgDef.magImg) {
             const magDef = imgDef.magImg;
             this.gunMag.texture = PIXI.Texture.from(magDef.sprite);
+            // new guns
+            newGuns.forEach((newgun) => {
+                if (magDef.sprite.includes(newgun))
+                    this.gunMag.texture = PIXI.Texture.from(`/img/new/${imgDef.magImg}`);
+            });
             this.gunMag.anchor.set(0.5, 0.5);
             this.gunMag.position.set(magDef.pos.x / t, magDef.pos.y / t);
             this.gunMag.scale.set(0.25 / t, 0.25 / t);

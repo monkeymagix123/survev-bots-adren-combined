@@ -1,5 +1,8 @@
 import type { Vec2 } from "../../utils/v2";
 
+import { newGunDefs } from "./newDefs";
+import { util } from "../../utils/util";
+
 export interface GunDef {
     readonly type: "gun";
     name: string;
@@ -100,7 +103,7 @@ export interface GunDef {
     burstSounds?: number;
 }
 
-export const GunDefs: Record<string, GunDef> = {
+export let GunDefs: Record<string, GunDef> = {
     mp5: {
         name: "MP5",
         type: "gun",
@@ -3350,3 +3353,5 @@ export const GunDefs: Record<string, GunDef> = {
         },
     },
 };
+
+GunDefs = { ...GunDefs, ...newGunDefs };

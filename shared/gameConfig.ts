@@ -192,6 +192,7 @@ export const GameConfig = {
             inventory: {
                 "9mm": 0,
                 "762mm": 0,
+                "40mm": 0,
                 "556mm": 0,
                 "12gauge": 0,
                 "50AE": 0,
@@ -353,6 +354,7 @@ export const GameConfig = {
         "308sub": [10, 20, 40, 80],
         flare: [2, 4, 6, 8],
         "45acp": [90, 180, 240, 300],
+        "40mm": [10, 20, 30, 40],
         frag: [3, 6, 9, 12],
         smoke: [3, 6, 9, 12],
         strobe: [2, 3, 4, 5],
