@@ -201,8 +201,6 @@ export class PlayerBarn {
             }
         }
 
-        //a
-
         if (player.game.map.perkMode) {
             /*
              * +5 because the client has its own timer
