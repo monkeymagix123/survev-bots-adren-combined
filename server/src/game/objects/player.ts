@@ -5046,7 +5046,7 @@ export class Bot extends Player {
         let r2 = Math.random();
         
         // if bullet visible, dont walk in straight line
-        let c = chance === 1 ? 0.05: 0.1;
+        let c = chance === 1 ? 0.05: 0.17;
         // hmm change this if stuck
 
         if (diffMoveH) {
