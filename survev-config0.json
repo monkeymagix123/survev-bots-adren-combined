@@ -1,0 +1,31 @@
+{
+    "apiKey": "j0wo7RY0pYgD6W2mEy2wLa7VE4olUPD1r2hZma8FU6o=",
+    "gameServer": {
+        "apiServerUrl": "https://new-client.tailf587b3.ts.net/api"
+    },
+    "regions": {
+        "na": {
+            "https": true,
+            "address": "new-server.tailf587b3.ts.net",
+            "l10n": "index-north-america"
+        }
+    },
+    "thisRegion": "na",
+    "modes": [
+        {
+            "mapName": "main",
+            "teamMode": 1,
+            "enabled": true
+        },
+        {
+            "mapName": "cobalt",
+            "teamMode": 2,
+            "enabled": true
+        },
+        {
+            "mapName": "faction",
+            "teamMode": 4,
+            "enabled": true
+        }
+    ]
+}
