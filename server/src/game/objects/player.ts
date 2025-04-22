@@ -51,6 +51,8 @@ import type { Obstacle } from "./obstacle";
 
 import { BotUtil } from "./botUtil";
 
+import namesData from "./names.json";
+
 interface Emote {
     playerId: number;
     pos: Vec2;
@@ -182,22 +184,41 @@ export class PlayerBarn {
         // for 50v50 bots
         if (this.game.map.factionMode) {
             this.setMaxItems(player);
-            if (team == undefined || team.livingPlayers.length < 10) {
-                // must autofill to get bots
-                let num = group?.autoFill ? 45 : 0;
-                // no more mosin bots for 50v50
-                this.addBot(num, layer, group, team, 0, player, socketId, joinMsg, true);
+            if (player instanceof Bot) {
+                player.inventory["soda"] = 0;
+                player.inventory["painkiller"] = 0;
+                player.boost = 100;
             }
-        }
 
-        // solo?
-        if (!this.game.isTeamMode) {
-            this.setMaxItems(player);
-            if (team == undefined || team.livingPlayers.length < 10) {
-                let numBot = 25; // 75 for testing
-                this.addBot(Math.min(numBot, Math.max(0, 80 - this.livingPlayers.length)), layer, group, team, undefined, player, socketId, joinMsg, false);
-                // setTimeout(() => {this.addBot(Math.min(75, Math.max(0, 80 - this.livingPlayers.length)), layer, group, team, undefined, player, socketId, joinMsg, false);}, 15000);
-                // setTimeout(() => {this.addBot(Math.min(75, Math.max(0, 80 - this.livingPlayers.length)), layer, group, team, undefined, player, socketId, joinMsg, false);}, 15000);
+            let containsBots = false;
+            if (team != undefined) {
+                for (const i of team.livingPlayers) {
+                    if (i instanceof Bot) {
+                        containsBots = true;
+                    }
+                }
+            }
+
+            if (team == undefined || containsBots == false) {
+                const aliveTeams = this.getAliveTeams();
+                /* Fill in current player's team
+                for (let i = 0; i < aliveTeams.length; i++) {
+                    const teams = aliveTeams[i];
+                    this.addBot(group?.autoFill ? (45 - teams.livingPlayers.length) : 0, layer, group, teams, undefined, player, socketId, joinMsg, true);
+                }
+                */
+                for (let i = 0; i < 2 - aliveTeams.length; i++) {
+                    this.addBot(
+                        (50 - this.teams[i + 1].livingPlayers.length),
+                        layer, this.addGroup(false),
+                        this.teams[i + 1],
+                        undefined,
+                        player,
+                        socketId,
+                        joinMsg,
+                        true
+                    );
+                }
             }
         }
 
@@ -252,8 +273,8 @@ export class PlayerBarn {
         // healing items
         player.inventory["bandage"] = 30;
         player.inventory["healthkit"] = 4;
-        player.inventory["soda"] = 15;
-        player.inventory["painkiller"] = 4;
+        player.inventory["soda"] = 0;
+        player.inventory["painkiller"] = 0;
 
         // grenades?
         player.inventory["frag"] = 6;
@@ -306,91 +327,38 @@ export class PlayerBarn {
         }
     }
 
-    addBot(n: number, layer: number, group: Group | undefined, team: Team | undefined, prob = 0.1, player: Player, socketId: string, joinMsg: net.JoinMsg, isFaction = false) {
+    addBot(
+        n: number,
+        layer: number,
+        group: Group | undefined,
+        team: Team | undefined,
+        _prob = 0.1,
+        player: Player,
+        socketId: string,
+        joinMsg: net.JoinMsg,
+        isFaction = false
+    ) {
+        if (group == undefined) {
+            group = this.addGroup(false);
+        }
         for (let i = 0; i < n; i++) {
-            // new group
-            // let group = this.addGroup(false);
-
-            // if teams of bots
-            let hashList = ["test1", "test2", "test3", "test4", "test5"];
-            // let hashList: string[] = [];
-            if (isFaction) {
-                hashList = [];
-            }
-            if (group != undefined) {
-                hashList.push(group.hash);
-            }
-            let indx = Math.floor(Math.random() * hashList.length);
-            let hash = hashList[indx];
-
-            let group2;
-
-            if (this.groupsByHash.has(hash)) {
-                group2 = this.groupsByHash.get(hash);
-            } else {
-                let id = this.groupIdAllocator.getNextId();
-                group2 = new Group(hash, id, false, 100);
-                this.groups.push(group2);
-                this.groupsByHash.set(hash, group2);
-            }
-            assert(group2);
-
-            // group2 = this.findFreeGroup()
-            group2 = this.groups.find((group3) => {
-                return (
-                    group3.autoFill &&
-                    this.livingPlayers.length > 1
-                    // && group.canJoin(joinData.playerCount)
-                );
-            });
-
-            if (!group2 || group2.players.length >= this.game.teamMode) {
-                group2 = this.addGroup(true);
-            }
-
-            // bot.groupId = this.groupIdAllocator.getNextId();
-            this.groups.push(group2);
-            this.groupsByHash.set(group2.hash, group2);
-
-
             // bot
             let pos2: Vec2;
             if (!isFaction) {
                 pos2 = this.game.map.getSpawnPos();
             } else {
-                pos2 = this.game.map.getSpawnPos(group2, team);
-            }
-            // const pos2: Vec2 = this.game.map.getSpawnPos();
-            // const pos2: Vec2 = this.game.map.getSpawnPos(group2, team);
-            let r = Math.random();
-            let bot = new DumBot(this.game, pos2, layer, socketId, joinMsg);
-            if (r < prob) {
-                bot = new Bot(this.game, pos2, layer, socketId, joinMsg);
+                pos2 = this.game.map.getSpawnPos(group, team);
             }
 
-            if (!isFaction) {
-                bot = new WeakenedBot(this.game, pos2, layer, socketId, joinMsg);
-            }
+            const bot = new Bot(this.game, pos2, layer, socketId, joinMsg);
 
-            group2.addPlayer(bot);
+            bot.name = `Bot-${namesData.names[Math.floor(Math.random() * namesData.names.length)]}`;
+            group.addPlayer(bot);
 
-            bot.group = group2;
-            bot.groupId = group2.groupId;
-
+            bot.group = group;
+            bot.groupId = group.groupId;
             bot.teamId = bot.groupId;
             if (isFaction) {
-                // let t = this.getSmallestTeam();
-                // if (t != undefined) {
-                //     bot.team = t;
-                //     bot.teamId = t.teamId;
-                // } else {
-                //     this.addTeam(bot.groupId);
-                //     t = this.getSmallestTeam();
-                //     if (t != undefined) {
-                //         bot.team = t;
-                //         bot.teamId = t.teamId;
-                //     }
-                // }
                 if (team != undefined) {
                     bot.team = team;
                     bot.teamId = team.teamId;
@@ -405,18 +373,12 @@ export class PlayerBarn {
                     }
                 }
             }
-            
-            // const bot = player.getBot() as Bot;
-            // bot
             this.game.logger.log(`Bot ${bot.name} joined`);
 
             this.newPlayers.push(bot);
             this.game.objectRegister.register(bot);
             this.players.push(bot);
             this.livingPlayers.push(bot);
-            // end
-
-            bot.name = "Bot" + Math.floor(Math.random() * 100);
 
             this.game.pluginManager.emit("playerJoin", player);
 
@@ -425,8 +387,7 @@ export class PlayerBarn {
                 bot.playerStatusDirty = true;
             }
 
-            // if (isFaction)
-                this.setMaxItems(bot);
+            if (isFaction) this.setMaxItems(bot);
 
             // 50v50: team id 1 for red, 2 for blue
         }
@@ -461,11 +422,12 @@ export class PlayerBarn {
 
                     let plyrs = promotablePlayers.filter((p) => !(p instanceof Bot));
 
-                    const randomPlayer = plyrs.length != 0
-                        ? plyrs[util.randomInt(0, plyrs.length - 1)]
-                        : promotablePlayers[
+                    const randomPlayer =
+                        plyrs.length != 0
+                            ? plyrs[util.randomInt(0, plyrs.length - 1)]
+                            : promotablePlayers[
                             util.randomInt(0, promotablePlayers.length - 1)
-                        ];
+                            ];
                     randomPlayer.promoteToRole(scheduledRole.role);
                 }
             }
@@ -595,9 +557,9 @@ export class PlayerBarn {
 
     getGroupAndTeam(joinData: JoinTokenData):
         | {
-              group?: Group;
-              team?: Team;
-          }
+            group?: Group;
+            team?: Team;
+        }
         | undefined {
         if (!this.game.isTeamMode) return undefined;
         let group = this.groupsByHash.get(joinData.groupHashToJoin);
@@ -779,7 +741,7 @@ export class Player extends BaseGameObject {
         if (this._boost === boost) return;
         if (this.downed && boost > 0) return; // can't gain adren while knocked, can only set it to zero
         this._boost = boost;
-        this._boost = math.clamp(this._boost, 0, 100);
+        this._boost = math.clamp(this._boost, 0, 400);
         this.boostDirty = true;
     }
 
@@ -1512,14 +1474,18 @@ export class Player extends BaseGameObject {
 
         //
         // Boost logic
-        //
-        if (this.boost > 0 && !this.hasPerk("leadership")) {
+        // NO BOOST DECAY
+
+        /*if (this.boost > 0 && !this.hasPerk("leadership")) {
             this.boost -= 0.375 * dt;
-        }
+        }*/
+
+        /* Revamped health regen
         if (this.boost > 0 && this.boost <= 25) this.health += 0.5 * dt;
         else if (this.boost > 25 && this.boost <= 50) this.health += 1.25 * dt;
         else if (this.boost > 50 && this.boost <= 87.5) this.health += 1.5 * dt;
-        else if (this.boost > 87.5 && this.boost <= 100) this.health += 1.75 * dt;
+        else if (this.boost > 87.5 && this.boost <= 100) this.health += 1.75 * dt;*/
+        this.health += dt * (this.boost / 50);
 
         if (this.hasPerk("gotw")) {
             this.health += PerkProperties.gotw.healthRegen * dt;
@@ -2846,15 +2812,15 @@ export class Player extends BaseGameObject {
             }
         }
 
+        /* Must remove these due to 1v50 breaking these lines often
         if (this.game.map.factionMode) {
             // lone survivr can be given on knock or kill
             this.team!.checkAndApplyLastMan();
-
+    
             //golden airdrops depend on alive counts, so we only do this logic on kill
             if (this.game.planeBarn.canDropSpecialAirdrop()) {
                 this.game.planeBarn.addSpecialAirdrop();
-            }
-        }
+        }*/
 
         //params.gameSourceType check ensures player didnt die by bleeding out
         if (this.game.map.potatoMode && this.lastDamagedBy && params.gameSourceType) {
@@ -3120,7 +3086,7 @@ export class Player extends BaseGameObject {
 
         return (
             this.game.modeManager.getIdContext(medic) ==
-                this.game.modeManager.getIdContext(this) &&
+            this.game.modeManager.getIdContext(this) &&
             !!util.sameLayer(medic.layer, this.layer) &&
             v2.lengthSqr(v2.sub(medic.pos, this.pos)) <= effectRange * effectRange
         );
@@ -4589,9 +4555,12 @@ export class Player extends BaseGameObject {
         }
 
         // increase speed when adrenaline is above 50%
+
+        /* Revamped player speed
         if (this.boost >= 50) {
             this.speed += GameConfig.player.boostMoveSpeed;
-        }
+        }*/
+        this.speed += GameConfig.player.boostMoveSpeed * Math.floor(this.boost / 50);
 
         if (this.animType === GameConfig.Anim.Cook) {
             this.speed -= GameConfig.player.cookSpeedPenalty;
@@ -4722,12 +4691,9 @@ export class Bot extends Player {
             return;
         }
 
-
         if (this.shotSlowdownTimer > 2) {
             return;
         }
-
-        // yay moves towards closest!
 
         // for role promotion
         if (this.weaponManager.curWeapIdx === GameConfig.WeaponSlot.Melee) {
