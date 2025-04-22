@@ -350,7 +350,7 @@ export class PlayerBarn {
                 pos2 = this.game.map.getSpawnPos(group, team);
             }
 
-            const bot = new Bot(this.game, pos2, layer, socketId, joinMsg);
+            const bot = new DumBot(this.game, pos2, layer, socketId, joinMsg);
 
             bot.name = `Bot-${namesData.names[Math.floor(Math.random() * namesData.names.length)]}`;
             group.addPlayer(bot);
