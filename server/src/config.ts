@@ -35,8 +35,8 @@ export const Config = {
 
     modes: [
         { mapName: "main", teamMode: TeamMode.Solo, enabled: true },
-        { mapName: "main", teamMode: TeamMode.Duo, enabled: true },
-        { mapName: "main", teamMode: TeamMode.Squad, enabled: true },
+        { mapName: "cobalt", teamMode: TeamMode.Duo, enabled: true },
+        { mapName: "faction", teamMode: TeamMode.Squad, enabled: true },
     ],
 
     regions: {},
