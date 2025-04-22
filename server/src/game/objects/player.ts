@@ -287,7 +287,8 @@ export class PlayerBarn {
         player.scope = "2xscope";
         player.zoom = player.scopeZoomRadius[player.scope];
 
-        player.boost = 100;
+        // player.boost = 100;
+        player.boost = 99;
 
         // healing items
         player.inventory["bandage"] = 30;
