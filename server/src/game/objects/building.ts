@@ -8,10 +8,10 @@ import { Puzzles } from "../../../../shared/defs/puzzles";
 import { ObjectType } from "../../../../shared/net/objectSerializeFns";
 import { type AABB, type Collider, coldet } from "../../../../shared/utils/coldet";
 import { collider } from "../../../../shared/utils/collider";
+import { mapHelpers } from "../../../../shared/utils/mapHelpers";
 import { math } from "../../../../shared/utils/math";
 import { type Vec2, v2 } from "../../../../shared/utils/v2";
 import type { Game } from "../game";
-import { getColliders } from "../map";
 import type { Decal } from "./decal";
 import { BaseGameObject } from "./gameObject";
 import { Obstacle } from "./obstacle";
@@ -93,14 +93,8 @@ export class Building extends BaseGameObject {
 
         this.zIdx = def.zIdx ?? 0;
 
-        const bounds = getColliders(type);
-
-        this.mapObstacleBounds = bounds.ground.map((coll) => {
-            return collider.transform(coll, pos, this.rot, 1);
-        });
-
         this.bounds = collider.transform(
-            bounds.gridBound,
+            mapHelpers.getBoundingCollider(type),
             v2.create(0, 0),
             this.rot,
             1,
@@ -208,6 +202,83 @@ export class Building extends BaseGameObject {
         }
     }
 
+    delete(): void {
+        const dfs = (obj: Obstacle | Building | Structure | Decal) => {
+            switch (obj.__type) {
+                case ObjectType.Obstacle:
+                case ObjectType.Decal:
+                    obj.destroy();
+                    break;
+                case ObjectType.Building:
+                    for (let i = 0; i < obj.childObjects.length; i++) {
+                        const childObj = obj.childObjects[i];
+                        dfs(childObj);
+                    }
+                    obj.destroy();
+                    break;
+                case ObjectType.Structure:
+                    const topFloor = this.game.objectRegister.getById(
+                        obj.layerObjIds[0],
+                    ) as Building;
+                    const bottomFloor = this.game.objectRegister.getById(
+                        obj.layerObjIds[1],
+                    ) as Building;
+                    dfs(topFloor);
+                    dfs(bottomFloor);
+                    break;
+            }
+        };
+        dfs(this);
+    }
+
+    refresh(): void {
+        this.game.map.genBuilding(
+            this.type,
+            v2.copy(this.pos),
+            this.layer,
+            this.ori,
+            this.parentStructure?.__id,
+            undefined,
+            true,
+        );
+        this.delete();
+    }
+
+    updatePos(newPos: Vec2): void {
+        const deltaPos = v2.sub(newPos, this.pos);
+        const dfs = (obj: Obstacle | Building | Structure | Decal) => {
+            obj.pos = v2.add(obj.pos, deltaPos);
+            this.game.map.clampToMapBounds(obj.pos);
+            switch (obj.__type) {
+                case ObjectType.Obstacle:
+                    obj.setPartDirty();
+                    break;
+                case ObjectType.Decal:
+                    obj.setDirty();
+                    break;
+                case ObjectType.Building:
+                    obj.setDirty();
+                    for (let i = 0; i < obj.childObjects.length; i++) {
+                        const childObj = obj.childObjects[i];
+                        dfs(childObj);
+                    }
+
+                    break;
+                case ObjectType.Structure:
+                    const topFloor = this.game.objectRegister.getById(
+                        obj.layerObjIds[0],
+                    ) as Building;
+                    const bottomFloor = this.game.objectRegister.getById(
+                        obj.layerObjIds[1],
+                    ) as Building;
+                    dfs(topFloor);
+                    dfs(bottomFloor);
+                    break;
+            }
+        };
+        dfs(this);
+    }
+
     puzzlePieceToggled(piece: Obstacle): void {
         if (this.puzzleResetTimeout) clearTimeout(this.puzzleResetTimeout);
 
@@ -246,7 +317,7 @@ export class Building extends BaseGameObject {
             this.puzzleResetTimeout = setTimeout(
                 this.resetPuzzle.bind(this),
                 puzzleDef.errorResetDelay * 1000,
-            );
+            ) as NodeJS.Timeout;
         } else {
             this.puzzleResetTimeout = setTimeout(() => {
                 this.puzzleErrSeq++;
@@ -256,7 +327,7 @@ export class Building extends BaseGameObject {
                     puzzleDef.errorResetDelay * 1000,
                     this,
                 );
-            }, puzzleDef.pieceResetDelay * 1000);
+            }, puzzleDef.pieceResetDelay * 1000) as NodeJS.Timeout;
         }
     }
 

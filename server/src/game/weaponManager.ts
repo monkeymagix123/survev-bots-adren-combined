@@ -52,6 +52,7 @@ export class WeaponManager {
      * @param idx index being swapped to
      * @param cancelAction cancels current action if true
      * @param shouldReload will attempt automatic reload at 0 ammo if true
+     * @param changeCooldown Weather to change the weapons cooldown, used by SwapWeapSlots to keep them the same
      * @returns
      */
     setCurWeapIndex(
@@ -59,6 +60,7 @@ export class WeaponManager {
         cancelAction = true,
         cancelSlowdown = true,
         forceSwitch = false,
+        changeCooldown = true,
     ): void {
         // if current slot is invalid and next too, switch to melee
         if (!this.activeWeapon && !this.weapons[idx].type) {
@@ -73,7 +75,19 @@ export class WeaponManager {
 
         if (idx === this._curWeapIdx) return;
         if (this.weapons[idx].type === "") return;
-        if (this.bursts.length && !forceSwitch) return;
+
+        const curWeaponDef = GameObjectDefs[this.activeWeapon] as
+            | GunDef
+            | MeleeDef
+            | ThrowableDef;
+
+        if (
+            curWeaponDef?.type === "gun" &&
+            curWeaponDef.fireMode === "burst" &&
+            this.bursts.length &&
+            !forceSwitch
+        )
+            return;
 
         this.player.cancelAnim();
 
@@ -90,12 +104,8 @@ export class WeaponManager {
         const nextWeapon = this.weapons[idx];
         let effectiveSwitchDelay = 0;
 
-        if (curWeapon.type && nextWeapon.type) {
+        if (curWeapon.type && nextWeapon.type && changeCooldown) {
             // ensure that player is still holding both weapons (didnt drop one)
-            const curWeaponDef = GameObjectDefs[this.activeWeapon] as
-                | GunDef
-                | MeleeDef
-                | ThrowableDef;
             const nextWeaponDef = GameObjectDefs[this.weapons[idx].type] as
                 | GunDef
                 | MeleeDef
@@ -183,6 +193,7 @@ export class WeaponManager {
         }
 
         if (idx === this.curWeapIdx) {
+            this.bursts.length = 0;
             this.player.setDirty();
         }
 
@@ -426,10 +437,11 @@ export class WeaponManager {
     /**
      * called when reload action completed, actually updates all state variables
      */
-    reload(): void {
-        const weaponDef = GameObjectDefs[this.activeWeapon] as GunDef;
+    reload(curWeapIdx = this.curWeapIdx): void {
+        const weapon = this.weapons[curWeapIdx];
+        const weaponDef = GameObjectDefs[weapon.type] as GunDef;
         const trueAmmoStats = this.getTrueAmmoStats(weaponDef);
-        const activeWeaponAmmo = this.weapons[this.curWeapIdx].ammo;
+        const activeWeaponAmmo = weapon.ammo;
         const spaceLeft = trueAmmoStats.trueMaxClip - activeWeaponAmmo; // if gun is 27/30 ammo, spaceLeft = 3
 
         const inv = this.player.inventory;
@@ -440,41 +452,30 @@ export class WeaponManager {
         }
 
         if (this.isInfinite(weaponDef)) {
-            this.weapons[this.curWeapIdx].ammo += math.clamp(
-                amountToReload,
-                0,
-                spaceLeft,
-            );
+            weapon.ammo += math.clamp(amountToReload, 0, spaceLeft);
         } else if (inv[weaponDef.ammo] < spaceLeft) {
             // 27/30, inv = 2
             if (trueAmmoStats.trueMaxClip != amountToReload) {
                 // m870, mosin, spas: only refill by one bullet at a time
-                this.weapons[this.curWeapIdx].ammo++;
+                weapon.ammo++;
                 inv[weaponDef.ammo]--;
             } else {
                 // mp5, sv98, ak47: refill to as much as you have left in your inventory
-                this.weapons[this.curWeapIdx].ammo += inv[weaponDef.ammo];
+                weapon.ammo += inv[weaponDef.ammo];
                 inv[weaponDef.ammo] = 0;
             }
         } else {
             // 27/30, inv = 100
-            this.weapons[this.curWeapIdx].ammo += math.clamp(
-                amountToReload,
-                0,
-                spaceLeft,
-            );
+            weapon.ammo += math.clamp(amountToReload, 0, spaceLeft);
             inv[weaponDef.ammo] -= math.clamp(amountToReload, 0, spaceLeft);
         }
 
         // if you have an m870 with 2 ammo loaded and 0 ammo left in your inventory, your actual max clip is just 2 since you cant load anymore ammo
         const realMaxClip =
             inv[weaponDef.ammo] == 0 && !this.isInfinite(weaponDef)
-                ? this.weapons[this.curWeapIdx].ammo
+                ? weapon.ammo
                 : trueAmmoStats.trueMaxClip;
-        if (
-            trueAmmoStats.trueMaxClip != amountToReload &&
-            this.weapons[this.curWeapIdx].ammo != realMaxClip
-        ) {
+        if (trueAmmoStats.trueMaxClip != amountToReload && weapon.ammo != realMaxClip) {
             this.player.reloadAgain = true;
         }
 
@@ -677,7 +678,7 @@ export class WeaponManager {
         const hasSplinter = this.player.hasPerk("splinter");
         const shouldApplyChambered =
             this.player.hasPerk("chambered") &&
-            itemDef.bulletCount === 1 &&
+            itemDef.ammo !== "12gauge" &&
             (weapon.ammo === 0 || //ammo count already decremented
                 weapon.ammo === this.getTrueAmmoStats(itemDef).trueMaxClip - 1);
 
@@ -802,6 +803,7 @@ export class WeaponManager {
                     vel,
                     projDef.fuseTime,
                     GameConfig.DamageType.Player,
+                    shotDir,
                 );
             }
 
@@ -834,6 +836,7 @@ export class WeaponManager {
                             v2.rotate(projectile.vel, math.deg2rad(deviation)),
                             projectile.fuseTime,
                             GameConfig.DamageType.Player,
+                            sParams.dir,
                         );
                     }
                 }
@@ -997,6 +1000,7 @@ export class WeaponManager {
                     damageType: GameConfig.DamageType.Player,
                     source: this.player,
                     dir: v2.neg(hit.dir),
+                    weaponSourceType: this.activeWeapon,
                 });
                 if (obj.interactable) obj.interact(this.player);
             } else if (obj.__type === ObjectType.Player) {
@@ -1100,7 +1104,7 @@ export class WeaponManager {
             ),
         );
 
-        let { dir } = this.player;
+        let dir = v2.copy(this.player.dir);
         // Aim toward a point some distance infront of the player
         if (throwableDef.aimDistance > 0.0) {
             const aimTarget = v2.add(
@@ -1130,6 +1134,8 @@ export class WeaponManager {
             vel,
             fuseTime,
             GameConfig.DamageType.Player,
+            dir,
+            oldThrowableType,
         );
 
         if (oldThrowableType == "strobe") {

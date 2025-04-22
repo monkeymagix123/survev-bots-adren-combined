@@ -39,6 +39,7 @@ export interface DamageParams {
     mapSourceType?: string;
     source?: GameObject;
     isExplosion?: boolean;
+    weaponSourceType?: string; // used by potato weapon swaps, gets passed down to e.g explosions
 }
 
 const MAX_ID = 65535;
@@ -148,6 +149,7 @@ export abstract class BaseGameObject {
     declare __id: number;
     declare __arrayIdx: number;
     __gridCells: Vec2[] = [];
+    __gridQueryId = 0;
     abstract bounds: AABB;
 
     readonly game: Game;

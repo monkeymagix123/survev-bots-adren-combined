@@ -456,7 +456,7 @@ function createBush<T extends ObstacleDef>(e: Partial<T>): T {
 function createCache<T extends BuildingDef>(e: Partial<T>): T {
     const t = {
         type: "building",
-        map: { displayType: "stone_01" },
+        map: { display: true, displayType: "stone_01" },
         terrain: { grass: true, beach: false },
         ori: 0,
         floor: {
@@ -933,7 +933,7 @@ function createLabDoor<T extends ObstacleDef>(e: Partial<T>): T {
         extents: v2.create(0.3, 2),
         door: {
             interactionRad: 2,
-            openOneWay: false,
+            openOneWay: 0,
             openSpeed: 7,
             autoOpen: true,
             autoClose: true,
@@ -1270,6 +1270,51 @@ function createPotato<T extends ObstacleDef>(e: Partial<T>): T {
     };
     return util.mergeDeep(t, e || {});
 }
+
+function createEgg<T extends ObstacleDef>(e: Partial<T>): T {
+    const def: ObstacleDef = {
+        type: "obstacle",
+        scale: {
+            createMin: 1,
+            createMax: 1,
+            destroy: 0.75,
+        },
+        collision: collider.createCircle(v2.create(0, 0), 1),
+        height: 0.5,
+        collidable: true,
+        destructible: true,
+        health: 80,
+        hitParticle: "woodChip",
+        explodeParticle: "woodShard",
+        reflectBullets: false,
+        loot: [tierLoot("tier_egg_outfits", 1, 1)],
+        map: {
+            display: false,
+            color: 6697728,
+            scale: 0.875,
+        },
+        terrain: {
+            grass: true,
+            beach: true,
+        },
+        img: {
+            sprite: "map-egg-01.img",
+            residue: "map-egg-res-01.img",
+            scale: 0.35,
+            alpha: 1,
+            tint: 16777215,
+            zIdx: 10,
+        },
+        sound: {
+            bullet: "egg_hit",
+            punch: "egg_hit",
+            explode: "egg_break_01",
+            enter: "none",
+        },
+    };
+    return util.mergeDeep(def, e || {});
+}
+
 function createPumpkin<T extends ObstacleDef>(e: Partial<T>): T {
     const t = {
         type: "obstacle",
@@ -10060,6 +10105,22 @@ export const MapObjectDefs: Record<string, MapObjectDef> = {
     potato_01: createPotato({}),
     potato_02: createPotato({ img: { sprite: "map-potato-02.img" } }),
     potato_03: createPotato({ img: { sprite: "map-potato-03.img" } }),
+    egg_01: createEgg({
+        img: { sprite: "map-egg-01.img" },
+        hitParticle: "pinkChip",
+    }),
+    egg_02: createEgg({
+        img: { sprite: "map-egg-02.img" },
+        hitParticle: "ltblueChip",
+    }),
+    egg_03: createEgg({
+        img: { sprite: "map-egg-03.img" },
+        hitParticle: "yellowChip",
+    }),
+    egg_04: createEgg({
+        img: { sprite: "map-egg-04.img" },
+        hitParticle: "greenChip",
+    }),
     power_box_01: createControlPanel({}),
     pumpkin_01: createPumpkin({
         loot: [tierLoot("tier_outfits", 1, 1), tierLoot("tier_pumpkin_candy", 1, 1)],
@@ -10302,16 +10363,27 @@ export const MapObjectDefs: Record<string, MapObjectDef> = {
         },
     }),
     stone_02: createStone({
+        map: { display: false },
         img: { tint: 15066597 },
         loot: [tierLoot("tier_surviv", 2, 3), autoLoot("ak47", 1)],
     }),
     stone_02sv: createStone({
+        map: { display: false },
         img: { tint: 15066597 },
         loot: [
             tierLoot("tier_surviv", 2, 3),
             autoLoot("m39", 1),
             tierLoot("tier_perks", 1, 1),
         ],
+    }),
+    stone_02cb: createStone({
+        map: { display: false, color: 10265256, scale: 1 },
+        img: {
+            sprite: "map-stone-01cb.img",
+            residue: "map-stone-res-01cb.img",
+            tint: 15066597,
+        },
+        loot: [tierLoot("tier_surviv", 2, 3), autoLoot("ak47", 1)],
     }),
     stone_03: createRiverStone({}),
     stone_03b: createRiverStone({
@@ -10618,11 +10690,12 @@ export const MapObjectDefs: Record<string, MapObjectDef> = {
         },
     }),
     tree_03: createTree({
+        map: { display: false },
         img: { tint: 11645361 },
         loot: [tierLoot("tier_surviv", 2, 3), autoLoot("mosin", 1)],
     }),
     tree_03sv: createTree({
-        map: { color: 4411673 },
+        map: { display: false, color: 4411673 },
         img: {
             sprite: "map-tree-03sv.img",
             tint: 11645361,
@@ -10632,15 +10705,28 @@ export const MapObjectDefs: Record<string, MapObjectDef> = {
     // woods cache
     tree_03w: createTree({
         scale: { createMin: 1, createMax: 1.2 },
-        map: { color: 5199637, scale: 2.5 },
+        map: { display: false, color: 5199637, scale: 2.5 },
         img: { sprite: "map-tree-07.img", tint: 11645361 },
         loot: [tierLoot("tier_surviv", 2, 3), autoLoot("mosin", 1)],
     } as unknown as Partial<ObstacleDef>),
     // spring cache
     tree_03sp: createTree({
         scale: { createMin: 1, createMax: 1.2 },
-        map: { color: 16697057, scale: 2.5 },
+        map: { display: false, color: 16697057, scale: 2.5 },
         img: { sprite: "map-tree-07sp.img", tint: 11645361 },
+        loot: [tierLoot("tier_surviv", 2, 3), autoLoot("mosin", 1)],
+    } as unknown as Partial<ObstacleDef>),
+    // cobalt cache
+    tree_03cb: createTree({
+        scale: {
+            createMin: 1.1,
+            createMax: 1.3,
+            destroy: 0.5,
+        },
+        collision: collider.createCircle(v2.create(0, 0), 1.2),
+        aabb: collider.createAabbExtents(v2.create(0, 0), v2.create(7.75, 7.75)),
+        map: { display: false, color: 2900834 },
+        img: { sprite: "map-tree-03cb.img", tint: 11645361 },
         loot: [tierLoot("tier_surviv", 2, 3), autoLoot("mosin", 1)],
     } as unknown as Partial<ObstacleDef>),
     tree_05: createTree({
@@ -11140,14 +11226,14 @@ export const MapObjectDefs: Record<string, MapObjectDef> = {
     lab_door_01: createLabDoor({ img: { tint: 5373952 } }),
     lab_door_02: createLabDoor({
         door: {
-            openOneWay: true,
+            openOneWay: 1,
             slideOffset: -3.75,
             casingImg: { pos: v2.create(6, 0) },
         },
         img: { tint: 5373952 },
     } as unknown as Partial<ObstacleDef>),
     lab_door_03: createLabDoor({
-        door: { openOneWay: true },
+        door: { openOneWay: 1 },
         img: { tint: 5373952 },
     } as unknown as Partial<ObstacleDef>),
     lab_door_locked_01: createLabDoor({
@@ -11512,7 +11598,7 @@ export const MapObjectDefs: Record<string, MapObjectDef> = {
         door: {
             canUse: false,
             openOnce: true,
-            openOneWay: false,
+            openOneWay: 0,
             openSpeed: 7,
             autoOpen: false,
             autoClose: false,
@@ -17976,7 +18062,7 @@ export const MapObjectDefs: Record<string, MapObjectDef> = {
         door: {
             canUse: false,
             openOnce: true,
-            openOneWay: false,
+            openOneWay: 0,
             openSpeed: 36,
             autoOpen: false,
             autoClose: false,
@@ -18845,7 +18931,7 @@ export const MapObjectDefs: Record<string, MapObjectDef> = {
         img: { tint: 14537141, alpha: 0.95 },
         door: {
             interactionRad: 2,
-            openOneWay: false,
+            openOneWay: 0,
             openSpeed: 7,
             autoOpen: false,
             autoClose: false,
@@ -20259,7 +20345,7 @@ export const MapObjectDefs: Record<string, MapObjectDef> = {
         door: {
             canUse: false,
             openOnce: true,
-            openOneWay: false,
+            openOneWay: 0,
             openSpeed: 7,
             autoOpen: false,
             autoClose: false,
@@ -20305,7 +20391,7 @@ export const MapObjectDefs: Record<string, MapObjectDef> = {
         door: {
             canUse: false,
             openOnce: true,
-            openOneWay: false,
+            openOneWay: 0,
             openSpeed: 7,
             autoOpen: false,
             autoClose: false,

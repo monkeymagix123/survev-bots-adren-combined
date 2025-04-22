@@ -20,10 +20,10 @@ import type { OutfitDef } from "../../../../shared/defs/gameObjects/outfitDefs";
 import { PerkProperties } from "../../../../shared/defs/gameObjects/perkDefs";
 import type { RoleDef } from "../../../../shared/defs/gameObjects/roleDefs";
 import type { ThrowableDef } from "../../../../shared/defs/gameObjects/throwableDefs";
-import { UnlockDefs } from "../../../../shared/defs/gameObjects/unlockDefs";
 import {
     type Action,
     type Anim,
+    EmoteSlot,
     GameConfig,
     type HasteType,
 } from "../../../../shared/gameConfig";
@@ -37,15 +37,25 @@ import { assert, util } from "../../../../shared/utils/util";
 import { type Vec2, v2 } from "../../../../shared/utils/v2";
 import { Config } from "../../config";
 import { IDAllocator } from "../../utils/IDAllocator";
+import { setLoadout } from "../../utils/loadoutHelpers";
 import { validateUserName } from "../../utils/serverHelpers";
 import type { Game, JoinTokenData } from "../game";
 import { Group } from "../group";
 import { Team } from "../team";
 import { WeaponManager, throwableList } from "../weaponManager";
+import type { Building } from "./building";
 import { BaseGameObject, type DamageParams, type GameObject } from "./gameObject";
 import type { Loot } from "./loot";
 import type { MapIndicator } from "./mapIndicator";
 import type { Obstacle } from "./obstacle";
+import type { Structure } from "./structure";
+
+type GodMode = {
+    isGodMode: boolean;
+    selectedObj?: Loot | Obstacle | Building;
+    originalPos?: Vec2;
+    selectPos?: Vec2;
+};
 
 // import { Bullet } from "./bullet";
 
@@ -88,6 +98,9 @@ export class PlayerBarn {
         time: number;
     }> = [];
 
+    sendWinEmoteTicker = 0;
+    sentWinEmotes = false;
+
     teams: Team[] = [];
     groups: Group[] = [];
     groupsByHash = new Map<string, Group>();
@@ -99,6 +112,10 @@ export class PlayerBarn {
     );
 
     bagSizes: (typeof GameConfig)["bagSizes"];
+
+    nextMatchDataId = 1;
+
+    nextKilledNumber = 0;
 
     constructor(readonly game: Game) {
         this.bagSizes = util.mergeDeep(
@@ -115,17 +132,17 @@ export class PlayerBarn {
         return livingPlayers[util.randomInt(0, livingPlayers.length - 1)];
     }
 
-    addPlayer(socketId: string, joinMsg: net.JoinMsg) {
+    addPlayer(socketId: string, joinMsg: net.JoinMsg, ip: string) {
         const joinData = this.game.joinTokens.get(joinMsg.matchPriv);
 
-        if (!joinData || joinData.expiresAt < Date.now() || joinData.availableUses <= 0) {
+        if (!joinData || joinData.expiresAt < Date.now()) {
             this.game.closeSocket(socketId);
             if (joinData) {
                 this.game.joinTokens.delete(joinMsg.matchPriv);
             }
             return;
         }
-        joinData.availableUses -= 1;
+        this.game.joinTokens.delete(joinMsg.matchPriv);
 
         if (joinMsg.protocol !== GameConfig.protocolVersion) {
             const disconnectMsg = new net.DisconnectMsg();
@@ -160,7 +177,16 @@ export class PlayerBarn {
             layer = 0;
         }
 
-        const player = new Player(this.game, pos, layer, socketId, joinMsg);
+        const player = new Player(
+            this.game,
+            pos,
+            layer,
+            socketId,
+            joinMsg,
+            ip,
+            joinData.findGameIp,
+            joinData.userId,
+        );
 
         this.socketIdToPlayer.set(socketId, player);
 
@@ -246,13 +272,6 @@ export class PlayerBarn {
         }
         this.aliveCountDirty = true;
         this.game.pluginManager.emit("playerJoin", player);
-
-        if (!this.game.started) {
-            this.game.started = this.game.modeManager.isGameStarted();
-            if (this.game.started) {
-                this.game.gas.advanceGasStage();
-            }
-        }
 
         this.game.updateData();
 
@@ -394,8 +413,22 @@ export class PlayerBarn {
     }
 
     update(dt: number) {
+        let sendWinEmote = false;
+        if (this.game.over && !this.sentWinEmotes) {
+            this.sendWinEmoteTicker -= dt;
+            if (this.sendWinEmoteTicker <= 0) {
+                sendWinEmote = true;
+                this.sentWinEmotes = true;
+            }
+        }
+
         for (let i = 0; i < this.players.length; i++) {
-            this.players[i].update(dt);
+            const player = this.players[i];
+            player.update(dt);
+
+            if (!player.dead && sendWinEmote) {
+                player.emoteFromSlot(EmoteSlot.Win);
+            }
         }
 
         // doing this after updates ensures that gameover msgs sent are always accurate
@@ -555,20 +588,21 @@ export class PlayerBarn {
         this.teams.push(team);
     }
 
-    getGroupAndTeam(joinData: JoinTokenData):
+    getGroupAndTeam({ groupData }: JoinTokenData):
         | {
             group?: Group;
             team?: Team;
         }
         | undefined {
         if (!this.game.isTeamMode) return undefined;
-        let group = this.groupsByHash.get(joinData.groupHashToJoin);
+
+        let group = this.groupsByHash.get(groupData.groupHashToJoin);
         let team = this.game.map.factionMode ? this.getSmallestTeam() : undefined;
 
-        if (!group && joinData.autoFill) {
+        if (!group && groupData.autoFill) {
             const groups = team ? team.getGroups() : this.groups;
             group = groups.find((group) => {
-                return group.autoFill && group.canJoin(joinData.playerCount);
+                return group.autoFill && group.canJoin(groupData.playerCount);
             });
         }
 
@@ -576,17 +610,17 @@ export class PlayerBarn {
         // but keeping it just in case
         // since more than 4 players in a group crashes the client
         if (!group || group.players.length >= this.game.teamMode) {
-            group = this.addGroup(joinData.autoFill);
+            group = this.addGroup(groupData.autoFill);
         }
 
         // only reserve slots on the first time this join token is used
         // since the playerCount counts for other people from the team menu
         // using the same token
-        if (group.hash !== joinData.groupHashToJoin) {
-            group.reservedSlots += joinData.playerCount;
+        if (group.hash !== groupData.groupHashToJoin) {
+            group.reservedSlots += groupData.playerCount;
         }
 
-        joinData.groupHashToJoin = group.hash;
+        groupData.groupHashToJoin = group.hash;
 
         // pre-existing group not created during this function call
         // players who join from the same group need the same team
@@ -631,13 +665,23 @@ export class PlayerBarn {
             .sort((a, b) => b.kills - a.kills)[0];
     }
 
-    addEmote(playerId: number, pos: Vec2, type: string, isPing: boolean, itemType = "") {
+    addEmote(type: string, playerId: number, itemType = "") {
         this.emotes.push({
+            isPing: false,
             playerId,
-            pos,
+            pos: v2.create(0, 0),
             type,
-            isPing,
             itemType,
+        });
+    }
+
+    addMapPing(type: string, pos: Vec2, playerId = 0) {
+        this.emotes.push({
+            isPing: true,
+            type,
+            pos,
+            playerId,
+            itemType: "",
         });
     }
 }
@@ -789,7 +833,7 @@ export class Player extends BaseGameObject {
         return this.weaponManager.activeWeapon;
     }
 
-    _disconnected = false;
+    private _disconnected = false;
 
     get disconnected(): boolean {
         return this._disconnected;
@@ -955,6 +999,15 @@ export class Player extends BaseGameObject {
             if (index != -1) this.game.playerBarn.medics.splice(index, 1);
         }
         if (this.role === role) return;
+
+        //switching from one role to another
+        //need to delete any non-droppables so they can be overwritten
+        if (this.role) {
+            if (this.helmet && (GameObjectDefs[this.helmet] as HelmetDef).noDrop)
+                this.helmet = "";
+            if (this.chest && (GameObjectDefs[this.chest] as ChestDef).noDrop)
+                this.chest = "";
+        }
 
         this.role = role;
         this.inventoryDirty = true;
@@ -1129,6 +1182,9 @@ export class Player extends BaseGameObject {
         if (this.group && !this.group.spawnLeader) {
             this.group.spawnLeader = this;
         }
+
+        this.game.grid.updateObject(this);
+        this.setDirty();
     }
 
     removeRole(): void {
@@ -1232,6 +1288,9 @@ export class Player extends BaseGameObject {
             }
         } else if (type === "fabricate") {
             this.fabricateRefillTicker = 0;
+        } else if (type === "firepower") {
+            this.weaponManager.reload(GameConfig.WeaponSlot.Primary);
+            this.weaponManager.reload(GameConfig.WeaponSlot.Secondary);
         }
 
         this.recalculateScale();
@@ -1270,6 +1329,19 @@ export class Player extends BaseGameObject {
         zoomOverride: GameConfig.scopeZoomRadius["desktop"]["1xscope"],
         overrideZoom: false,
         zoomOverrideCulling: false,
+        /** only overrides base speed so modifiers like haste and freeze still apply */
+        baseSpeedOverride: -1,
+        spectatorMode: false,
+        /** drag and drop loot, obstacles, and buildings */
+        godMode: <GodMode>{
+            isGodMode: false,
+            /** object you're currently dragging */
+            selectedObj: undefined,
+            /** original position of the selected obj */
+            originalPos: undefined,
+            /** mouse position when obj first selected */
+            selectPos: undefined,
+        },
     };
 
     teamId = 1;
@@ -1287,6 +1359,12 @@ export class Player extends BaseGameObject {
 
     damageTaken = 0;
     damageDealt = 0;
+
+    // infinity since we aren't dead yet ;)
+    // this is used for sorting and getting player ranks
+    // first player to die is 0, second is 1 etc
+    killedIndex = Infinity;
+
     kills = 0;
     timeAlive = 0;
 
@@ -1300,20 +1378,41 @@ export class Player extends BaseGameObject {
 
     obstacleOutfit?: Obstacle;
 
+    /**
+     * Only used for match data saving!
+     * __id is for the game itself, __id can be reused when a player despawns
+     * which can break the matchData
+     */
+    matchDataId: number;
+
+    userId: string | null = null;
+    ip: string;
+    // see comment on server/src/api/schema.ts
+    // about logging find_game IP's
+    findGameIp: string;
+
     constructor(
         game: Game,
         pos: Vec2,
         layer: number,
         socketId: string,
         joinMsg: net.JoinMsg,
+        ip: string,
+        findGameIp: string,
+        userId: string | null,
     ) {
         super(game, pos);
+
+        this.matchDataId = game.playerBarn.nextMatchDataId++;
 
         this.layer = layer;
 
         this.socketId = socketId;
+        this.ip = ip;
+        this.findGameIp = findGameIp;
+        this.userId = userId;
 
-        this.name = validateUserName(joinMsg.name);
+        this.name = validateUserName(joinMsg.name).validName;
 
         this.isMobile = joinMsg.isMobile;
 
@@ -1377,54 +1476,7 @@ export class Player extends BaseGameObject {
             this.addPerk(perk.type, perk.droppable);
         }
 
-        /**
-         * Checks if an item is present in the player's loadout
-         */
-        const isItemInLoadout = (item: string, category: string) => {
-            if (!UnlockDefs.unlock_default.unlocks.includes(item)) return false;
-
-            const def = GameObjectDefs[item];
-            if (!def || def.type !== category) return false;
-
-            return true;
-        };
-
-        if (
-            isItemInLoadout(joinMsg.loadout.outfit, "outfit") &&
-            joinMsg.loadout.outfit !== "outfitBase"
-        ) {
-            this.setOutfit(joinMsg.loadout.outfit);
-        } else {
-            this.setOutfit(defaultItems.outfit);
-        }
-
-        if (
-            isItemInLoadout(joinMsg.loadout.melee, "melee") &&
-            joinMsg.loadout.melee != "fists"
-        ) {
-            this.weapons[GameConfig.WeaponSlot.Melee].type = joinMsg.loadout.melee;
-        }
-
-        const loadout = this.loadout;
-
-        if (isItemInLoadout(joinMsg.loadout.heal, "heal")) {
-            loadout.heal = joinMsg.loadout.heal;
-        }
-        if (isItemInLoadout(joinMsg.loadout.boost, "boost")) {
-            loadout.boost = joinMsg.loadout.boost;
-        }
-
-        const emotes = joinMsg.loadout.emotes;
-        for (let i = 0; i < emotes.length; i++) {
-            const emote = emotes[i];
-            if (i > GameConfig.EmoteSlot.Count) break;
-
-            if (emote === "" || !isItemInLoadout(emote, "emote")) {
-                continue;
-            }
-
-            loadout.emotes[i] = emote;
-        }
+        setLoadout(joinMsg, this);
 
         this.weaponManager.showNextThrowable();
         this.recalculateScale();
@@ -1570,10 +1622,8 @@ export class Player extends BaseGameObject {
             const emotes = Object.keys(EmotesDefs);
 
             this.game.playerBarn.addEmote(
-                this.__id,
-                this.pos,
                 emotes[Math.floor(Math.random() * emotes.length)],
-                false,
+                this.__id,
             );
         }
 
@@ -1828,7 +1878,16 @@ export class Player extends BaseGameObject {
             this.pos,
             GameConfig.player.maxVisualRadius * this.scale + this.speed * dt,
         );
-        const objs = this.game.grid.intersectCollider(circle);
+        //can't collide with objects in spectator mode
+        const objs = this.debug.spectatorMode
+            ? //so spectators can go underground, need to be able to interact with stairs
+              this.game.grid
+                  .intersectCollider(circle)
+                  .filter(
+                      (o): o is Structure =>
+                          o.__type == ObjectType.Structure && o.stairs.length != 0,
+                  )
+            : this.game.grid.intersectCollider(circle);
 
         if (!(Bot.IGNORE_OBSTACLES && this instanceof Bot)) {
             for (let i = 0; i < steps; i++) {
@@ -1968,6 +2027,8 @@ export class Player extends BaseGameObject {
         let zoomRegionZoom = lowestZoom;
         let insideNoZoomRegion = true;
         let insideSmoke = false;
+        //building player is currently inside of
+        let occupiedBuilding: Building | undefined;
 
         for (let i = 0; i < objs.length; i++) {
             const obj = objs[i];
@@ -2015,6 +2076,7 @@ export class Player extends BaseGameObject {
                     ) {
                         this.indoors = true;
                         this.insideZoomRegion = true;
+                        occupiedBuilding = obj;
                         insideNoZoomRegion = false;
                         if (zoomRegion.zoom) {
                             zoomRegionZoom = zoomRegion.zoom;
@@ -2040,7 +2102,14 @@ export class Player extends BaseGameObject {
                 }
             } else if (obj.__type === ObjectType.Obstacle) {
                 if (!util.sameLayer(this.layer, obj.layer)) continue;
-                if (!(obj.isDoor && obj.door && !obj.door.locked && obj.door.autoOpen))
+                if (!obj.door || !obj.isDoor) continue;
+                if (obj.door.locked) continue;
+                if (!obj.door.autoOpen) continue;
+                if (obj.door.open) continue;
+                if (
+                    obj.door.openOneWay &&
+                    obj.getPlayerSide(this) !== obj.door.openOneWay
+                )
                     continue;
 
                 const res = collider.intersectCircle(
@@ -2117,7 +2186,8 @@ export class Player extends BaseGameObject {
 
         if (!v2.eq(this.pos, this.posOld)) {
             this.setPartDirty();
-            this.game.grid.updateObject(this);
+            //player doesn't exist in grid while in spectator mode
+            if (!this.debug.spectatorMode) this.game.grid.updateObject(this);
 
             //
             // Halloween obstacle skin
@@ -2147,6 +2217,8 @@ export class Player extends BaseGameObject {
             }
         }
 
+        if (this.debug.godMode.isGodMode) this.godModeUpdate(occupiedBuilding);
+
         //
         // Weapon stuff
         //
@@ -2155,6 +2227,58 @@ export class Player extends BaseGameObject {
         this.shotSlowdownTimer -= dt;
         if (this.shotSlowdownTimer <= 0) {
             this.shotSlowdownTimer = 0;
+        }
+    }
+
+    godModeUpdate(occupiedBuilding?: Building): void {
+        if (!this.debug.godMode.isGodMode) return;
+        const mouseCollider = collider.createCircle(this.mousePos, 1);
+        const childIds = occupiedBuilding
+            ? new Set(occupiedBuilding.childObjects.map((o) => o.__id))
+            : undefined;
+        const hoveredObj = this.game.grid
+            .intersectCollider(mouseCollider)
+            .filter((o): o is Loot | Obstacle | Building => {
+                if (
+                    o.__type != ObjectType.Loot &&
+                    o.__type != ObjectType.Obstacle &&
+                    o.__type != ObjectType.Building
+                )
+                    return false;
+
+                if (!util.sameLayer(o.layer, this.layer)) return false;
+                if (o.__type == ObjectType.Obstacle && o.dead) return false;
+                //if inside building, can only select one of its children
+                if (this.indoors && !childIds?.has(o.__id)) return false;
+                return true;
+            })
+            .find((o) => {
+                const transformedBounds = collider.transform(o.bounds, o.pos, 0, 1);
+                const aabb = collider.toAabb(transformedBounds);
+                return coldet.testPointAabb(this.mousePos, aabb.min, aabb.max);
+            });
+
+        if (hoveredObj && this.shootStart) {
+            this.debug.godMode.selectedObj = hoveredObj;
+            this.debug.godMode.originalPos = v2.copy(this.debug.godMode.selectedObj.pos);
+            this.debug.godMode.selectPos = v2.copy(this.mousePos);
+        }
+
+        if (
+            this.debug.godMode.selectedObj &&
+            this.debug.godMode.selectPos &&
+            this.debug.godMode.originalPos
+        ) {
+            if (this.shootHold) {
+                const deltaPos = v2.sub(this.mousePos, this.debug.godMode.selectPos);
+                const newPos = v2.add(this.debug.godMode.originalPos, deltaPos);
+                this.debug.godMode.selectedObj.updatePos(newPos);
+            } else {
+                this.debug.godMode.selectedObj.refresh();
+                this.debug.godMode.selectedObj = undefined;
+                this.debug.godMode.selectPos = undefined;
+                this.debug.godMode.originalPos = undefined;
+            }
         }
     }
 
@@ -2334,33 +2458,52 @@ export class Player extends BaseGameObject {
             updateMsg.groupStatusDirty = true;
         }
 
-        for (let i = 0; i < playerBarn.emotes.length; i++) {
-            const emote = playerBarn.emotes[i];
+        const shouldSendEmote = (emote: Emote) => {
             const emotePlayer = game.objectRegister.getById(emote.playerId) as
                 | Player
                 | undefined;
+
+            const emoteDef = GameObjectDefs[emote.type];
+
             if (emotePlayer) {
-                const seeNormalEmote =
-                    !emote.isPing && player.visibleObjects.has(emotePlayer);
-
-                const partOfGroup = emotePlayer.groupId === player.groupId;
-
-                if ((GameObjectDefs[emote.type] as EmoteDef)?.teamOnly && !partOfGroup) {
-                    continue;
+                if (!emote.isPing && !player.visibleObjects.has(emotePlayer)) {
+                    return false;
                 }
 
-                const isTeamLeader =
-                    emotePlayer.role == "leader" && emotePlayer.teamId === player.teamId;
-                const seePing =
-                    (emote.isPing || emote.itemType) && (partOfGroup || isTeamLeader);
-                if (seeNormalEmote || seePing) {
-                    updateMsg.emotes.push(emote);
+                // regular emotes: always send if visible
+                if (!emote.isPing && !(emoteDef as EmoteDef).teamOnly) {
+                    return true;
                 }
-            } else if (emote.playerId === 0 && emote.isPing) {
-                // map pings generated by the game like airdrops
+
+                // part of the same group
+                if (emotePlayer?.groupId === player.groupId) {
+                    return true;
+                }
+
+                // faction team leader
+                if (
+                    emotePlayer.role === "leader" &&
+                    emotePlayer.teamId === player.teamId
+                ) {
+                    return true;
+                }
+            }
+
+            // always send map events pings
+            if (emote.isPing && emoteDef.type === "ping" && emoteDef.mapEvent) {
+                return true;
+            }
+
+            return false;
+        };
+
+        for (let i = 0; i < playerBarn.emotes.length; i++) {
+            const emote = playerBarn.emotes[i];
+            if (shouldSendEmote(emote)) {
                 updateMsg.emotes.push(emote);
             }
         }
+
         if (updateMsg.emotes.length > 255) {
             this.game.logger.warn(
                 "Too many new emotes created!",
@@ -2491,38 +2634,13 @@ export class Player extends BaseGameObject {
                     this.game.isTeamMode && this.group!.livingPlayers.length > 0;
                 const teamExistsOrAlive =
                     this.game.map.factionMode && this.team!.livingPlayers.length > 0;
-                if (groupExistsOrAlive || teamExistsOrAlive) {
-                    playerToSpec =
-                        spectatablePlayers[
-                            util.randomInt(0, spectatablePlayers.length - 1)
-                        ];
-                } else {
-                    let attempts = 0;
-                    const getAliveKiller = (
-                        killer: Player | undefined,
-                    ): Player | undefined => {
-                        attempts++;
-                        if (attempts > 80) return undefined;
+                const aliveKiller = this.getAliveKiller();
 
-                        if (!killer) return undefined;
-                        if (!killer.dead) return killer;
-                        if (
-                            killer.killedBy &&
-                            killer.killedBy != this &&
-                            killer.killedBy !== killer
-                        ) {
-                            return getAliveKiller(killer.killedBy);
-                        }
-
-                        return undefined;
-                    };
-                    const aliveKiller = getAliveKiller(this.killedBy);
-                    playerToSpec =
-                        aliveKiller ??
-                        spectatablePlayers[
-                            util.randomInt(0, spectatablePlayers.length - 1)
-                        ];
-                }
+                const shouldSpecRandom =
+                    groupExistsOrAlive || teamExistsOrAlive || !aliveKiller;
+                playerToSpec = shouldSpecRandom
+                    ? spectatablePlayers[util.randomInt(0, spectatablePlayers.length - 1)]
+                    : aliveKiller;
                 break;
             case spectateMsg.specNext:
             case spectateMsg.specPrev:
@@ -2545,6 +2663,8 @@ export class Player extends BaseGameObject {
         if (this._health < 0) this._health = 0;
         if (this.dead) return;
         if (this.downed && this.downedDamageTicker > 0) return;
+        // cobalt players on role picker menu
+        if (this.game.map.perkMode && !this.role) return;
 
         const sourceIsPlayer = params.source?.__type === ObjectType.Player;
 
@@ -2675,6 +2795,11 @@ export class Player extends BaseGameObject {
         this.downedDamageTicker = GameConfig.player.downedDamageBuffer;
         this.boost = 0;
         this.health = 100;
+
+        if (this.game.gas.currentRad <= 0.1) {
+            this.health = 50;
+        }
+
         this.animType = GameConfig.Anim.None;
         this.setDirty();
 
@@ -2714,11 +2839,13 @@ export class Player extends BaseGameObject {
     }
 
     killedBy: Player | undefined;
+    killedIds: number[] = [];
 
     kill(params: DamageParams): void {
         if (this.dead) return;
         if (this.downed) this.downed = false;
         this.dead = true;
+        this.killedIndex = this.game.playerBarn.nextKilledNumber++;
         this.boost = 0;
         this.actionType = GameConfig.Action.None;
         this.actionSeq++;
@@ -2763,7 +2890,9 @@ export class Player extends BaseGameObject {
         if (params.source instanceof Player) {
             const source = params.source;
             this.killedBy = source;
+
             if (source !== this && source.teamId !== this.teamId) {
+                source.killedIds.push(this.matchDataId);
                 source.kills++;
 
                 if (source.isKillLeader) {
@@ -2777,10 +2906,9 @@ export class Player extends BaseGameObject {
                 }
 
                 if (source.role === "woods_king") {
-                    this.game.playerBarn.addEmote(0, this.pos, "ping_woodsking", true);
+                    this.game.playerBarn.addMapPing("ping_woodsking", this.pos);
                 }
             }
-
             killMsg.killerId = source.__id;
             killMsg.killCreditId = source.__id;
             killMsg.killerKills = source.kills;
@@ -2800,7 +2928,7 @@ export class Player extends BaseGameObject {
             for (let i = 0; i < 12; i++) {
                 const velocity = v2.mul(v2.randomUnit(), util.random(2, 5));
                 this.game.projectileBarn.addProjectile(
-                    this.playerId,
+                    this.__id,
                     martyrNadeType,
                     this.pos,
                     1,
@@ -2823,8 +2951,13 @@ export class Player extends BaseGameObject {
         }*/
 
         //params.gameSourceType check ensures player didnt die by bleeding out
-        if (this.game.map.potatoMode && this.lastDamagedBy && params.gameSourceType) {
-            this.lastDamagedBy.randomWeaponSwap(params.gameSourceType);
+        if (
+            this.game.map.potatoMode &&
+            this.lastDamagedBy &&
+            params.damageType === GameConfig.DamageType.Player &&
+            params.source !== this
+        ) {
+            this.lastDamagedBy.randomWeaponSwap(params);
         }
 
         this.game.broadcastMsg(net.MsgType.Kill, killMsg);
@@ -2972,14 +3105,7 @@ export class Player extends BaseGameObject {
         this.perkTypes.length = 0;
 
         // death emote
-        if (this.loadout.emotes[GameConfig.EmoteSlot.Death] != "") {
-            this.game.playerBarn.addEmote(
-                this.__id,
-                this.pos,
-                this.loadout.emotes[GameConfig.EmoteSlot.Death],
-                false,
-            );
-        }
+        this.emoteFromSlot(GameConfig.EmoteSlot.Death);
 
         // Building gore region (club pool)
         const objs = this.game.grid.intersectCollider(this.collider);
@@ -3004,6 +3130,33 @@ export class Player extends BaseGameObject {
 
         // send data to parent process
         this.game.updateData();
+    }
+
+    getAliveKiller(): Player | undefined {
+        let attempts = 0;
+        const findAliveKiller = (killer: Player | undefined): Player | undefined => {
+            attempts++;
+            if (attempts > 80) return undefined;
+
+            if (!killer) return undefined;
+            if (!killer.dead) return killer;
+            if (
+                killer.killedBy &&
+                killer.killedBy !== this &&
+                killer.killedBy !== killer
+            ) {
+                return findAliveKiller(killer.killedBy);
+            }
+
+            return undefined;
+        };
+        return findAliveKiller(this.killedBy);
+    }
+
+    canDespawn() {
+        return (
+            this.timeAlive < GameConfig.player.minActiveTime && !this.dead && !this.downed
+        );
     }
 
     isReloading() {
@@ -3126,7 +3279,7 @@ export class Player extends BaseGameObject {
 
         // medics always emote the healing/boost item they're using
         if (this.role == "medic") {
-            this.game.playerBarn.addEmote(this.__id, this.pos, "emote_loot", false, item);
+            this.game.playerBarn.addEmote("emote_loot", this.__id, item);
         }
 
         this.cancelAction();
@@ -3172,7 +3325,7 @@ export class Player extends BaseGameObject {
 
         // medics always emote the healing/boost item they're using
         if (this.role == "medic") {
-            this.game.playerBarn.addEmote(this.__id, this.pos, "emote_loot", false, item);
+            this.game.playerBarn.addEmote("emote_loot", this.__id, item);
         }
 
         this.cancelAction();
@@ -3195,6 +3348,7 @@ export class Player extends BaseGameObject {
     touchMoveLen = 255;
     toMouseDir = v2.create(1, 0);
     toMouseLen = 0;
+    mousePos = v2.create(1, 0);
 
     shouldAcceptInput(input: number): boolean {
         return this.downed
@@ -3209,13 +3363,13 @@ export class Player extends BaseGameObject {
         this.ack = msg.seq;
 
         if (this.dead) return;
+        if (this.game.map.perkMode && !this.role) return;
 
         if (!v2.eq(this.dir, msg.toMouseDir)) {
             this.setPartDirty();
             this.dirOld = v2.copy(this.dir);
             this.dir = v2.normalizeSafe(msg.toMouseDir);
         }
-        this.shootHold = msg.shootHold;
 
         this.moveLeft = msg.moveLeft;
         this.moveRight = msg.moveRight;
@@ -3225,11 +3379,18 @@ export class Player extends BaseGameObject {
         this.touchMoveActive = msg.touchMoveActive;
         this.touchMoveDir = v2.normalizeSafe(msg.touchMoveDir);
         this.touchMoveLen = msg.touchMoveLen;
+        this.toMouseLen = msg.toMouseLen;
+
+        this.mousePos = v2.add(this.pos, v2.mul(this.dir, this.toMouseLen));
+
+        //spectators are only allowed to send movement related inputs
+        if (this.debug.spectatorMode) return;
+
+        this.shootHold = msg.shootHold;
 
         if (msg.shootStart) {
             this.shootStart = true;
         }
-        this.toMouseLen = msg.toMouseLen;
 
         // HACK? client for some reason sends Interact followed by Cancel on mobile
         // so we ignore the cancel request when reviving a player
@@ -3283,42 +3444,23 @@ export class Player extends BaseGameObject {
                     this.weaponManager.setCurWeapIndex(this.weaponManager.lastWeaponIdx);
                     break;
                 case GameConfig.Input.EquipOtherGun:
-                    if (
-                        this.curWeapIdx == GameConfig.WeaponSlot.Primary ||
-                        this.curWeapIdx == GameConfig.WeaponSlot.Secondary
-                    ) {
-                        const otherGunSlotIdx = this.curWeapIdx ^ 1;
-                        const isOtherGunSlotFull: number =
-                            +!!this.weapons[otherGunSlotIdx].type; //! ! converts string to boolean, + coerces boolean to number
-                        this.weaponManager.setCurWeapIndex(
-                            isOtherGunSlotFull
-                                ? otherGunSlotIdx
-                                : GameConfig.WeaponSlot.Melee,
-                        );
-                    } else if (
-                        this.curWeapIdx == GameConfig.WeaponSlot.Melee &&
-                        (this.weapons[GameConfig.WeaponSlot.Primary].type ||
-                            this.weapons[GameConfig.WeaponSlot.Secondary].type)
-                    ) {
-                        this.weaponManager.setCurWeapIndex(
-                            +!this.weapons[GameConfig.WeaponSlot.Primary].type,
-                        );
-                    } else if (this.curWeapIdx == GameConfig.WeaponSlot.Throwable) {
-                        const bothSlotsEmpty =
-                            !this.weapons[GameConfig.WeaponSlot.Primary].type &&
-                            !this.weapons[GameConfig.WeaponSlot.Secondary].type;
-                        if (bothSlotsEmpty) {
-                            this.weaponManager.setCurWeapIndex(
-                                GameConfig.WeaponSlot.Melee,
-                            );
-                        } else {
-                            const index = this.weapons[GameConfig.WeaponSlot.Primary].type
-                                ? GameConfig.WeaponSlot.Primary
-                                : GameConfig.WeaponSlot.Secondary;
-                            this.weaponManager.setCurWeapIndex(index);
+                    //priority list of slots to swap to
+                    const slotTargets = [
+                        GameConfig.WeaponSlot.Primary,
+                        GameConfig.WeaponSlot.Secondary,
+                        GameConfig.WeaponSlot.Melee,
+                    ];
+
+                    const currentTarget = slotTargets.indexOf(this.curWeapIdx);
+                    if (currentTarget != -1) slotTargets.splice(currentTarget, 1);
+
+                    for (let i = 0; i < slotTargets.length; i++) {
+                        const slot = slotTargets[i];
+                        if (this.weapons[slot].type) {
+                            this.weaponManager.setCurWeapIndex(slot);
+                            break;
                         }
                     }
-
                     break;
                 case GameConfig.Input.Interact: {
                     const loot = this.getClosestLoot();
@@ -3410,6 +3552,8 @@ export class Player extends BaseGameObject {
                     ) {
                         this.weaponManager.setCurWeapIndex(
                             this.curWeapIdx ^ 1,
+                            false,
+                            false,
                             false,
                             false,
                         );
@@ -3880,7 +4024,7 @@ export class Player extends BaseGameObject {
 
                 const emoteType = `emote_${type}`;
                 if (GameObjectDefs[`emote_${type}`]) {
-                    this.game.playerBarn.addEmote(this.__id, this.pos, emoteType, false);
+                    this.game.playerBarn.addEmote(emoteType, this.__id);
                 }
 
                 const perkSlotType = this.perks.find(
@@ -3978,11 +4122,16 @@ export class Player extends BaseGameObject {
     }
 
     /** just used in potato mode, swaps oldWeapon with a random weapon of the same type (mosin -> m9) */
-    randomWeaponSwap(oldWeapon: string): void {
+    randomWeaponSwap(params: DamageParams): void {
+        if (this.dead) return;
+        const oldWeapon = params.weaponSourceType || params.gameSourceType;
+        if (!oldWeapon) return;
+
         const oldWeaponDef = GameObjectDefs[oldWeapon] as
             | GunDef
             | ThrowableDef
             | MeleeDef;
+
         if (oldWeaponDef.noPotatoSwap) return;
         const weaponDefs = WeaponTypeToDefs[oldWeaponDef.type];
         //necessary for type safety since Object.entries() is not type safe and just returns "any"
@@ -3991,16 +4140,14 @@ export class Player extends BaseGameObject {
             GunDef | ThrowableDef | MeleeDef,
         ][];
 
-        let filterCb: ([_type, def]: [
+        const filterCb: ([_type, def]: [
             string,
             GunDef | ThrowableDef | MeleeDef,
-        ]) => boolean;
-        if (this.hasPerk("rare_potato")) {
-            filterCb = ([_type, def]) =>
-                !def.noPotatoSwap && def.quality == PerkProperties.rare_potato.quality;
-        } else {
-            filterCb = ([_type, def]) => !def.noPotatoSwap;
-        }
+        ]) => boolean = this.hasPerk("rare_potato")
+            ? ([_type, def]) =>
+                  !def.noPotatoSwap && def.quality == PerkProperties.rare_potato.quality
+            : ([_type, def]) => !def.noPotatoSwap;
+
         const weaponChoices = enumerableDefs.filter(filterCb);
         const [chosenWeaponType, chosenWeaponDef] =
             weaponChoices[util.randomInt(0, weaponChoices.length - 1)];
@@ -4027,6 +4174,12 @@ export class Player extends BaseGameObject {
                     break;
             }
         }
+
+        const slotDef = GameObjectDefs[this.weapons[index].type] as
+            | GunDef
+            | MeleeDef
+            | ThrowableDef;
+        if (slotDef && slotDef.noPotatoSwap) return;
 
         if (index === this.curWeapIdx && this.isReloading()) {
             this.cancelAction();
@@ -4076,13 +4229,9 @@ export class Player extends BaseGameObject {
             this.inventoryDirty = true;
         }
 
-        this.game.playerBarn.addEmote(
-            this.__id,
-            this.pos,
-            "emote_loot",
-            false,
-            chosenWeaponType,
-        );
+        this.setDirty();
+
+        this.game.playerBarn.addEmote("emote_loot", this.__id, chosenWeaponType);
     }
 
     dropLoot(type: string, count = 1, useCountForAmmo?: boolean) {
@@ -4131,6 +4280,7 @@ export class Player extends BaseGameObject {
 
     dropItem(dropMsg: net.DropItemMsg): void {
         if (this.dead) return;
+        if (this.game.map.perkMode && !this.role) return;
 
         const itemDef = GameObjectDefs[dropMsg.item] as LootDef;
         if (!itemDef) return;
@@ -4262,6 +4412,7 @@ export class Player extends BaseGameObject {
 
     emoteFromMsg(msg: net.EmoteMsg) {
         if (this.dead) return;
+        if (this.game.map.perkMode && !this.role) return;
         if (this.emoteHardTicker > 0) return;
 
         const emoteMsg = msg as net.EmoteMsg;
@@ -4276,6 +4427,8 @@ export class Player extends BaseGameObject {
             if (emoteDef.mapEvent) {
                 return;
             }
+
+            this.game.playerBarn.addMapPing(emoteMsg.type, emoteMsg.pos, this.__id);
         } else {
             if (emoteDef.type !== "emote") {
                 return;
@@ -4283,6 +4436,12 @@ export class Player extends BaseGameObject {
 
             if (!emoteDef.teamOnly && (emoteIdx < 0 || emoteIdx > 3)) {
                 return;
+            }
+
+            if (emoteDef.teamOnly) {
+                this.game.playerBarn.addEmote(emoteMsg.type, this.__id);
+            } else {
+                this.emoteFromSlot(emoteIdx);
             }
         }
 
@@ -4293,13 +4452,6 @@ export class Player extends BaseGameObject {
                     ? this.emoteHardTicker
                     : GameConfig.player.emoteHardCooldown * 1.5;
         }
-
-        this.game.playerBarn.addEmote(
-            this.__id,
-            emoteMsg.pos,
-            emoteMsg.type,
-            emoteMsg.isPing,
-        );
     }
 
     processEditMsg(msg: net.EditMsg) {
@@ -4312,6 +4464,24 @@ export class Player extends BaseGameObject {
         this.debug.overrideZoom = msg.overrideZoom;
         this.debug.zoomOverrideCulling = msg.cull;
         this.debug.zoomOverride = msg.zoom;
+
+        this.debug.baseSpeedOverride = math.clamp(msg.speed, 1, 10000);
+
+        //only accept ground or underground
+        if ((msg.layer == 0 || msg.layer == 1) && this.layer != msg.layer) {
+            this.layer = msg.layer;
+            this.setDirty();
+        }
+
+        //removed from grid while in spectator mode so other players can't see/interact with the player
+        if (this.debug.spectatorMode != msg.spectatorMode) {
+            msg.spectatorMode
+                ? this.game.grid.remove(this)
+                : this.game.grid.addObject(this);
+        }
+
+        this.debug.spectatorMode = msg.spectatorMode;
+        this.debug.godMode.isGodMode = msg.godMode;
 
         if (msg.spawnLootType) {
             const def = GameObjectDefs[msg.spawnLootType];
@@ -4329,20 +4499,12 @@ export class Player extends BaseGameObject {
                 0,
             );
         }
-    }
 
-    isOnOtherSide(door: Obstacle): boolean {
-        switch (door.ori) {
-            case 0:
-                return this.pos.x < door.pos.x;
-            case 1:
-                return this.pos.y < door.pos.y;
-            case 2:
-                return this.pos.x > door.pos.x;
-            case 3:
-                return this.pos.y > door.pos.y;
+        if (msg.promoteToRoleType) {
+            const def = GameObjectDefs[msg.promoteToRoleType];
+            if (!def) return;
+            this.promoteToRole(msg.promoteToRoleType);
         }
-        return false;
     }
 
     doAction(
@@ -4471,6 +4633,18 @@ export class Player extends BaseGameObject {
         this.setDirty();
     }
 
+    emoteFromSlot(slot: EmoteSlot) {
+        let emote = this.loadout.emotes[slot];
+
+        if (!emote) return;
+
+        if (this.game.map.potatoMode) {
+            emote = "emote_potato";
+        }
+
+        this.game.playerBarn.addEmote(emote, this.__id);
+    }
+
     recalculateScale() {
         let scale = 1;
         for (let i = 0; i < this.perks.length; i++) {
@@ -4511,9 +4685,9 @@ export class Player extends BaseGameObject {
     }
 
     recalculateSpeed(hasTreeClimbing: boolean): void {
-        // this.speed = this.downed ? GameConfig.player.downedMoveSpeed : GameConfig.player.moveSpeed;
-
-        if (this.actionType == GameConfig.Action.Revive) {
+        if (this.debug.baseSpeedOverride != -1) {
+            this.speed = this.debug.baseSpeedOverride;
+        } else if (this.actionType == GameConfig.Action.Revive) {
             //prevents self reviving players from getting an unnecessary speed boost
             if (this.action.targetId && !(this.downed && this.hasPerk("self_revive"))) {
                 // player reviving
@@ -4597,7 +4771,7 @@ export class Player extends BaseGameObject {
         this.sendData(stream.getBuffer());
     }
 
-    sendData(buffer: ArrayBuffer | Uint8Array): void {
+    sendData(buffer: Uint8Array): void {
         this.game.sendSocketMsg(this.socketId, buffer);
     }
 }
