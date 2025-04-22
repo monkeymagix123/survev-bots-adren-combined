@@ -210,7 +210,7 @@ export class BotUtil {
         }
 
         if (needDestructible) {
-            o2 = o2.filter((obj) => obj.destructible && !(MapObjectDefs[obj.type] as ObstacleDef).armorPlated && !(MapObjectDefs[obj.type] as ObstacleDef).stonePlated,);
+            o2 = o2.filter((obj) => obj.destructible && !(MapObjectDefs[obj.type] as ObstacleDef).armorPlated && !(MapObjectDefs[obj.type] as ObstacleDef).stonePlated && !(MapObjectDefs[obj.type] as ObstacleDef).explosion);
         }
 
         return o2;
