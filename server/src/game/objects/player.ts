@@ -4956,7 +4956,7 @@ export class Bot extends Player {
         // if (this.game.gas.isInGas(this.pos)) {
         if (BotUtil.dist2(this.pos, this.game.gas.currentPos) >= (this.game.gas.currentRad ** 2) * 0.9) {
             // try to move out of gas
-            this.moveTo(this.game.gas.currentPos.x, this.game.gas.currentPos.y);
+            this.moveTo(this.game.gas.currentPos);
         }
 
         if (this.qs)
