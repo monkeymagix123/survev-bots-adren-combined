@@ -1,3 +1,3 @@
-export const moreAdren: boolean = false;
+export const moreAdren: boolean = true;
 
 export const buffHeals: boolean = true;

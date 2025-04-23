@@ -4887,33 +4887,21 @@ export class Bot extends Player {
         }
 
         this.newTarget();
-        let closestPlayer = this.target;
-
-        if (closestPlayer != undefined) {
+        if (this.target != undefined) {
             this.setPartDirty(); // ???
             this.dirOld = v2.copy(this.dir);
-            this.aim(closestPlayer);
+            this.aim(this.target);
         }
 
         this.shootHold = false;
         this.shootStart = false;
 
-        if (closestPlayer != undefined && !BotUtil.isVisible(this, closestPlayer)) {
-            this.moveTowards(closestPlayer);
-
-            let x = BotUtil.getClosestPlayer(this, true, true, false); // assume no enemies in range
-            // lead bots out
-            /*if (BotUtil.isVisible(this, x) && this.indoors) {
-                this.moveTowards(x, 0, 1);
-                return;
-            }*/
-
-            // don't heal if some guy is shooting
+        if (this.target != undefined && !BotUtil.isVisible(this, this.target)) {
+            this.moveTowards(this.target);
             if (BotUtil.noNearbyBullet(this)) {
                 this.heal();
                 return;
             }
-
 
             let obs = BotUtil.getCollidingObstacles(this, true);
             if (obs.length > 0) {
@@ -4921,17 +4909,15 @@ export class Bot extends Player {
                 this.shootHold = true;
                 this.dir = v2.directionNormalized(this.posOld, obs[0].pos);
             }
-        } else if (closestPlayer != undefined) {
+        } else if (this.target != undefined) {
             this.shootHold = true;
             this.shootStart = true;
         }
 
         if (BotUtil.dist2(this.pos, this.game.gas.currentPos) >= (this.game.gas.currentRad ** 2) * 0.9) {
-            // try to move out of gas
             this.moveTo(this.game.gas.currentPos);
         }
 
-        // if (Bot.quickSwitch)
         this.quickswitch();
 
         // STOP HEALING WHEN FIGHTING
@@ -4940,18 +4926,22 @@ export class Bot extends Player {
     }
 
     aim(target: Player): void {
-        let k = Bot.shootLead ? 0.2 + 0.05 * Math.random() : 0;
-        this.dir = v2.normalizeSafe(this.posOld, v2.add(target.pos, v2.mul(target.moveVel, k)));
+        const k = Bot.shootLead ? 0.2 + 0.05 * Math.random() : 0;
+        this.toMouseDir = v2.directionNormalized(
+            this.posOld,
+            v2.add(target.pos, v2.mul(target.moveVel, k))
+        );
+        this.toMouseLen = 255;
     }
 
     stop(): void {
-        this.toMouseLen = 0;
+        this.touchMoveLen = 0;
         this.shootStart = false;
         this.shootHold = false;
     }
 
     newTarget(): void {
-        if (this.targetTimer > 0.001 && this.target != undefined && !this.target.dead) {
+        if (this.targetTimer > 0 && this.target != undefined && !this.target.dead) {
             return;
         }
 
@@ -4966,11 +4956,9 @@ export class Bot extends Player {
         }
 
         if (closestPlayer != this.target) {
-            // start timer
             this.targetTimer = 0.4 + Math.random() * 0.1;
+            this.target = closestPlayer;
         }
-
-        this.target = closestPlayer;
     }
 
     msgStream = new net.MsgStream(new ArrayBuffer(65536));
@@ -5047,7 +5035,7 @@ export class Bot extends Player {
                     const push =
                         v2.mul(
                             v2.sub(i.pos, this.touchMoveDir),
-                            Bot.spreadStrength * Math.pow(v2.distance(this.pos, i.pos), -Bot.spreadDistStrength)
+                            Bot.spreadStrength * Math.pow(v2.distance(this.pos, i.pos), Bot.spreadDistStrength)
                         );
                     this.touchMoveDir = v2.add(push, this.touchMoveDir);
                 }
@@ -5057,7 +5045,6 @@ export class Bot extends Player {
     }
 
     quickswitch(): void {
-        // should not be called if quickswitch is false
         if (this.quickSwitch)
             return;
 
@@ -5068,56 +5055,23 @@ export class Bot extends Player {
     }
 
     heal(): void {
-        let r1 = Math.random();
-
-        // maybe better run away
-
-        // heal up
         if (this.inventory["medkit"] > 0 && this.health < 30 && this.actionItem != "medkit") {
-            if (r1 < 0.7) {
-                this.moveUp = !this.moveUp;
-                this.moveDown = !this.moveDown;
-            }
+            this.moveAway(this.target!.pos, true);
             this.useHealingItem("medkit");
             return;
         }
         if (this.inventory["bandage"] > 0 && this.health < 65 && this.actionItem != "bandage") {
-            if (r1 < 0.7) {
-                this.moveUp = !this.moveUp;
-                this.moveDown = !this.moveDown;
-            }
-            // if (r2 < 0.7) {
-            //     this.moveLeft = !this.moveLeft;
-            //     this.moveRight = !this.moveRight;
-            // }
-            // this.cancelAction();
+            this.moveAway(this.target!.pos, true);
             this.useHealingItem("bandage");
             return;
         }
-        // adren up, run away
         if (this.inventory["painkiller"] > 0 && this.boost < 50 && this.actionItem != "painkiller") {
-            if (r1 < 0.7) {
-                this.moveUp = !this.moveUp;
-                this.moveDown = !this.moveDown;
-            }
-            // if (r2 < 0.95) {
-            //     this.moveLeft = !this.moveLeft;
-            //     this.moveRight = !this.moveRight;
-            // }
-            // this.cancelAction();
+            this.moveAway(this.target!.pos, true);
             this.useBoostItem("painkiller");
             return;
         }
         if (this.inventory["soda"] > 0 && this.boost < 75 && this.actionItem != "soda") {
-            // this.cancelAction();
-            if (r1 < 0.7) {
-                this.moveUp = !this.moveUp;
-                this.moveDown = !this.moveDown;
-            }
-            // if (r2 < 0.95) {
-            //     this.moveLeft = !this.moveLeft;
-            //     this.moveRight = !this.moveRight;
-            // }
+            this.moveAway(this.target!.pos, true);
             this.useBoostItem("soda");
             return;
         }
