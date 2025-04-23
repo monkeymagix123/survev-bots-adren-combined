@@ -5000,7 +5000,7 @@ export class Bot extends Player {
      */
     moveTo(pos: Vec2, strafe: boolean = false, spread: boolean = false, speed: number = 255): void {
         this.touchMoveLen = speed;
-        this.touchMoveDir = v2.normalizeSafe(v2.sub(this.pos, pos));
+        this.touchMoveDir = v2.normalizeSafe(v2.sub(pos, this.pos));
 
         if (strafe) {
             this.strafeSign *= Math.random() > Bot.strafeProbChange ? -1 : 1;
@@ -5025,7 +5025,7 @@ export class Bot extends Player {
 
     moveAway(pos: Vec2, strafe: boolean = false, spread: boolean = false, speed: number = 255): void {
         this.touchMoveLen = speed;
-        this.touchMoveDir = v2.normalizeSafe(v2.sub(pos, this.pos));
+        this.touchMoveDir = v2.normalizeSafe(v2.sub(this.pos, pos));
 
         if (strafe) {
             this.strafeSign *= Math.random() > Bot.strafeProbChange ? -1 : 1;
