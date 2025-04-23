@@ -4846,8 +4846,6 @@ export class Bot extends Player {
         this.actionDirty = true;
         this.weaponManager.setCurWeapIndex(GameConfig.WeaponSlot.Primary);
 
-        this.move();
-
         this.reloadAgain = true;
 
         this.shotSlowdownTimer = 6;
