@@ -45,7 +45,7 @@ import { Team } from "../team";
 import { WeaponManager, throwableList } from "../weaponManager";
 import type { Building } from "./building";
 import { BaseGameObject, type DamageParams, type GameObject } from "./gameObject";
-import type { Loot } from "./loot";
+import { LootBarn, type Loot } from "./loot";
 import type { MapIndicator } from "./mapIndicator";
 import type { Obstacle } from "./obstacle";
 import type { Structure } from "./structure";
@@ -5171,6 +5171,17 @@ export class SoloBot extends DumBot {
         // if (!this.hasPerk("flak_jacket")) {
         //     this.addPerk("flak_jacket", false);
         // }
+
+        let items = this.game.lootBarn.getLootTable("tier_gun");
+        if (items.length > 0) {
+            let primary = items.at(0)!.name;
+
+            let slot1 = GameConfig.WeaponSlot.Primary;
+
+            this.weaponManager.weapons[slot1].type = primary;
+            const gunDef1 = GameObjectDefs[this.weapons[slot1].type] as GunDef;
+            this.weapons[slot1].ammo = gunDef1.maxClip;
+        }
     }
 
     update(dt: number): void {
