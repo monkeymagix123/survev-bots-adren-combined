@@ -50,6 +50,8 @@ import type { MapIndicator } from "./mapIndicator";
 import type { Obstacle } from "./obstacle";
 import type { Structure } from "./structure";
 
+import { moreAdren } from "../../../../shared/adrenConfig";
+
 type GodMode = {
     isGodMode: boolean;
     selectedObj?: Loot | Obstacle | Building;
@@ -806,7 +808,7 @@ export class Player extends BaseGameObject {
         if (this._boost === boost) return;
         if (this.downed && boost > 0) return; // can't gain adren while knocked, can only set it to zero
         this._boost = boost;
-        this._boost = math.clamp(this._boost, 0, 400);
+        this._boost = math.clamp(this._boost, 0, moreAdren ? 400 : 100);
         this.boostDirty = true;
     }
 
@@ -1549,16 +1551,19 @@ export class Player extends BaseGameObject {
         // Boost logic
         // NO BOOST DECAY
 
-        /*if (this.boost > 0 && !this.hasPerk("leadership")) {
-            this.boost -= 0.375 * dt;
-        }*/
+        if (!moreAdren) {
+            if (this.boost > 0 && !this.hasPerk("leadership")) {
+                this.boost -= 0.375 * dt;
+            }
 
-        /* Revamped health regen
-        if (this.boost > 0 && this.boost <= 25) this.health += 0.5 * dt;
-        else if (this.boost > 25 && this.boost <= 50) this.health += 1.25 * dt;
-        else if (this.boost > 50 && this.boost <= 87.5) this.health += 1.5 * dt;
-        else if (this.boost > 87.5 && this.boost <= 100) this.health += 1.75 * dt;*/
-        this.health += dt * (this.boost / 50);
+            // Revamped health regen
+            if (this.boost > 0 && this.boost <= 25) this.health += 0.5 * dt;
+            else if (this.boost > 25 && this.boost <= 50) this.health += 1.25 * dt;
+            else if (this.boost > 50 && this.boost <= 87.5) this.health += 1.5 * dt;
+            else if (this.boost > 87.5 && this.boost <= 100) this.health += 1.75 * dt;
+        } else {
+            this.health += dt * (this.boost / 50);
+        }
 
         if (this.hasPerk("gotw")) {
             this.health += PerkProperties.gotw.healthRegen * dt;
@@ -1902,12 +1907,12 @@ export class Player extends BaseGameObject {
         //can't collide with objects in spectator mode
         const objs = this.debug.spectatorMode
             ? //so spectators can go underground, need to be able to interact with stairs
-              this.game.grid
-                  .intersectCollider(circle)
-                  .filter(
-                      (o): o is Structure =>
-                          o.__type == ObjectType.Structure && o.stairs.length != 0,
-                  )
+            this.game.grid
+                .intersectCollider(circle)
+                .filter(
+                    (o): o is Structure =>
+                        o.__type == ObjectType.Structure && o.stairs.length != 0,
+                )
             : this.game.grid.intersectCollider(circle);
 
         if (!(Bot.IGNORE_OBSTACLES && this instanceof Bot)) {
@@ -1990,9 +1995,9 @@ export class Player extends BaseGameObject {
                         if (
                             this.bagSizes[closestLoot.type] &&
                             this.inventory[closestLoot.type] >=
-                                this.bagSizes[closestLoot.type][
-                                    this.getGearLevel(this.backpack)
-                                ]
+                            this.bagSizes[closestLoot.type][
+                            this.getGearLevel(this.backpack)
+                            ]
                         ) {
                             break;
                         }
@@ -2449,7 +2454,7 @@ export class Player extends BaseGameObject {
         if (
             player.playerStatusDirty ||
             player.playerStatusTicker >
-                net.getPlayerStatusUpdateRate(this.game.map.factionMode)
+            net.getPlayerStatusUpdateRate(this.game.map.factionMode)
         ) {
             let statuses = this.game.modeManager.getPlayerStatuses(player);
             if (statuses.length > 255) {
@@ -3374,9 +3379,9 @@ export class Player extends BaseGameObject {
     shouldAcceptInput(input: number): boolean {
         return this.downed
             ? (input === GameConfig.Input.Revive && this.hasPerk("self_revive")) || // Players can revive themselves if they have the self-revive perk.
-                  (input === GameConfig.Input.Cancel &&
-                      this.game.modeManager.isReviving(this)) || // Players can cancel their own revives (if they are reviving themself, which is only true if they have the perk).
-                  input === GameConfig.Input.Interact // Players can interact with obstacles while downed.
+            (input === GameConfig.Input.Cancel &&
+                this.game.modeManager.isReviving(this)) || // Players can cancel their own revives (if they are reviving themself, which is only true if they have the perk).
+            input === GameConfig.Input.Interact // Players can interact with obstacles while downed.
             : true;
     }
 
@@ -4165,9 +4170,9 @@ export class Player extends BaseGameObject {
             string,
             GunDef | ThrowableDef | MeleeDef,
         ]) => boolean = this.hasPerk("rare_potato")
-            ? ([_type, def]) =>
-                  !def.noPotatoSwap && def.quality == PerkProperties.rare_potato.quality
-            : ([_type, def]) => !def.noPotatoSwap;
+                ? ([_type, def]) =>
+                    !def.noPotatoSwap && def.quality == PerkProperties.rare_potato.quality
+                : ([_type, def]) => !def.noPotatoSwap;
 
         const weaponChoices = enumerableDefs.filter(filterCb);
         const [chosenWeaponType, chosenWeaponDef] =
@@ -4751,11 +4756,14 @@ export class Player extends BaseGameObject {
 
         // increase speed when adrenaline is above 50%
 
-        /* Revamped player speed
-        if (this.boost >= 50) {
-            this.speed += GameConfig.player.boostMoveSpeed;
-        }*/
-        this.speed += GameConfig.player.boostMoveSpeed * Math.floor(this.boost / 50);
+        // Revamped player speed
+        if (!moreAdren) {
+            if (this.boost >= 50) {
+                this.speed += GameConfig.player.boostMoveSpeed;
+            }
+        } else {
+            this.speed += GameConfig.player.boostMoveSpeed * Math.floor(this.boost / 50);
+        }
 
         if (this.animType === GameConfig.Anim.Cook) {
             this.speed -= GameConfig.player.cookSpeedPenalty;
@@ -4803,13 +4811,13 @@ export class Player extends BaseGameObject {
 export class Bot extends Player {
     static IGNORE_OBSTACLES = false;
 
-    static strafeStrength = 0.3; 
+    static strafeStrength = 0.3;
     static strafeProbChange = 0.1;
     static spreadStrength = 0.01;
     static spreadDistStrength = 0.5;
     static shootLead = true;
 
-    quickSwitch = true; 
+    quickSwitch = true;
 
     protected target: Player | undefined;
     protected targetTimer: number;
@@ -4854,7 +4862,7 @@ export class Bot extends Player {
         this.isMobile = true;
         this.targetTimer = 0;
     }
-    
+
     // Target Switch Timer
     update(dt: number): void {
         super.update(dt);
@@ -4912,7 +4920,7 @@ export class Bot extends Player {
                 this.shootHold = true;
                 this.dir = v2.directionNormalized(this.posOld, obs[0].pos);
             }
-            } else if (closestPlayer != undefined) {
+        } else if (closestPlayer != undefined) {
             this.shootHold = true;
             this.shootStart = true;
         }
@@ -4924,7 +4932,7 @@ export class Bot extends Player {
 
         // if (Bot.quickSwitch)
         this.quickswitch();
-    
+
         // STOP HEALING WHEN FIGHTING
         if (!BotUtil.noNearbyBullet(this) && this.actionType != GameConfig.Action.Reload)
             this.cancelAction();
@@ -4960,7 +4968,7 @@ export class Bot extends Player {
             // start timer
             this.targetTimer = 0.4 + Math.random() * 0.1;
         }
-        
+
         this.target = closestPlayer;
     }
 
@@ -5210,7 +5218,7 @@ export class SoloBot extends DumBot {
             // start timer
             this.targetTimer = 0.4 + Math.random() * 0.1;
         }
-        
+
         this.target = closestPlayer;
     }
 
@@ -5244,7 +5252,7 @@ export class SoloBot extends DumBot {
                 }
 
                 this.aimK = k;
-                
+
                 if (oldAimType != this.aimType) {
                     this.aimTicker = 0.15 + BotUtil.randomSym(0.03);
                 }
