@@ -50,7 +50,7 @@ import type { MapIndicator } from "./mapIndicator";
 import type { Obstacle } from "./obstacle";
 import type { Structure } from "./structure";
 
-import { moreAdren } from "../../../../shared/adrenConfig";
+import { buffHeals, moreAdren } from "../../../../shared/adrenConfig";
 
 type GodMode = {
     isGodMode: boolean;
@@ -304,13 +304,14 @@ export class PlayerBarn {
         player.zoom = player.scopeZoomRadius[player.scope];
 
         // player.boost = 100;
-        player.boost = 50;
+        // player.boost = 50;
+        player.boost = buffHeals ? 50 : 100;
 
         // healing items
         player.inventory["bandage"] = 30;
         player.inventory["healthkit"] = 4;
-        player.inventory["soda"] = 0;
-        player.inventory["painkiller"] = 0;
+        player.inventory["soda"] = moreAdren ? 0 : 15;
+        player.inventory["painkiller"] = moreAdren ? 0 : 4;
 
         // grenades?
         player.inventory["frag"] = 6;
