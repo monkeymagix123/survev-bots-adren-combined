@@ -25,6 +25,8 @@ import type { Player, PlayerBarn } from "./objects/player";
 import type { Renderer } from "./renderer";
 import type { UiManager } from "./ui/ui";
 
+import { newGuns } from "../../shared/defs/newGuns";
+
 const airdropIdx = 4;
 const airstrikeIdx = 5;
 const emoteTimeout = 10.0;
@@ -766,6 +768,21 @@ export class EmoteBarn {
                     } else {
                         e.sprite.scale.set(e.baseScale, e.baseScale);
                     }
+
+                    // new guns for potato mode
+                    newGuns.forEach((newgun) => {
+                        if (lootDef.lootImg?.sprite.includes(newgun)) {
+                            let lootImg = lootDef.lootImg.sprite;
+                            e.sprite.texture = PIXI.Texture.from(`/img/new/${lootImg}`);
+                            if (newgun === "m134")
+                                e.sprite.scale.set(0.037);
+                            else if (newgun === "pkm")
+                                e.sprite.scale.set(0.14);
+                            // this.sprite.scale.set(0.1);
+                            else
+                                e.sprite.scale.set(0.09);
+                        }
+                    });
 
                     // This 'emote_loot' type is primarily used in potato mode,
                     // and we'd like to highlight the new weapon that is acquired.
