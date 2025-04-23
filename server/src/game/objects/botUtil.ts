@@ -52,36 +52,36 @@ import { Player, Bot, DumBot} from "./player";
 import { MapObjectDefs } from "../../../../shared/defs/mapObjectDefs";
 import { ObstacleDef } from "../../../../shared/defs/mapObjectsTyping";
 
-export class BotUtil {
+export const BotUtil = {
     // basic utilities
-    static dist2(a: Vec2, b: Vec2) {
+    dist2(a: Vec2, b: Vec2) {
         return ((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
-    }
+    },
 
-    static same(one: Team | Group | undefined, two: Team | Group | undefined): boolean {
+    same(one: Team | Group | undefined, two: Team | Group | undefined): boolean {
         if (one === undefined) {
             return false;
         }
         return (one === two);
-    }
+    },
 
-    static sameTeam(a: Player | undefined, b: Player | undefined): boolean {
+    sameTeam(a: Player | undefined, b: Player | undefined): boolean {
         if (this.same(a?.team, b?.team))
             return true;
         if (this.same(a?.group, b?.group))
             return true;
 
         return false;
-    }
+    },
 
-    static randomSym(n: number): number {
+    randomSym(n: number): number {
         let r = Math.random();
 
         return (2 * r - 1) * n;
-    }
+    },
 
     // actual advanced functions / utilities
-    static noNearbyBullet(bot: Player): boolean {
+    noNearbyBullet(bot: Player): boolean {
         const nearbyBullet = bot.game.bulletBarn.bullets
             .filter(
                 (obj) =>
@@ -113,7 +113,7 @@ export class BotUtil {
         });
 
         return true;
-    }
+    },
 
     /**
      * Gets the closest player
@@ -122,7 +122,7 @@ export class BotUtil {
      * @param needEnemy if it cannot be a teammate, defaults to true
      * @returns the closest player
      */
-    static getClosestPlayer(bot: Player, isInRange = false, needPlayer = false, needEnemy = true): Player | undefined {
+    getClosestPlayer(bot: Player, isInRange = false, needPlayer = false, needEnemy = true): Player | undefined {
         const nearbyEnemy = this.getAllPlayers(bot, isInRange, needPlayer);
 
         let closestPlayer: Player | undefined;
@@ -150,7 +150,7 @@ export class BotUtil {
         }
 
         return closestPlayer;
-    }
+    },
 
     /**
      * Gets all players satisfying conditions
@@ -158,7 +158,7 @@ export class BotUtil {
      * @param needPlayer if it has to be an actual player (not a bot), defaults to false
      * @returns all such players
      */
-    static getAllPlayers(bot: Player, isInRange = false, needPlayer = false): Player[] {
+    getAllPlayers(bot: Player, isInRange = false, needPlayer = false): Player[] {
         // diff zone?
         const radius = bot.zoom + 4;
         let rect = coldet.circleToAabb(bot.pos, radius * 0.7); // a bit less
@@ -179,16 +179,16 @@ export class BotUtil {
             );
 
         return nearbyEnemy;
-    }
+    },
 
-    static isVisible(bot: Player, player: Player | undefined): boolean {
+    isVisible(bot: Player, player: Player | undefined): boolean {
         if (player === undefined) {
             return false;
         }
         return (this.getAllPlayers(bot, true).includes(player));
-    }
+    },
 
-    static getCollidingObstacles(bot: Player, needDestructible = false): Obstacle[] {
+    getCollidingObstacles(bot: Player, needDestructible = false): Obstacle[] {
         const coll1 = collider.createCircle(bot.posOld, bot.rad * 2);
         // const coll = bot.collider;
         
