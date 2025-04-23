@@ -248,6 +248,19 @@ export class PlayerBarn {
             }
         }
 
+        if (!this.game.isTeamMode) {
+            this.addBot(
+                (80 - this.livingPlayers.length),
+                layer, undefined,
+                undefined,
+                undefined,
+                player,
+                socketId,
+                joinMsg,
+                false
+            );
+        }
+
         if (player.game.map.perkMode) {
             /*
              * +5 because the client has its own timer
@@ -374,6 +387,10 @@ export class PlayerBarn {
 
             bot.name = `Bot-${namesData.names[Math.floor(Math.random() * namesData.names.length)]}`;
             group.addPlayer(bot);
+
+            if (!isFaction) {
+                group = this.addGroup(false);
+            }
 
             bot.group = group;
             bot.groupId = group.groupId;
