@@ -391,7 +391,7 @@ export class PlayerBarn {
 
             if (!isFaction) {
                 group = this.addGroup(false);
-                bot = new WeakenedBot(this.game, pos2, layer, socketId, joinMsg);
+                bot = new SoloBot(this.game, pos2, layer, socketId, joinMsg);
             }
 
             bot.group = group;
@@ -5153,7 +5153,7 @@ export class DumBot extends Bot {
 
 // solo mode bots !!! <---- 50v50
 
-export class WeakenedBot extends DumBot {
+export class SoloBot extends DumBot {
     protected aimTicker: number;
     protected aimType: number; // atrocious, mid, or great
     protected aimK: number;
