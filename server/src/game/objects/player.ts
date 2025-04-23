@@ -4941,7 +4941,7 @@ export class Bot extends Player {
 
     aim(target: Player): void {
         let k = Bot.shootLead ? 0.2 + 0.05 * Math.random() : 0;
-        this.dir = v2.normalizeSafe(this.posOld, v2.add(target.pos, v2.mul(target.moveVel, k)));
+        this.dir = v2.directionNormalized(this.posOld, v2.add(target.pos, v2.mul(target.moveVel, k)));
     }
 
     stop(): void {
