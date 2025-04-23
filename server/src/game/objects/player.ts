@@ -4802,27 +4802,26 @@ export class Player extends BaseGameObject {
 // try bot
 export class Bot extends Player {
     static IGNORE_OBSTACLES = false;
-    static strafeStrength = 0.3; // How hard it wants
-    static strafeProbChange = 0.1;
-    // test
-    constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
-        // super(game, pos, socketId, joinMsg);
-        super(game, pos, layer, socketId, joinMsg, "0.0.0.0", "0.0.0.0", null);
 
+    static strafeStrength = 0.3; 
+    static strafeProbChange = 0.1;
+    static spreadStrength = 0.01;
+    static spreadDistStrength = 0.5;
+    static shootLead = true;
+    static quickSwitch = true; 
+
+    protected target: Player | undefined;
+    protected targetTimer: number;
+    protected strafeSign: number = Math.random() < 0.5 ? 1 : -1;
+
+    constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
+        super(game, pos, layer, socketId, joinMsg, "0.0.0.0", "0.0.0.0", null);
         this.touchMoveActive = true;
-        // prob use same joinMsg?
 
         this.name = "Bot";
-        this.isMobile = false;
-        // change default outfit
         this.setOutfit("outfitDarkGloves");
 
-        // this.toMouseDir = this.posOld; // ???
-
-        const loadout = this.loadout;
-
-        // set random weapons
-        // currently mosin + spas12
+        // Weapons (Mosin + SPAS12)
         const slot1 = GameConfig.WeaponSlot.Primary;
         this.weapons[slot1].type = "mosin";
         const gunDef1 = GameObjectDefs[this.weapons[slot1].type] as GunDef;
@@ -4833,9 +4832,6 @@ export class Bot extends Player {
         const gunDef2 = GameObjectDefs[this.weapons[slot2].type] as GunDef;
         this.weapons[slot2].ammo = gunDef2.maxClip;
 
-        // more copied
-        // createCircle clones the position
-        // so set it manually to link both
         this.collider = collider.createCircle(this.pos, this.rad);
         this.collider.pos = this.pos;
 
@@ -4847,54 +4843,37 @@ export class Bot extends Player {
         this.weaponManager.showNextThrowable();
         this.recalculateScale();
 
-        // copied
         this.actionDirty = true;
-        this.weaponManager.setCurWeapIndex(GameConfig.WeaponSlot.Primary); // switch to main
-        this.toMouseLen = 50; //????
+        this.weaponManager.setCurWeapIndex(GameConfig.WeaponSlot.Primary);
 
         this.move();
 
         this.reloadAgain = true;
 
-        this.shotSlowdownTimer = 6; // spawn delay
+        this.shotSlowdownTimer = 6;
 
-        // autoloot, open doors
         this.isMobile = true;
-
         this.targetTimer = 0;
     }
-
-    shootLead = true; // CHANGE IF NO LEADS
-    qs = true; // CHANGE IF NO QUICKSWITCH
-
-    protected target: Player | undefined;
-
-    protected targetTimer: number;
-
-    protected strafeSign: number = Math.random() < 0.5 ? 1 : -1;
     
-    // switch target timer
+    // Target Switch Timer
     update(dt: number): void {
         super.update(dt);
         this.targetTimer = Math.max(0, this.targetTimer - dt);
     }
 
-    // new one
+    // Move Bot
     move(): void {
         // Revivify for Bots
         // if (this.downed && this.actionType != GameConfig.Action.Revive) {
         //     this.revive(this);
         // }
 
-        if (this.downed || this.dead) {
+        if (this.downed || this.dead || this.shotSlowdownTimer > 2) {
             return;
         }
 
-        if (this.shotSlowdownTimer > 2) {
-            return;
-        }
-
-        // for role promotion
+        // Promote Role
         if (this.weaponManager.curWeapIdx === GameConfig.WeaponSlot.Melee) {
             this.weaponManager.setCurWeapIndex(GameConfig.WeaponSlot.Primary);
         }
@@ -4903,12 +4882,10 @@ export class Bot extends Player {
         let closestPlayer = this.target;
 
         if (closestPlayer != undefined) {
-            this.setPartDirty();
+            this.setPartDirty(); // ???
             this.dirOld = v2.copy(this.dir);
             this.aim(closestPlayer);
         }
-
-        let dd = 1;
 
         this.shootHold = false;
         this.shootStart = false;
@@ -4918,10 +4895,10 @@ export class Bot extends Player {
 
             let x = BotUtil.getClosestPlayer(this, true, true, false); // assume no enemies in range
             // lead bots out
-            if (BotUtil.isVisible(this, x) && this.indoors) {
+            /*if (BotUtil.isVisible(this, x) && this.indoors) {
                 this.moveTowards(x, 0, 1);
                 return;
-            }
+            }*/
 
             // don't heal if some guy is shooting
             if (BotUtil.noNearbyBullet(this)) {
@@ -4939,27 +4916,14 @@ export class Bot extends Player {
             } else if (closestPlayer != undefined) {
             this.shootHold = true;
             this.shootStart = true;
-
-            /* This is literally just extra randomness why?
-            let r1 = Math.random();
-            let r2 = Math.random();
-            if (r1 > 0.95) {
-                this.moveUp = !this.moveUp;
-                this.moveDown = !this.moveDown;
-            }
-            if (r2 > 0.85) {
-                this.moveLeft = !this.moveLeft;
-                this.moveRight = !this.moveRight;
-            }*/
         }
 
-        // if (this.game.gas.isInGas(this.pos)) {
         if (BotUtil.dist2(this.pos, this.game.gas.currentPos) >= (this.game.gas.currentRad ** 2) * 0.9) {
             // try to move out of gas
             this.moveTo(this.game.gas.currentPos);
         }
 
-        if (this.qs)
+        if (Bot.quickSwitch)
             this.quickswitch();
     
         // STOP HEALING WHEN FIGHTING
@@ -4968,12 +4932,10 @@ export class Bot extends Player {
     }
 
     aim(target: Player): void {
-        let k = this.shootLead ? 0.2 + 0.05 * Math.random() : 0;
-
-        this.dir = v2.directionNormalized(this.posOld, v2.add(target.pos, v2.mul(target.moveVel, k)));
+        let k = Bot.shootLead ? 0.2 + 0.05 * Math.random() : 0;
+        this.dir = v2.normalizeSafe(this.posOld, v2.add(target.pos, v2.mul(target.moveVel, k)));
     }
 
-    // don't move at all -- debugging
     stop(): void {
         this.toMouseLen = 0;
         this.shootStart = false;
@@ -5005,7 +4967,7 @@ export class Bot extends Player {
 
     msgStream = new net.MsgStream(new ArrayBuffer(65536));
 
-    // only thing using socketId
+    // Send Data and Move
     sendData(buffer: ArrayBuffer | Uint8Array): void {
         // this.game.sendSocketMsg(this.socketId, buffer);
         this.move();
@@ -5014,23 +4976,54 @@ export class Bot extends Player {
     /**
      * Move towards closest player
      * @param closestPlayer player to move towards
-     * @param dd how far can be where treat as same horizontal coordinate
-     * @param chance chance of moving in straight line
+     * @param spread if true, spread out from other bots
+     * @param speed speed of movement
      */
-    moveTowards(closestPlayer: Player | undefined, dd = 1, chance = 0.90): void {
+    moveTowards(closestPlayer: Player | undefined, spread: boolean = false, speed: number = 255): void {
         if (closestPlayer === undefined) {
             return;
         }
-
-        // move in a straight line if no bullets in sight
-        if (!this.game.map.factionMode && BotUtil.noNearbyBullet(this)) {
-            chance = 1;
-        }
-
-        this.moveTo(closestPlayer.pos);
+        this.moveTo(
+            closestPlayer.pos,
+            !this.game.map.factionMode && BotUtil.noNearbyBullet(this),
+            spread,
+            speed
+        );
     }
 
-    moveTo(pos: Vec2, strafe: boolean = false, speed: number = 255): void {
+    /**
+     * Move towards closest player
+     * @param pos position to move towards
+     * @param strafe if true, strafe towards position
+     * @param spread if true, spread out from other bots
+     * @param speed speed of movement
+     */
+    moveTo(pos: Vec2, strafe: boolean = false, spread: boolean = false, speed: number = 255): void {
+        this.touchMoveLen = speed;
+        this.touchMoveDir = v2.normalizeSafe(v2.sub(this.pos, pos));
+
+        if (strafe) {
+            this.strafeSign *= Math.random() > Bot.strafeProbChange ? -1 : 1;
+            const perp = v2.mul(v2.perp(this.touchMoveDir), Bot.strafeStrength);
+            this.touchMoveDir = v2.add(perp, this.touchMoveDir);
+        }
+
+        if (spread && this.team != undefined) {
+            for (const i of this.team.livingPlayers) {
+                if (i != this) {
+                    const push =
+                        v2.mul(
+                            v2.sub(i.pos, this.touchMoveDir),
+                            Bot.spreadStrength * Math.pow(v2.distance(this.pos, i.pos), -Bot.spreadDistStrength)
+                        );
+                    this.touchMoveDir = v2.add(push, this.touchMoveDir);
+                }
+            }
+        }
+        this.touchMoveDir = v2.normalizeSafe(this.touchMoveDir);
+    }
+
+    moveAway(pos: Vec2, strafe: boolean = false, spread: boolean = false, speed: number = 255): void {
         this.touchMoveLen = speed;
         this.touchMoveDir = v2.normalizeSafe(v2.sub(pos, this.pos));
 
@@ -5039,66 +5032,20 @@ export class Bot extends Player {
             const perp = v2.mul(v2.perp(this.touchMoveDir), Bot.strafeStrength);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
+
+        if (spread && this.team != undefined) {
+            for (const i of this.team.livingPlayers) {
+                if (i != this) {
+                    const push =
+                        v2.mul(
+                            v2.sub(i.pos, this.touchMoveDir),
+                            Bot.spreadStrength * Math.pow(v2.distance(this.pos, i.pos), -Bot.spreadDistStrength)
+                        );
+                    this.touchMoveDir = v2.add(push, this.touchMoveDir);
+                }
+            }
+        }
         this.touchMoveDir = v2.normalizeSafe(this.touchMoveDir);
-
-        /*
-        if (posx > this.pos.x + dd) {
-            this.moveRight = true;
-            this.moveLeft = false;
-        } else if (posx < this.pos.x - dd) {
-            this.moveLeft = true;
-            this.moveRight = false;
-        } else {
-            this.moveLeft, this.moveRight = false;
-            diffMoveH = true;
-        }
-        
-
-        // up - down
-        if (posy > this.pos.y + dd) {
-            this.moveUp = true;
-            this.moveDown = false;
-        } else if (posy < this.pos.y - dd) {
-            this.moveDown = true;
-            this.moveUp = false;
-        } else {
-            this.moveDown, this.moveUp = false;
-            diffMoveV = true;
-        }
-
-        // random movement
-        let r1 = Math.random();
-        let r2 = Math.random();
-        
-        // if bullet visible, dont walk in straight line
-        let c = chance === 1 ? 0.05: 0.17;
-        // hmm change this if stuck
-
-        if (diffMoveH) {
-            if (r1 > 1 - c) {
-                this.moveLeft = true;
-            }
-            if (r1 < c) {
-                this.moveRight = true;
-            }
-        } else if (diffMoveV) {
-            if (r1 > 1 - c) {
-                this.moveUp = true;
-            }
-            if (r1 < c) {
-                this.moveDown = true;
-            }
-        } else {
-            if (r1 > chance) {
-                this.moveUp = !this.moveUp;
-                this.moveDown = !this.moveDown;
-            }
-            if (r2 > chance) {
-                this.moveLeft = !this.moveLeft;
-                this.moveRight = !this.moveRight;
-            }
-        }
-            */
     }
 
     quickswitch(): void {
@@ -5201,9 +5148,6 @@ export class DumBot extends Bot {
         this.weapons[slot1].type = stuff;
         const gunDef1 = GameObjectDefs[this.weapons[slot1].type] as GunDef;
         this.weapons[slot1].ammo = gunDef1.maxClip;
-
-        this.shootLead = true;
-        this.qs = false;
     }
 
     // deleted move since now same
@@ -5219,9 +5163,6 @@ export class WeakenedBot extends DumBot {
     // test
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         super(game, pos, layer, socketId, joinMsg);
-
-        this.shootLead = true;
-        this.qs = false;
 
         this.aimTicker = 0;
         this.aimType = 5;
@@ -5259,7 +5200,7 @@ export class WeakenedBot extends DumBot {
     aim(target: Player): void {
         // let k = this.shootLead ? 0.2 + 0.05 * Math.random() : 0;
         let k = 0;
-        if (this.shootLead) {
+        if (Bot.shootLead) {
             // good aim: 0.2 to 0.25
             // levels of aim?
             // 15% chance of atrocious aim, 20% bad, 50% good, rest 25% is insane
