@@ -238,7 +238,7 @@ export class PlayerBarn {
                         (50 - this.teams[i + 1].livingPlayers.length),
                         layer, this.addGroup(false),
                         this.teams[i + 1],
-                        undefined,
+                        0,
                         player,
                         socketId,
                         joinMsg,
@@ -5201,7 +5201,8 @@ export class DumBot extends Bot {
     // deleted move since now same
 }
 
-// 50v50 bots
+// solo mode bots !!! <---- 50v50 is DumBot huh why aren't we using just regular bot again
+
 export class WeakenedBot extends DumBot {
     protected aimTicker: number;
     protected aimType: number; // atrocious, mid, or great
