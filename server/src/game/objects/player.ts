@@ -4808,7 +4808,8 @@ export class Bot extends Player {
     static spreadStrength = 0.01;
     static spreadDistStrength = 0.5;
     static shootLead = true;
-    static quickSwitch = true; 
+
+    quickSwitch = true; 
 
     protected target: Player | undefined;
     protected targetTimer: number;
@@ -4921,8 +4922,8 @@ export class Bot extends Player {
             this.moveTo(this.game.gas.currentPos);
         }
 
-        if (Bot.quickSwitch)
-            this.quickswitch();
+        // if (Bot.quickSwitch)
+        this.quickswitch();
     
         // STOP HEALING WHEN FIGHTING
         if (!BotUtil.noNearbyBullet(this) && this.actionType != GameConfig.Action.Reload)
@@ -5047,6 +5048,10 @@ export class Bot extends Player {
     }
 
     quickswitch(): void {
+        // should not be called if quickswitch is false
+        if (this.quickSwitch)
+            return;
+
         const curWeap = GameObjectDefs[this.weaponManager.activeWeapon] as GunDef;
         if (this.shotSlowdownTimer > 0 && curWeap.fireDelay - this.shotSlowdownTimer > 0.25) {
             this.weaponManager.setCurWeapIndex(1 - this.weaponManager.curWeapIdx);
@@ -5181,6 +5186,10 @@ export class SoloBot extends DumBot {
             this.weaponManager.weapons[slot1].type = primary;
             const gunDef1 = GameObjectDefs[this.weapons[slot1].type] as GunDef;
             this.weapons[slot1].ammo = gunDef1.maxClip;
+        }
+
+        if (Math.random() > 0.3) {
+            this.quickSwitch = false;
         }
     }
 
