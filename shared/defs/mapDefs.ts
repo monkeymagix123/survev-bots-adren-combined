@@ -17,6 +17,8 @@ import { WoodsSpring } from "./maps/woodsSpringDefs";
 import { WoodsSummer } from "./maps/woodsSummerDefs";
 import type { MapId } from "./types/misc";
 
+import { FactionBots } from "./maps/factionBotsDefs";
+
 export type Atlas =
     | "gradient"
     | "loadout"
@@ -52,6 +54,7 @@ export const MapDefs = {
     turkey: Turkey,
 
     main_better_loot: MainBetterLoot,
+    faction_bots: FactionBots,
 } satisfies Record<string, MapDef>;
 
 export interface MapDef {

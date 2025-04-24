@@ -700,5 +700,13 @@
   "game-xp_compass": "Amélie's True Compass",
   "game-xp_stump": "Ravenstone's Bloody Stump",
   "game-xp_bone": "Bone of Gordon",
-  "game-xp_donut": "Cake Donut"
+  "game-xp_donut": "Cake Donut",
+
+  "game-m134": "M134",
+  "game-pkm": "PKM",
+  "game-m79": "M79",
+  "game-snow_cannon": "Snow Cannon",
+
+  "game-hud-m79": "M79",
+  "game-bullet_m79": "M79"
 }

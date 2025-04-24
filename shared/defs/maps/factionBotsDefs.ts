@@ -1,3 +1,4 @@
+import { devMode } from "../../customConfig";
 import { GameConfig } from "../../gameConfig";
 import { util } from "../../utils/util";
 import { v2 } from "../../utils/v2";
@@ -106,93 +107,7 @@ const mapDef: PartialMapDef = {
     /* STRIP_FROM_PROD_CLIENT:START */
     gameConfig: {
         planes: {
-            timings: [
-                {
-                    circleIdx: 1,
-                    wait: 10,
-                    options: {
-                        type: GameConfig.Plane.Airstrike,
-                        numPlanes: [
-                            { count: 3, weight: 5 },
-                            { count: 4, weight: 1 },
-                            { count: 5, weight: 0.1 },
-                        ],
-                        airstrikeZoneRad: 60,
-                        wait: 1.5,
-                        delay: 1,
-                    },
-                },
-                {
-                    circleIdx: 2,
-                    wait: 6,
-                    options: { type: GameConfig.Plane.Airdrop },
-                },
-                {
-                    circleIdx: 2,
-                    wait: 30,
-                    options: {
-                        type: GameConfig.Plane.Airstrike,
-                        numPlanes: [
-                            { count: 3, weight: 4 },
-                            { count: 4, weight: 1 },
-                            { count: 5, weight: 0.1 },
-                        ],
-                        airstrikeZoneRad: 55,
-                        wait: 1.5,
-                        delay: 1,
-                    },
-                },
-                {
-                    circleIdx: 3,
-                    wait: 8,
-                    options: {
-                        type: GameConfig.Plane.Airstrike,
-                        numPlanes: [
-                            { count: 3, weight: 3 },
-                            { count: 4, weight: 1 },
-                            { count: 5, weight: 0.1 },
-                        ],
-                        airstrikeZoneRad: 50,
-                        wait: 1.5,
-                        delay: 1,
-                    },
-                },
-                {
-                    circleIdx: 4,
-                    wait: 3,
-                    options: { type: GameConfig.Plane.Airdrop },
-                },
-                {
-                    circleIdx: 4,
-                    wait: 21,
-                    options: {
-                        type: GameConfig.Plane.Airstrike,
-                        numPlanes: [
-                            { count: 3, weight: 2 },
-                            { count: 4, weight: 1 },
-                            { count: 5, weight: 0.1 },
-                        ],
-                        airstrikeZoneRad: 45,
-                        wait: 1.5,
-                        delay: 1,
-                    },
-                },
-                {
-                    circleIdx: 5,
-                    wait: 6,
-                    options: {
-                        type: GameConfig.Plane.Airstrike,
-                        numPlanes: [
-                            { count: 3, weight: 1 },
-                            { count: 4, weight: 1 },
-                            { count: 5, weight: 0.1 },
-                        ],
-                        airstrikeZoneRad: 40,
-                        wait: 1.5,
-                        delay: 1,
-                    },
-                },
-            ],
+            timings: [],
             crates: [{ name: "airdrop_crate_03", weight: 1 }],
         },
         roles: {
@@ -200,27 +115,32 @@ const mapDef: PartialMapDef = {
                 {
                     role: "leader",
                     circleIdx: 0,
-                    wait: 50,
+                    // wait: 50,
+                    wait: 15,
                 },
                 {
                     role: "lieutenant",
                     circleIdx: 0,
-                    wait: 54,
+                    // wait: 54,
+                    wait: 16,
                 },
                 {
                     role: "marksman",
                     circleIdx: 0,
-                    wait: 58,
+                    // wait: 58,
+                    wait: 17,
                 },
                 {
                     role: "recon",
                     circleIdx: 0,
-                    wait: 62,
+                    // wait: 62,
+                    wait: 18,
                 },
                 {
                     role: "grenadier",
                     circleIdx: 0,
-                    wait: 66,
+                    // wait: 66,
+                    wait: 19,
                 },
                 // {
                 //     role: () =>
@@ -236,12 +156,14 @@ const mapDef: PartialMapDef = {
                 {
                     role: "medic",
                     circleIdx: 0,
-                    wait: 70,
+                    // wait: 70,
+                    wait: 20,
                 },
                 {
                     role: "bugler",
                     circleIdx: 0,
-                    wait: 74,
+                    // wait: 74,
+                    wait: 21,
                 },
             ],
         },
@@ -375,8 +297,9 @@ const mapDef: PartialMapDef = {
     },
     mapGen: {
         map: {
-            baseWidth: 512,
-            baseHeight: 512,
+            baseWidth: devMode ? 64 : 512,
+            baseHeight: devMode ? 64 : 512,
+            
             scale: { small: 1.5, large: 1.5 },
             extension: 112,
             shoreInset: 48,
@@ -408,17 +331,19 @@ const mapDef: PartialMapDef = {
             placeSpawns: [],
         },
         densitySpawns: [
-            {
-                stone_01: 350,
-                barrel_01: 76,
+            devMode ? {} : {
+                // INCREASE STONE AND BARREL DENSITY (from 350 and 76 respectively)
+                stone_01: 600,
+                barrel_01: 250,
                 silo_01: 8,
                 crate_01: 38,
                 crate_02f: 5,
                 crate_22: 5,
                 crate_03: 8,
                 bush_01: 78,
-                tree_08f: 320,
-                hedgehog_01: 24,
+                // Increase tree density (from 320)
+                tree_08f: 500,
+                // hedgehog_01: 24,
                 container_01: 5,
                 container_02: 5,
                 container_03: 5,
@@ -431,6 +356,7 @@ const mapDef: PartialMapDef = {
         ],
         fixedSpawns: [
             {
+                /* REMOVE LARGE STRUCUTRES (unsure which are large, uncomment those that are both convex and small)
                 warehouse_01f: 6,
                 house_red_01: 4,
                 house_red_02: 4,
@@ -455,6 +381,7 @@ const mapDef: PartialMapDef = {
                 mil_crate_02: { odds: 1 },
                 tree_02: 3,
                 river_town_01: 1,
+                */
             },
         ],
         randomSpawns: [],
@@ -468,14 +395,15 @@ const mapDef: PartialMapDef = {
             },
         ],
         importantSpawns: [
+            /* REMOVE LARGE STRUCTURES
             "river_town_01",
             "police_01",
             "bank_01",
             "mansion_structure_01",
-            "warehouse_complex_01",
+            "warehouse_complex_01",*/
         ],
     },
     /* STRIP_FROM_PROD_CLIENT:END */
 };
 
-export const Faction = util.mergeDeep({}, Main, mapDef) as MapDef;
+export const FactionBots = util.mergeDeep({}, Main, mapDef) as MapDef;
