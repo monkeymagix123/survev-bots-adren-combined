@@ -4995,7 +4995,7 @@ export class Bot extends Player {
         this.touchMoveDir = v2.normalizeSafe(v2.sub(pos, this.pos));
 
         if (strafe) {
-            this.strafeSign *= Math.random() > strafeProbChange ? -1 : 1;
+            this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
             const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
@@ -5020,7 +5020,7 @@ export class Bot extends Player {
         this.touchMoveDir = v2.normalizeSafe(v2.sub(this.pos, pos));
 
         if (strafe) {
-            this.strafeSign *= Math.random() > strafeProbChange ? -1 : 1;
+            this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
             const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
@@ -5056,17 +5056,17 @@ export class Bot extends Player {
             this.useHealingItem("medkit");
             return;
         }
-        if (this.inventory["bandage"] > 0 && this.health < 65 && this.actionItem != "bandage") {
+        else if (this.inventory["bandage"] > 0 && this.health < 65 && this.actionItem != "bandage") {
             this.moveAway(this.target!.pos, true);
             this.useHealingItem("bandage");
             return;
         }
-        if (this.inventory["painkiller"] > 0 && this.boost < 50 && this.actionItem != "painkiller") {
+        else if (this.inventory["painkiller"] > 0 && this.actionItem != "painkiller") {
             this.moveAway(this.target!.pos, true);
             this.useBoostItem("painkiller");
             return;
         }
-        if (this.inventory["soda"] > 0 && this.boost < 75 && this.actionItem != "soda") {
+        else if (this.inventory["soda"] > 0 && this.actionItem != "soda") {
             this.moveAway(this.target!.pos, true);
             this.useBoostItem("soda");
             return;
