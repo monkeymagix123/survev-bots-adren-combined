@@ -355,34 +355,7 @@ const mapDef: PartialMapDef = {
             },
         ],
         fixedSpawns: [
-            {
-                /* REMOVE LARGE STRUCUTRES (unsure which are large, uncomment those that are both convex and small)
-                warehouse_01f: 6,
-                house_red_01: 4,
-                house_red_02: 4,
-                barn_01: 4,
-                bank_01: 1,
-                police_01: 1,
-                hut_01: 4,
-                hut_02: 1,
-                shack_03a: 2,
-                shack_03b: 3,
-                greenhouse_01: 1,
-                cache_01: 1,
-                cache_02: 1,
-                cache_07: 1,
-                mansion_structure_01: 1,
-                bunker_structure_01: { odds: 1 },
-                bunker_structure_03: 1,
-                bunker_structure_04: 1,
-                warehouse_complex_01: 1,
-                chest_01: 1,
-                chest_03f: 1,
-                mil_crate_02: { odds: 1 },
-                tree_02: 3,
-                river_town_01: 1,
-                */
-            },
+            {},
         ],
         randomSpawns: [],
         spawnReplacements: [
@@ -394,14 +367,7 @@ const mapDef: PartialMapDef = {
                 tree_01: "tree_08f",
             },
         ],
-        importantSpawns: [
-            /* REMOVE LARGE STRUCTURES
-            "river_town_01",
-            "police_01",
-            "bank_01",
-            "mansion_structure_01",
-            "warehouse_complex_01",*/
-        ],
+        importantSpawns: [],
     },
     /* STRIP_FROM_PROD_CLIENT:END */
 };
