@@ -4882,28 +4882,36 @@ export class Bot extends Player {
             this.weaponManager.setCurWeapIndex(GameConfig.WeaponSlot.Primary);
         }
 
+        // New Target
         this.newTarget();
-        
         this.dirOld = v2.copy(this.dir);
         this.shootHold = false;
         this.shootStart = false;
+        
+        // Cancel Action if in Danger
+        if (!this.safe && this.actionType != GameConfig.Action.Reload)
+            this.cancelAction();
 
-        const safe = BotUtil.noNearbyBullet(this);
-
+        // Attack if target is visible
         if (this.target != undefined && this.visible) {
             this.shootHold = true;
             this.shootStart = true;
             this.aim(this.target);
             this.moveTowards(this.target, true, true);
-        }
-        
-        if (safe && this.canHeal()) {
             return;
         }
+        
+        // Heal if safe and target is not visible
+        if (!this.visible && this.safe && this.canHeal()) {
+            return;
+        }
+        
+        // Move to Target
         else {
             this.moveTowards(this.target, false, true);
         }
         
+        // Aim at Obstacles (if target is not visible)
         const obs = BotUtil.getCollidingObstacles(this, true);
         if (obs.length > 0) {
             this.shootStart = true;
@@ -4911,14 +4919,12 @@ export class Bot extends Player {
             this.dir = v2.directionNormalized(this.posOld, obs[0].pos);
         }
 
+        // Get Out of Gas
         if (BotUtil.dist2(this.pos, this.game.gas.currentPos) >= (this.game.gas.currentRad ** 2) * 0.9) {
             this.moveTo(this.game.gas.currentPos, false, true);
         }
 
         this.quickswitch();
-
-        if (!safe && this.actionType != GameConfig.Action.Reload)
-            this.cancelAction();
     }
 
     aim(target: Player, direct: boolean = false): void {
@@ -4940,7 +4946,6 @@ export class Bot extends Player {
             return;
         }
 
-        // stop autoaiming players if its 50v50
         let closestPlayer = undefined;
         if (!this.game.map.factionMode) {
             const closestPlayer2 = BotUtil.getClosestPlayer(this, true, true);
