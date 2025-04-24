@@ -4903,6 +4903,7 @@ export class Bot extends Player {
         
         // Heal if safe and target is not visible
         if (!this.visible && this.safe && this.canHeal()) {
+            this.moveAway(this.target!.pos, true, true);
             return;
         }
         
@@ -5013,7 +5014,7 @@ export class Bot extends Player {
                     const push =
                         v2.mul(
                             v2.sub(i.pos, this.touchMoveDir),
-                            spreadStrength * Math.pow(v2.distance(this.pos, i.pos), -spreadDistStrength)
+                            1 / Math.pow(v2.distance(this.pos, i.pos), spreadDistStrength)
                         );
                     this.touchMoveDir = v2.add(push, this.touchMoveDir);
                 }
@@ -5059,22 +5060,18 @@ export class Bot extends Player {
 
     canHeal(): boolean {
         if (this.inventory["medkit"] > 0 && this.health < 30 && this.actionItem != "medkit") {
-            this.moveAway(this.target!.pos, true);
             this.useHealingItem("medkit");
             return true;
         }
         else if (this.inventory["bandage"] > 0 && this.health < 65 && this.actionItem != "bandage") {
-            this.moveAway(this.target!.pos, true);
             this.useHealingItem("bandage");
             return true;
         }
         else if (this.inventory["painkiller"] > 0 && this.actionItem != "painkiller") {
-            this.moveAway(this.target!.pos, true);
             this.useBoostItem("painkiller");
             return true;
         }
         else if (this.inventory["soda"] > 0 && this.actionItem != "soda") {
-            this.moveAway(this.target!.pos, true);
             this.useBoostItem("soda");
             return true;
         }
