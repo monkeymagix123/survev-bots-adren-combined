@@ -1,4 +1,4 @@
-export const devMode = false;
+export const devMode = true;
 
 export const factionBots = devMode ? 1 : 50;
 
