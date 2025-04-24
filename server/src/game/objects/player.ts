@@ -311,17 +311,13 @@ export class PlayerBarn {
         player.scope = "2xscope";
         player.zoom = player.scopeZoomRadius[player.scope];
 
-        // player.boost = 100;
-        // player.boost = 50;
         player.boost = adrenMode ? 0 : 100;
 
-        // healing items
         player.inventory["bandage"] = adrenMode ? 30 : 30;
         player.inventory["healthkit"] = adrenMode ? 1 : 4;
         player.inventory["soda"] = adrenMode ? 0 : 15;
         player.inventory["painkiller"] = adrenMode ? 0 : 4;
 
-        // grenades?
         player.inventory["frag"] = adrenMode ? 0 : 6;
         player.inventory["smoke"] = adrenMode ? 0 : 3;
         player.inventory["mirv"] = adrenMode ? 0 : 2;
@@ -365,7 +361,8 @@ export class PlayerBarn {
 
             // higher scope
             player.inventory["4xscope"] = 1;
-            player.scope = "4xscope";
+            player.inventory["8xscope"] = 1;
+            player.scope = "8xscope";
             player.zoom = player.scopeZoomRadius[player.scope];
 
             player.addPerk("takedown", false);
@@ -4813,7 +4810,7 @@ export class Bot extends Player {
 
     protected target: Player | undefined;
     protected targetTimer: number;
-    protected strafeSign: number = Math.random() < 0.5 ? 1 : -1;
+    protected strafeSign: number = 1;
     protected safe: boolean = true;
     protected visible: boolean = false;
 
@@ -4821,6 +4818,7 @@ export class Bot extends Player {
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         super(game, pos, layer, socketId, joinMsg, "0.0.0.0", "0.0.0.0", null);
         this.touchMoveActive = true;
+        this.isMobile = true;
 
         this.name = "Bot";
         this.setOutfit("outfitDarkGloves");
@@ -4852,10 +4850,12 @@ export class Bot extends Player {
 
         this.reloadAgain = true;
 
-        this.shotSlowdownTimer = 6;
-
-        this.isMobile = true;
+        this.moveTo(this.game.gas.currentPos, false, true);
+        
+        this.target = undefined;
         this.targetTimer = 0;
+
+        this.shotSlowdownTimer = 6;
     }
 
     // Target Switch Timer
@@ -4910,7 +4910,7 @@ export class Bot extends Player {
             this.shootHold = true;
             this.dir = v2.directionNormalized(this.posOld, obs[0].pos);
         }
-        
+
         if (BotUtil.dist2(this.pos, this.game.gas.currentPos) >= (this.game.gas.currentRad ** 2) * 0.9) {
             this.moveTo(this.game.gas.currentPos, false, true);
         }
@@ -5023,7 +5023,7 @@ export class Bot extends Player {
 
         if (strafe) {
             this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
-            const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength);
+            const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
 
