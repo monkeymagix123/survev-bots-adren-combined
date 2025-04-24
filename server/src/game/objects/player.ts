@@ -55,7 +55,9 @@ import {
     adrenHealBoost, adrenSpeedBoost,
     botIgnoreObstacles, shootLead,
     strafeStrength, strafeProbChange,
-    spreadStrength, spreadDistStrength, mosinBotShootLead, mosinBotRNG
+    spreadStrength, spreadDistStrength, mosinBotShootLead, mosinBotRNG,
+    factionBots,
+    devMode
 } from "../../../../shared/customConfig";
 
 type GodMode = {
@@ -243,7 +245,7 @@ export class PlayerBarn {
                 */
                 for (let i = 0; i < 2 - aliveTeams.length; i++) {
                     this.addBot(
-                        (50 - this.teams[i + 1].livingPlayers.length),
+                        (factionBots - this.teams[i + 1].livingPlayers.length),
                         layer, this.addGroup(false),
                         this.teams[i + 1],
                         0,
@@ -314,15 +316,15 @@ export class PlayerBarn {
         player.boost = adrenMode ? 0 : 100;
 
         // healing items
-        player.inventory["bandage"] = 30;
-        player.inventory["healthkit"] = 4;
+        player.inventory["bandage"] = adrenMode ? 0 : 30;
+        player.inventory["healthkit"] = adrenMode ? 0 : 4;
         player.inventory["soda"] = adrenMode ? 0 : 15;
         player.inventory["painkiller"] = adrenMode ? 0 : 4;
 
         // grenades?
-        player.inventory["frag"] = 6;
-        player.inventory["smoke"] = 3;
-        player.inventory["mirv"] = 2;
+        player.inventory["frag"] = adrenMode ? 0 : 6;
+        player.inventory["smoke"] = adrenMode ? 0 : 3;
+        player.inventory["mirv"] = adrenMode ? 0 : 2;
 
         player.weaponManager.showNextThrowable(); // ???
 
@@ -437,8 +439,6 @@ export class PlayerBarn {
 
             // if (isFaction)
             this.setMaxItems(bot);
-
-            // 50v50: team id 1 for red, 2 for blue
         }
     }
 
@@ -1364,7 +1364,7 @@ export class Player extends BaseGameObject {
         spectatorMode: false,
         /** drag and drop loot, obstacles, and buildings */
         godMode: <GodMode>{
-            isGodMode: false,
+            isGodMode: devMode,
             /** object you're currently dragging */
             selectedObj: undefined,
             /** original position of the selected obj */
@@ -2768,7 +2768,7 @@ export class Player extends BaseGameObject {
             this.lastDamagedBy = params.source as Player;
         }
 
-        this.health -= finalDamage;
+        this.health -= devMode ? 0 : finalDamage;
 
         if (this.game.isTeamMode) {
             this.setGroupStatuses();

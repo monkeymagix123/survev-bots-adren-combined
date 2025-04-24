@@ -1,3 +1,4 @@
+import { devMode } from "../../../../shared/customConfig";
 import { GameObjectDefs } from "../../../../shared/defs/gameObjectDefs";
 import { MapObjectDefs } from "../../../../shared/defs/mapObjectDefs";
 import type { ObstacleDef } from "../../../../shared/defs/mapObjectsTyping";
