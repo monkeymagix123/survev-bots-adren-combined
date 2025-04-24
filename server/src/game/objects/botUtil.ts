@@ -51,6 +51,7 @@ import { Player, Bot, DumBot} from "./player";
 
 import { MapObjectDefs } from "../../../../shared/defs/mapObjectDefs";
 import { ObstacleDef } from "../../../../shared/defs/mapObjectsTyping";
+import { targetMaxRange } from "../../../../shared/customConfig";
 
 export const BotUtil = {
     // basic utilities
@@ -125,24 +126,21 @@ export const BotUtil = {
     getClosestPlayer(bot: Player, isInRange = false, needPlayer = false, needEnemy = true): Player | undefined {
         const nearbyEnemy = this.getAllPlayers(bot, isInRange, needPlayer);
 
-        let closestPlayer: Player | undefined;
+        let closestPlayer: Player | undefined = undefined;
         let closestDist = Number.MAX_VALUE;
         for (const p of nearbyEnemy) {
             if (!util.sameLayer(bot.layer, p.layer)) {
                 continue;
             }
-            // buildings??
-            // if (p.indoors != this.indoors) {
-            //     continue;
-            // }
-            // teammates
+
             if (needEnemy && BotUtil.sameTeam(bot, p)) {
                 continue;
             }
 
-            // const dist = v2.distance(this.pos, p.pos);
             const dist = BotUtil.dist2(bot.pos, p.pos);
-            // if (dist <= GameConfig.player.reviveRange && dist < closestDist) {
+            if (dist > targetMaxRange * targetMaxRange) {
+                continue;
+            }
             if (dist < closestDist && p != bot) {
                 closestPlayer = p;
                 closestDist = dist;
