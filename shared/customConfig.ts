@@ -9,7 +9,7 @@ export const adrenHealBoost = 0.015;
 
 export const botIgnoreObstacles = false;
 export const shootLead = 0.2;
-export const strafeStrength = 1;
+export const strafeStrength = 0.5;
 export const strafeProbChange = 0.1;
 export const spreadStrength = 0.05;
 export const spreadDistStrength = 0.5;

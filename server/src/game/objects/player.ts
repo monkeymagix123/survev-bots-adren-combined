@@ -5003,7 +5003,7 @@ export class Bot extends Player {
 
         if (strafe) {
             this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
-            const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength);
+            const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
 
