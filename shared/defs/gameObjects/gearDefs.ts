@@ -1,6 +1,6 @@
 import { util } from "../../utils/util";
 
-import { buffHeals } from "../../adrenConfig";
+import { adrenMode } from "../../customConfig";
 
 function defineSkin(baseType: string, params: unknown) {
     return util.mergeDeep({}, BaseDefs[baseType], { baseType }, params);
@@ -320,7 +320,7 @@ const BoostDefs: Record<string, BoostDef> = {
     soda: {
         name: "Soda",
         type: "boost",
-        useTime: buffHeals ? 1 : 3,
+        useTime: adrenMode ? 1 : 3,
         boost: 25,
         lootImg: {
             sprite: "loot-medical-soda.img",
@@ -342,7 +342,7 @@ const BoostDefs: Record<string, BoostDef> = {
     painkiller: {
         name: "Pills",
         type: "boost",
-        useTime: buffHeals ? 2 : 5,
+        useTime: adrenMode ? 2 : 5,
         boost: 50,
         lootImg: {
             sprite: "loot-medical-pill.img",
@@ -398,7 +398,7 @@ const HealDefs: Record<string, HealDef> = {
     bandage: {
         name: "Bandage",
         type: "heal",
-        useTime: buffHeals ? 2 : 3,
+        useTime: adrenMode ? 2 : 3,
         heal: 15,
         maxHeal: 100,
         lootImg: {
@@ -421,7 +421,7 @@ const HealDefs: Record<string, HealDef> = {
     healthkit: {
         name: "Med Kit",
         type: "heal",
-        useTime: buffHeals ? 4 : 6,
+        useTime: adrenMode ? 4 : 6,
         heal: 100,
         maxHeal: 100,
         lootImg: {

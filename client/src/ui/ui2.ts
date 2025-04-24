@@ -30,7 +30,7 @@ import type { Localization } from "./localization";
 import { newGuns } from "../../../shared/defs/newGuns";
 import { GunDefs } from "../../../shared/defs/gameObjects/gunDefs";
 
-import { moreAdren } from "../../../shared/adrenConfig";
+import { adrenTotal, adrenMode } from "../../../shared/customConfig";
 
 const maxKillFeedLines = 6;
 const touchHoldDuration = 0.75 * 1000;
@@ -1128,7 +1128,7 @@ export class UiManager2 {
             for (let T = 0; T < v.length; T++) {
                 I += v[T];
             }
-            let maxBoost = moreAdren ? 400 : 100;
+            let maxBoost = adrenMode ? adrenTotal : 100;
             for (let P = state.boost / maxBoost, C = 0; C < dom.boost.bars.length; C++) {
                 const A = v[C] / I;
                 const O = math.clamp(P / A, 0, 1);

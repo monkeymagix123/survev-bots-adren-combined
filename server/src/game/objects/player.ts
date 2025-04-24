@@ -50,7 +50,13 @@ import type { MapIndicator } from "./mapIndicator";
 import type { Obstacle } from "./obstacle";
 import type { Structure } from "./structure";
 
-import { buffHeals, moreAdren } from "../../../../shared/adrenConfig";
+import {
+    adrenMode, adrenTotal,
+    adrenHealBoost, adrenSpeedBoost,
+    botIgnoreObstacles, shootLead,
+    strafeStrength, strafeProbChange,
+    spreadStrength, spreadDistStrength
+} from "../../../../shared/customConfig";
 
 type GodMode = {
     isGodMode: boolean;
@@ -305,13 +311,13 @@ export class PlayerBarn {
 
         // player.boost = 100;
         // player.boost = 50;
-        player.boost = buffHeals ? 50 : 100;
+        player.boost = adrenMode ? 0 : 100;
 
         // healing items
         player.inventory["bandage"] = 30;
         player.inventory["healthkit"] = 4;
-        player.inventory["soda"] = moreAdren ? 0 : 15;
-        player.inventory["painkiller"] = moreAdren ? 0 : 4;
+        player.inventory["soda"] = adrenMode ? 0 : 15;
+        player.inventory["painkiller"] = adrenMode ? 0 : 4;
 
         // grenades?
         player.inventory["frag"] = 6;
@@ -809,7 +815,7 @@ export class Player extends BaseGameObject {
         if (this._boost === boost) return;
         if (this.downed && boost > 0) return; // can't gain adren while knocked, can only set it to zero
         this._boost = boost;
-        this._boost = math.clamp(this._boost, 0, moreAdren ? 400 : 100);
+        this._boost = math.clamp(this._boost, 0, adrenMode ? adrenTotal : 100);
         this.boostDirty = true;
     }
 
@@ -1548,22 +1554,16 @@ export class Player extends BaseGameObject {
         // players are still choosing a perk from the perk select menu
         if (this.game.map.perkMode && !this.role) return;
 
-        //
-        // Boost logic
-        // NO BOOST DECAY
-
-        if (!moreAdren) {
+        if (adrenMode) {
+            this.health += dt * (this.boost * adrenHealBoost);
+        } else {
             if (this.boost > 0 && !this.hasPerk("leadership")) {
                 this.boost -= 0.375 * dt;
             }
-
-            // Revamped health regen
             if (this.boost > 0 && this.boost <= 25) this.health += 0.5 * dt;
             else if (this.boost > 25 && this.boost <= 50) this.health += 1.25 * dt;
             else if (this.boost > 50 && this.boost <= 87.5) this.health += 1.5 * dt;
             else if (this.boost > 87.5 && this.boost <= 100) this.health += 1.75 * dt;
-        } else {
-            this.health += dt * (this.boost / 50);
         }
 
         if (this.hasPerk("gotw")) {
@@ -1916,7 +1916,7 @@ export class Player extends BaseGameObject {
                 )
             : this.game.grid.intersectCollider(circle);
 
-        if (!(Bot.IGNORE_OBSTACLES && this instanceof Bot)) {
+        if (!(botIgnoreObstacles && this instanceof Bot)) {
             for (let i = 0; i < steps; i++) {
                 v2.set(this.pos, v2.add(this.pos, v2.mul(movement, speedToAdd)));
 
@@ -4756,14 +4756,12 @@ export class Player extends BaseGameObject {
         }
 
         // increase speed when adrenaline is above 50%
-
-        // Revamped player speed
-        if (!moreAdren) {
+        if (adrenMode) {
+            this.speed += GameConfig.player.boostMoveSpeed * Math.floor(this.boost * adrenSpeedBoost);
+        } else {
             if (this.boost >= 50) {
                 this.speed += GameConfig.player.boostMoveSpeed;
             }
-        } else {
-            this.speed += GameConfig.player.boostMoveSpeed * Math.floor(this.boost / 50);
         }
 
         if (this.animType === GameConfig.Anim.Cook) {
@@ -4810,19 +4808,13 @@ export class Player extends BaseGameObject {
 
 // try bot
 export class Bot extends Player {
-    static IGNORE_OBSTACLES = false;
-
-    static strafeStrength = 0.3;
-    static strafeProbChange = 0.1;
-    static spreadStrength = 0.01;
-    static spreadDistStrength = 0.5;
-    static shootLead = true;
 
     quickSwitch = true;
 
     protected target: Player | undefined;
     protected targetTimer: number;
     protected strafeSign: number = Math.random() < 0.5 ? 1 : -1;
+
 
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         super(game, pos, layer, socketId, joinMsg, "0.0.0.0", "0.0.0.0", null);
@@ -4926,12 +4918,16 @@ export class Bot extends Player {
     }
 
     aim(target: Player): void {
-        const k = Bot.shootLead ? 0.2 + 0.05 * Math.random() : 0;
-        this.toMouseDir = v2.directionNormalized(
+        const k = shootLead;
+        this.dir = v2.directionNormalized(
             this.posOld,
             v2.add(target.pos, v2.mul(target.moveVel, k))
         );
-        this.toMouseLen = 255;
+        /*this.toMouseDir = v2.directionNormalized(
+            this.posOld,
+            v2.add(target.pos, v2.mul(target.moveVel, k))
+        );
+        this.toMouseLen = 64;*/
     }
 
     stop(): void {
@@ -4999,8 +4995,8 @@ export class Bot extends Player {
         this.touchMoveDir = v2.normalizeSafe(v2.sub(pos, this.pos));
 
         if (strafe) {
-            this.strafeSign *= Math.random() > Bot.strafeProbChange ? -1 : 1;
-            const perp = v2.mul(v2.perp(this.touchMoveDir), Bot.strafeStrength);
+            this.strafeSign *= Math.random() > strafeProbChange ? -1 : 1;
+            const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
 
@@ -5010,7 +5006,7 @@ export class Bot extends Player {
                     const push =
                         v2.mul(
                             v2.sub(i.pos, this.touchMoveDir),
-                            Bot.spreadStrength * Math.pow(v2.distance(this.pos, i.pos), -Bot.spreadDistStrength)
+                            spreadStrength * Math.pow(v2.distance(this.pos, i.pos), -spreadDistStrength)
                         );
                     this.touchMoveDir = v2.add(push, this.touchMoveDir);
                 }
@@ -5024,8 +5020,8 @@ export class Bot extends Player {
         this.touchMoveDir = v2.normalizeSafe(v2.sub(this.pos, pos));
 
         if (strafe) {
-            this.strafeSign *= Math.random() > Bot.strafeProbChange ? -1 : 1;
-            const perp = v2.mul(v2.perp(this.touchMoveDir), Bot.strafeStrength);
+            this.strafeSign *= Math.random() > strafeProbChange ? -1 : 1;
+            const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
 
@@ -5035,7 +5031,7 @@ export class Bot extends Player {
                     const push =
                         v2.mul(
                             v2.sub(i.pos, this.touchMoveDir),
-                            Bot.spreadStrength * Math.pow(v2.distance(this.pos, i.pos), Bot.spreadDistStrength)
+                            spreadStrength * Math.pow(v2.distance(this.pos, i.pos), spreadDistStrength)
                         );
                     this.touchMoveDir = v2.add(push, this.touchMoveDir);
                 }
@@ -5181,7 +5177,7 @@ export class SoloBot extends DumBot {
     aim(target: Player): void {
         // let k = this.shootLead ? 0.2 + 0.05 * Math.random() : 0;
         let k = 0;
-        if (Bot.shootLead) {
+        if (shootLead) {
             // good aim: 0.2 to 0.25
             // levels of aim?
             // 15% chance of atrocious aim, 20% bad, 50% good, rest 25% is insane
