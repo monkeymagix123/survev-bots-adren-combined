@@ -75,8 +75,10 @@ npm i -g pnpm
 IF you want to have accounts, leaderboards and IP bans, you will have to install and set-up PostgreSQL database
 
 ```sh
-sudo apt -y postgresql
-sudo -u postgres initdb --locale=C.UTF-8 --encoding=UTF8 -D /var/lib/postgres/data --data-checksums
+sudo apt -y install postgresql
+sudo mkdir -p /var/lib/postgres/data
+sudo chown -R postgres:postgres /var/lib/postgres/data
+sudo -u postgres /usr/lib/postgresql/16/bin/initdb --locale=C.UTF-8 --encoding=UTF8 -D /var/lib/postgres/data --data-checksums
 sudo systemctl enable --now postgresql
 sudo -u postgres createuser survev
 sudo -u postgres createdb survev -O survev
@@ -95,7 +97,7 @@ Run the initial setup script, this will prompt questions and generate a `survev-
 If you want to view the config documentation look at configType.ts file
 
 ```sh
-pnpm survev-setup
+pnpm run survev-setup
 ```
 
 Build the client & server:
