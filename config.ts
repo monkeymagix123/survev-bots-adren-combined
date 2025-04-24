@@ -29,7 +29,7 @@ export function getConfig(isProduction: boolean, dir: string) {
         },
         regions: {},
         modes: [
-            { mapName: "main", teamMode: TeamMode.Solo, enabled: true },
+            { mapName: "potato", teamMode: TeamMode.Solo, enabled: true },
             { mapName: "cobalt", teamMode: TeamMode.Duo, enabled: true },
             { mapName: "faction", teamMode: TeamMode.Squad, enabled: true },
         ],
