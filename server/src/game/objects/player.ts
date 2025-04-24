@@ -1060,7 +1060,7 @@ export class Player extends BaseGameObject {
                 break;
             case "last_man":
                 this.health = 100;
-                this.boost = 100;
+                if (adrenMode) this.boost = 100;
                 this.giveHaste(GameConfig.HasteType.Windwalk, 5);
                 break;
             case "medic":
@@ -1295,7 +1295,7 @@ export class Player extends BaseGameObject {
         } else if (type === "fabricate") {
             this.fabricateRefillTicker = PerkProperties.fabricate.refillInterval;
         } else if (type === "leadership") {
-            this.boost = 100;
+            if (adrenMode) this.boost = 100;
         }
 
         this.recalculateScale();
