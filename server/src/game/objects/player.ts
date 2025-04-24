@@ -316,8 +316,8 @@ export class PlayerBarn {
         player.boost = adrenMode ? 0 : 100;
 
         // healing items
-        player.inventory["bandage"] = adrenMode ? 0 : 30;
-        player.inventory["healthkit"] = adrenMode ? 0 : 4;
+        player.inventory["bandage"] = adrenMode ? 30 : 30;
+        player.inventory["healthkit"] = adrenMode ? 1 : 4;
         player.inventory["soda"] = adrenMode ? 0 : 15;
         player.inventory["painkiller"] = adrenMode ? 0 : 4;
 
@@ -4814,6 +4814,8 @@ export class Bot extends Player {
     protected target: Player | undefined;
     protected targetTimer: number;
     protected strafeSign: number = Math.random() < 0.5 ? 1 : -1;
+    protected safe: boolean = true;
+    protected visible: boolean = false;
 
 
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
@@ -4858,6 +4860,8 @@ export class Bot extends Player {
 
     // Target Switch Timer
     update(dt: number): void {
+        this.safe = BotUtil.noNearbyBullet(this);
+        this.visible = BotUtil.isVisible(this, this.target);
         super.update(dt);
         this.targetTimer = Math.max(0, this.targetTimer - dt);
     }
@@ -4879,55 +4883,51 @@ export class Bot extends Player {
         }
 
         this.newTarget();
-        if (this.target != undefined) {
-            this.setPartDirty(); // ???
-            this.dirOld = v2.copy(this.dir);
-            this.aim(this.target);
-        }
-
+        
+        this.dirOld = v2.copy(this.dir);
         this.shootHold = false;
         this.shootStart = false;
 
-        if (this.target != undefined && !BotUtil.isVisible(this, this.target)) {
-            this.moveTowards(this.target);
-            if (BotUtil.noNearbyBullet(this)) {
-                this.heal();
+        const safe = BotUtil.noNearbyBullet(this);
+
+        if (this.target != undefined && !this.visible) {
+            if (safe && this.canHeal()) {
                 return;
             }
-
-            let obs = BotUtil.getCollidingObstacles(this, true);
+            else {
+                this.moveTowards(this.target, false, true);
+            }
+            
+            const obs = BotUtil.getCollidingObstacles(this, true);
             if (obs.length > 0) {
                 this.shootStart = true;
                 this.shootHold = true;
                 this.dir = v2.directionNormalized(this.posOld, obs[0].pos);
             }
-        } else if (this.target != undefined) {
+        }
+        else if (this.target != undefined) {
             this.shootHold = true;
             this.shootStart = true;
+            this.aim(this.target);
+            this.moveTowards(this.target, true, true);
         }
 
         if (BotUtil.dist2(this.pos, this.game.gas.currentPos) >= (this.game.gas.currentRad ** 2) * 0.9) {
-            this.moveTo(this.game.gas.currentPos);
+            this.moveTo(this.game.gas.currentPos, false, true);
         }
 
         this.quickswitch();
 
-        // STOP HEALING WHEN FIGHTING
-        if (!BotUtil.noNearbyBullet(this) && this.actionType != GameConfig.Action.Reload)
+        if (!safe && this.actionType != GameConfig.Action.Reload)
             this.cancelAction();
     }
 
-    aim(target: Player): void {
-        const k = mosinBotRNG ? shootLead + mosinBotRNG * Math.random() : 0;
+    aim(target: Player, direct: boolean = false): void {
+        const k = mosinBotRNG && !direct ? shootLead + mosinBotRNG * Math.random() : 0;
         this.dir = v2.directionNormalized(
             this.posOld,
             v2.add(target.pos, v2.mul(target.moveVel, k))
         );
-        /*this.toMouseDir = v2.directionNormalized(
-            this.posOld,
-            v2.add(target.pos, v2.mul(target.moveVel, k))
-        );
-        this.toMouseLen = 64;*/
     }
 
     stop(): void {
@@ -4941,18 +4941,20 @@ export class Bot extends Player {
             return;
         }
 
-        let closestPlayer = BotUtil.getClosestPlayer(this);
-
         // stop autoaiming players if its 50v50
+        let closestPlayer = undefined;
         if (!this.game.map.factionMode) {
-            let closestPlayer2 = BotUtil.getClosestPlayer(this, true, true);
+            const closestPlayer2 = BotUtil.getClosestPlayer(this, true, true);
             if (BotUtil.isVisible(this, closestPlayer2)) {
                 closestPlayer = closestPlayer2;
             }
         }
+        else {
+            closestPlayer = BotUtil.getClosestPlayer(this);
+        }
 
         if (closestPlayer != this.target) {
-            this.targetTimer = 0.4 + Math.random() * 0.1;
+            this.targetTimer = 0.4;
             this.target = closestPlayer;
         }
     }
@@ -4968,16 +4970,17 @@ export class Bot extends Player {
     /**
      * Move towards closest player
      * @param closestPlayer player to move towards
+     * @param strafe if true, strafe towards player
      * @param spread if true, spread out from other bots
      * @param speed speed of movement
      */
-    moveTowards(closestPlayer: Player | undefined, spread: boolean = false, speed: number = 255): void {
+    moveTowards(closestPlayer: Player | undefined, strafe: boolean = false, spread: boolean = false, speed: number = 255): void {
         if (closestPlayer === undefined) {
             return;
         }
         this.moveTo(
             closestPlayer.pos,
-            !this.game.map.factionMode && BotUtil.noNearbyBullet(this),
+            strafe,
             spread,
             speed
         );
@@ -5050,27 +5053,28 @@ export class Bot extends Player {
         }
     }
 
-    heal(): void {
+    canHeal(): boolean {
         if (this.inventory["medkit"] > 0 && this.health < 30 && this.actionItem != "medkit") {
             this.moveAway(this.target!.pos, true);
             this.useHealingItem("medkit");
-            return;
+            return true;
         }
         else if (this.inventory["bandage"] > 0 && this.health < 65 && this.actionItem != "bandage") {
             this.moveAway(this.target!.pos, true);
             this.useHealingItem("bandage");
-            return;
+            return true;
         }
         else if (this.inventory["painkiller"] > 0 && this.actionItem != "painkiller") {
             this.moveAway(this.target!.pos, true);
             this.useBoostItem("painkiller");
-            return;
+            return true;
         }
         else if (this.inventory["soda"] > 0 && this.actionItem != "soda") {
             this.moveAway(this.target!.pos, true);
             this.useBoostItem("soda");
-            return;
+            return true;
         }
+        return false;
     }
 }
 
@@ -5078,7 +5082,6 @@ export class Bot extends Player {
 export class DumBot extends Bot {
     // test
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
-        // super(game, pos, socketId, joinMsg);
         super(game, pos, layer, socketId, joinMsg);
 
         const slot1 = GameConfig.WeaponSlot.Primary;
@@ -5105,24 +5108,17 @@ export class DumBot extends Bot {
             stuff = common[util.randomInt(0, common.length - 1)];
         }
 
-        // let r = Math.floor(Math.random() * stuff.length);
-        // this.weapons[slot1].type = stuff[r];
         this.weapons[slot1].type = stuff;
         const gunDef1 = GameObjectDefs[this.weapons[slot1].type] as GunDef;
         this.weapons[slot1].ammo = gunDef1.maxClip;
     }
-
-    // deleted move since now same
 }
-
-// solo mode bots !!! <---- 50v50
 
 export class SoloBot extends DumBot {
     protected aimTicker: number;
-    protected aimType: number; // atrocious, mid, or great
+    protected aimType: number;
     protected aimK: number;
 
-    // test
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         super(game, pos, layer, socketId, joinMsg);
 
@@ -5208,8 +5204,7 @@ export class SoloBot extends DumBot {
                     this.aimTicker = 0.15 + BotUtil.randomSym(0.03);
                 }
             } else {
-                // already set a type of aim
-                this.aimK = this.aimK + BotUtil.randomSym(0.03);
+                this.aimK += BotUtil.randomSym(0.03);
             }
         }
 

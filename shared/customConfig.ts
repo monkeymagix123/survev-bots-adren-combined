@@ -1,4 +1,4 @@
-export const devMode = true;
+export const devMode = false;
 
 export const factionBots = devMode ? 1 : 50;
 
@@ -13,6 +13,7 @@ export const strafeStrength = 0.3;
 export const strafeProbChange = 0.1;
 export const spreadStrength = 0.05;
 export const spreadDistStrength = 0.5;
+export const targetMaxRange = 100;
 
 export const mosinBotShootLead = true; // in ur case its true
 export const mosinBotRNG = 0.05; // in ur case its 0
