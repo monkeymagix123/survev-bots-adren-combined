@@ -5014,7 +5014,7 @@ export class Bot extends Player {
                     const push =
                         v2.mul(
                             v2.sub(i.pos, this.touchMoveDir),
-                            1 / Math.pow(v2.distance(this.pos, i.pos), spreadDistStrength)
+                            spreadStrength / Math.pow(v2.distance(this.pos, i.pos), spreadDistStrength)
                         );
                     this.touchMoveDir = v2.add(push, this.touchMoveDir);
                 }
@@ -5039,7 +5039,7 @@ export class Bot extends Player {
                     const push =
                         v2.mul(
                             v2.sub(i.pos, this.touchMoveDir),
-                            spreadStrength * Math.pow(v2.distance(this.pos, i.pos), spreadDistStrength)
+                            spreadStrength / Math.pow(v2.distance(this.pos, i.pos), spreadDistStrength)
                         );
                     this.touchMoveDir = v2.add(push, this.touchMoveDir);
                 }
