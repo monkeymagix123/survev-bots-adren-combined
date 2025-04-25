@@ -152,15 +152,41 @@ export interface ConfigType {
     processMode: "single" | "multi";
 
     /**
-     * Game performance logging.
+     * Server logger configuration
      */
-    perfLogging: {
-        enabled: boolean;
+    logging: {
         /**
-         * Seconds between each game performance log.
+         * If the logger class should include the date.
+         * Useful to disable it when using logging tools that add a date by default (like journalctl)
          */
-        time: number;
+        logDate: boolean;
+
+        // logging categories enabled
+
+        /**
+         * Information logs
+         */
+        infoLogs: boolean;
+
+        /**
+         * Debug logs, disabled by default on production
+         */
+        debugLogs: boolean;
+
+        /**
+         * Warning logs
+         */
+        warnLogs: boolean;
+
+        /**
+         * Error logs, will also log to a webhook if `errorLoggingWebhook` is set.
+         */
+        errorLogs: boolean;
     };
+    /**
+     * Webhook URL to log errors.
+     */
+    errorLoggingWebhook?: string;
 
     /**
      * PostgreSQL Database configuration, this will enable features like accounts, IP bans, leaderboards etc.
@@ -243,6 +269,16 @@ export interface ConfigType {
         PROXYCHECK_KEY?: string;
 
         /**
+         * Turnstile captcha secret key.
+         */
+        TURNSTILE_SECRET_KEY?: string;
+
+        /**
+         * Turnstile captcha site key.
+         */
+        TURNSTILE_SITE_KEY?: string;
+
+        /**
          * Adin play ID: API key used for Adin play ads.
          * Setting both this and AIP_PLACEMENT_ID will enable ads on the client.
          *
@@ -265,6 +301,14 @@ export interface ConfigType {
     cachingEnabled: boolean;
 
     /**
+     * If the turnstile captcha state is enabled.
+     * Used by the API server and will be returned on site_info API.
+     *
+     * Requires the turnstile keys on secrets object.
+     */
+    captchaEnabled: boolean;
+
+    /**
      * Enables IP rate limits.
      * This both limits how many requests per second IP's can make to the API server and how many simultaneous IP's can connect to the game server.
      *
@@ -277,11 +321,6 @@ export interface ConfigType {
      * Useful for banning players.
      */
     randomizeDefaultPlayerName: boolean;
-
-    /**
-     * Webhook URL to log errors.
-     */
-    errorLoggingWebhook?: string;
 
     /**
      * Debugging config for development :)

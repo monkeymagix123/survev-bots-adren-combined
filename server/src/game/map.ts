@@ -1,3 +1,4 @@
+import { styleText } from "util";
 import { type MapDef, MapDefs } from "../../../shared/defs/mapDefs";
 import { MapObjectDefs } from "../../../shared/defs/mapObjectDefs";
 import type {
@@ -257,6 +258,20 @@ export class GameMap {
         staggerCount: number;
     }> = [];
 
+    loggingTimes: number[] = [];
+
+    timerStart() {
+        this.loggingTimes.push(performance.now());
+    }
+
+    timerEnd(msg: string) {
+        const now = performance.now();
+        const old = this.loggingTimes.pop();
+
+        const time = `${Math.round(now - old!)}ms`.padEnd(6);
+        this.game.logger.debug(styleText(["green"], time), msg);
+    }
+
     constructor(game: Game) {
         this.game = game;
 
@@ -335,17 +350,17 @@ export class GameMap {
             );
         });
 
-        this.riverMasks = this.mapDef.mapGen.map.rivers.masks.map((mask) => {
-            return {
-                pos: v2.create(mask.pos.x * this.width, mask.pos.y * this.height),
-                rad: mask.rad,
-            };
-        });
+        this.riverMasks = [];
+
+        this.timerStart();
+        this.generateRiverMasks();
+        this.timerEnd("Generating river masks");
 
         if (this.factionMode) {
             this.factionModeSplitOri = util.randomInt(0, 1) as 0 | 1;
         }
 
+        this.timerStart();
         this.generateTerrain();
 
         this.msg.rivers = this.riverDescs;
@@ -358,11 +373,13 @@ export class GameMap {
             this.riverDescs,
             this.seed,
         );
+        this.timerEnd("Generating terrain");
 
         this.normalRivers = [];
         this.lakes = [];
         this.riverAreas = new Map();
 
+        this.timerStart();
         this.shoreArea = math.polygonArea(this.terrain.shore);
         this.grassArea = math.polygonArea(this.terrain.grass);
 
@@ -383,8 +400,11 @@ export class GameMap {
                 water: waterArea,
             });
         }
+        this.timerEnd("Calculating map areas");
 
+        this.timerStart();
         this.generateObjects();
+        this.timerEnd("Generating all objects");
 
         this.mapStream.stream.index = 0;
         this.mapStream.serializeMsg(MsgType.Map, this.msg);
@@ -531,7 +551,10 @@ export class GameMap {
         }
     }
 
-    randomPointOnMapEdge(randomGenerator?: (min?: number, max?: number) => number): Vec2 {
+    randomPointOnMapEdge(
+        randomGenerator?: (min?: number, max?: number) => number,
+        offset = 0,
+    ): Vec2 {
         if (!randomGenerator) {
             randomGenerator = (min = 0, max = 1) => util.random(min, max);
         }
@@ -539,13 +562,66 @@ export class GameMap {
         const side = Math.floor(randomGenerator(0, 4)) as 0 | 1 | 2 | 3;
         switch (side) {
             case 0:
-                return v2.create(this.width, randomGenerator(0, this.height));
+                return v2.create(
+                    this.width - offset,
+                    randomGenerator(offset, this.height - offset),
+                );
             case 1:
-                return v2.create(randomGenerator(0, this.width), this.height);
+                return v2.create(
+                    randomGenerator(offset, this.width - offset),
+                    this.height - offset,
+                );
             case 2:
-                return v2.create(0, randomGenerator(0, this.height));
+                return v2.create(offset, randomGenerator(offset, this.height - offset));
             case 3:
-                return v2.create(randomGenerator(0, this.width), 0);
+                return v2.create(randomGenerator(offset, this.width - offset), offset);
+        }
+    }
+
+    generateRiverMasks() {
+        const rand = util.seededRand(this.seed);
+
+        for (const mask of this.mapDef.mapGen.map.rivers.masks) {
+            if (mask.pos) {
+                this.riverMasks.push({
+                    pos: v2.create(mask.pos.x * this.width, mask.pos.y * this.height),
+                    rad: mask.rad,
+                });
+            } else {
+                const spawnMin = v2.create(
+                    this.shoreInset + mask.rad,
+                    this.shoreInset + mask.rad,
+                );
+                const spawnMax = v2.create(
+                    this.width - this.shoreInset - mask.rad,
+                    this.height - this.shoreInset - mask.rad,
+                );
+
+                this.trySpawn("river_mask", () => {
+                    let pos = v2.create(
+                        rand(spawnMin.x, spawnMax.x),
+                        rand(spawnMin.y, spawnMax.y),
+                    );
+                    if (mask.genOnShore) {
+                        pos = this.randomPointOnMapEdge(rand, mask.rad);
+                    }
+
+                    for (const mask2 of this.riverMasks) {
+                        if (
+                            coldet.testCircleCircle(pos, mask.rad, mask2.pos, mask2.rad)
+                        ) {
+                            return false;
+                        }
+                    }
+
+                    this.riverMasks.push({
+                        pos,
+                        rad: mask.rad,
+                    });
+
+                    return true;
+                });
+            }
         }
     }
 
@@ -644,7 +720,7 @@ export class GameMap {
                 maxBridges[bridgeSize] * (river.spline.points.length / 33),
             );
             for (let i = 0; i < max; i++) {
-                this.genBridge(bridgeType, river);
+                this.genBridge(bridgeType, river, undefined, false);
             }
         }
     }
@@ -652,6 +728,7 @@ export class GameMap {
     generateObjects(): void {
         const mapDef = this.mapDef;
 
+        this.timerStart();
         for (const customSpawnRule of mapDef.mapGen.customSpawnRules.locationSpawns) {
             const center = v2.create(
                 customSpawnRule.pos.x * this.width,
@@ -667,10 +744,27 @@ export class GameMap {
                 return true;
             });
         }
+        this.timerEnd("Generating custom spawn rules");
 
         // @NOTE: see comment on defs/maps/baseDefs.ts about single item arrays
-        const fixedSpawns = mapDef.mapGen.fixedSpawns[0];
+        const fixedSpawns = { ...mapDef.mapGen.fixedSpawns[0] };
         const importantSpawns = mapDef.mapGen.importantSpawns;
+
+        const randomSpawns = mapDef.mapGen.randomSpawns[0];
+        if (randomSpawns) {
+            const spawns = [...randomSpawns.spawns];
+            for (let i = 0; i < randomSpawns.choose; i++) {
+                const idx = util.randomInt(0, spawns.length - 1);
+                const spawn = spawns.splice(idx, 1)[0];
+
+                if (typeof fixedSpawns[spawn] === "number") {
+                    fixedSpawns[spawn]++;
+                } else {
+                    fixedSpawns[spawn] = 1;
+                }
+            }
+        }
+
         const types = Object.keys(fixedSpawns)
             .sort((a, b) => {
                 const boundsA = collider.toAabb(mapHelpers.getBoundingCollider(a));
@@ -687,16 +781,10 @@ export class GameMap {
                 return sizeB - sizeA;
             })
             .sort((a, b) => {
-                const includesA = importantSpawns.includes(a);
-                const includesB = importantSpawns.includes(b);
-
-                if (includesA == includesB) return 0;
-                if (includesA) return -1;
-                if (includesB) return 1;
-
-                return 0;
+                return importantSpawns.indexOf(b) - importantSpawns.indexOf(a);
             });
 
+        this.timerStart();
         //buildings that contain bridges such as ocean/river shacks and river town
         const bridgeTypes = [];
         for (let i = 0; i < types.length; i++) {
@@ -723,19 +811,22 @@ export class GameMap {
                 this.genFromMapDef(type, count);
             }
         }
+        this.timerEnd("Generating map def bridges");
 
         if (this.riverDescs.length) {
             //
             // Generate bridges
             //
 
+            this.timerStart();
             this.generateBridges(mapDef);
+            this.timerEnd("Generating random bridges");
 
             //
             // Generate river cabins
             //
-
             if (this.mapDef.mapGen.map.rivers.spawnCabins) {
+                this.timerStart();
                 let cabinsToSpawn = 1;
                 for (let i = 0; i < this.normalRivers.length; i++) {
                     const river = this.normalRivers[i];
@@ -750,11 +841,13 @@ export class GameMap {
                 for (let i = 0; i < cabinsToSpawn; i++) {
                     this.genRiverCabin();
                 }
+                this.timerEnd("Generating river cabins");
             }
 
             //
             // Generate river rocks and bushes
             //
+            this.timerStart();
             const riverObjs: Record<string, number> = {
                 stone_03: 0.9,
                 bush_04: 0.4,
@@ -770,8 +863,10 @@ export class GameMap {
                     }
                 }
             }
+            this.timerEnd("Generating river obstacles");
         }
 
+        this.timerStart();
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
             let count = fixedSpawns[type];
@@ -786,21 +881,14 @@ export class GameMap {
                 this.genFromMapDef(type, count);
             }
         }
+        this.timerEnd("Generating fixed spawns");
 
-        const randomSpawns = mapDef.mapGen.randomSpawns[0];
-        if (randomSpawns) {
-            const spawns = [...randomSpawns.spawns];
-            for (let i = 0; i < randomSpawns.choose; i++) {
-                const idx = util.randomInt(0, spawns.length - 1);
-                const spawn = spawns.splice(idx, 1)[0];
-                this.genFromMapDef(spawn, 1);
-            }
-        }
-
+        this.timerStart();
         const densitySpawns = mapDef.mapGen.densitySpawns[0];
         for (const type in densitySpawns) {
             this.genDensitySpawn(type, densitySpawns[type]);
         }
+        this.timerEnd("Generating density spawns");
     }
 
     genDensitySpawn(type: string, density: number) {
@@ -866,7 +954,7 @@ export class GameMap {
         const def = MapObjectDefs[type];
 
         if (!def) {
-            this.game.logger.warn("Type does not exist!", type);
+            this.game.logger.warn("Invalid map object:", type);
             return;
         }
 
@@ -930,9 +1018,10 @@ export class GameMap {
     trySpawn(
         type: string,
         cb: () => boolean,
-        maxAttempts = 500,
+        maxAttempts?: number,
         logOnFailure = true,
     ): boolean {
+        maxAttempts ??= this.mapDef.mapGen.importantSpawns.includes(type) ? 2000 : 500;
         let attempts = 0;
         while (attempts < maxAttempts) {
             if (cb()) {
@@ -1364,7 +1453,7 @@ export class GameMap {
      *
      * 0 would be at the start, 1 would be at the end, 0.5 would be in the middle, etc
      */
-    genBridge(type: string, river?: River, progress?: number) {
+    genBridge(type: string, river?: River, progress?: number, logOnFailure = true) {
         if (this.normalRivers.length == 0) {
             return false;
         }
@@ -1437,19 +1526,24 @@ export class GameMap {
             return { pos, ori };
         };
 
-        this.trySpawn(type, () => {
-            const { pos, ori } = getPosAndOri();
+        this.trySpawn(
+            type,
+            () => {
+                const { pos, ori } = getPosAndOri();
 
-            if (!this.canSpawn(type, pos, ori, scale)) {
-                return false;
-            }
+                if (!this.canSpawn(type, pos, ori, scale)) {
+                    return false;
+                }
 
-            const obj = this.genAuto(type, pos, 0, ori, scale);
-            if (obj?.__type === ObjectType.Structure) {
-                this.bridges.push(obj);
-            }
-            return true;
-        });
+                const obj = this.genAuto(type, pos, 0, ori, scale);
+                if (obj?.__type === ObjectType.Structure) {
+                    this.bridges.push(obj);
+                }
+                return true;
+            },
+            undefined,
+            logOnFailure,
+        );
     }
 
     genOnRiver(type: string, river?: River) {

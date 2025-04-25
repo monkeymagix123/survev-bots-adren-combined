@@ -156,16 +156,21 @@ export class PlayerBarn {
         }
         this.game.joinTokens.delete(joinMsg.matchPriv);
 
-        if (joinMsg.protocol !== GameConfig.protocolVersion) {
-            const disconnectMsg = new net.DisconnectMsg();
-            disconnectMsg.reason = "index-invalid-protocol";
-            const stream = new net.MsgStream(new ArrayBuffer(128));
-            stream.serializeMsg(net.MsgType.Disconnect, disconnectMsg);
-            this.game.sendSocketMsg(socketId, stream.getBuffer());
+        if (Config.rateLimitsEnabled) {
+            const count = this.players.filter(
+                (p) =>
+                    p.ip === ip ||
+                    p.findGameIp == joinData.findGameIp ||
+                    (joinData.userId !== null && p.userId === joinData.userId),
+            );
+            if (count.length >= 3) {
+                this.game.closeSocket(socketId, "rate_limited");
+                return;
+            }
+        }
 
-            setTimeout(() => {
-                this.game.closeSocket(socketId);
-            }, 250);
+        if (joinMsg.protocol !== GameConfig.protocolVersion) {
+            this.game.closeSocket(socketId, "index-invalid-protocol");
             return;
         }
 
@@ -287,7 +292,7 @@ export class PlayerBarn {
             group.spawnLeader = player;
         }
 
-        this.game.logger.log(`Player ${player.name} joined`);
+        this.game.logger.info(`Player ${player.name} joined`);
 
         this.newPlayers.push(player);
         this.game.objectRegister.register(player);
@@ -1019,7 +1024,7 @@ export class Player extends BaseGameObject {
     promoteToRole(role: string) {
         const roleDef = GameObjectDefs[role] as RoleDef;
         if (!roleDef || roleDef.type !== "role") {
-            console.warn(`Invalid role type: ${role}`);
+            this.game.logger.warn(`Invalid role type: ${role}`);
             return;
         }
 
@@ -1100,17 +1105,17 @@ export class Player extends BaseGameObject {
                 if (newOutfit) this.setOutfit(newOutfit);
             }
 
-            // armor
-            if (this.helmet && !this.hasRoleHelmet) {
-                this.dropArmor(this.helmet);
-            }
-
             const roleHelmet =
                 roleDef.defaultItems.helmet instanceof Function
                     ? roleDef.defaultItems.helmet(clampedTeamId)
                     : roleDef.defaultItems.helmet;
 
             if (roleHelmet) {
+                // armor
+                if (this.helmet && !this.hasRoleHelmet) {
+                    this.dropArmor(this.helmet);
+                }
+
                 this.helmet = roleHelmet;
                 this.hasRoleHelmet = true;
             }
@@ -1121,7 +1126,9 @@ export class Player extends BaseGameObject {
                 }
                 this.chest = roleDef.defaultItems.chest;
             }
-            this.backpack = roleDef.defaultItems.backpack;
+            if (roleDef.defaultItems.backpack) {
+                this.backpack = roleDef.defaultItems.backpack;
+            }
 
             // weapons
             for (let i = 0; i < roleDef.defaultItems.weapons.length; i++) {
@@ -1509,27 +1516,6 @@ export class Player extends BaseGameObject {
 
         this.weaponManager.showNextThrowable();
         this.recalculateScale();
-    }
-
-    override serializeFull(): void {
-        if (!this.activeWeapon) {
-            console.error(
-                "Invalid active weapon, curIdx:",
-                this.curWeapIdx,
-                "lastIdx:",
-                this.weaponManager.lastWeaponIdx,
-                "weaps:",
-                this.weapons,
-            );
-            this.weapons[GameConfig.WeaponSlot.Melee].type ||= "fists";
-            this.weaponManager.setCurWeapIndex(
-                GameConfig.WeaponSlot.Melee,
-                undefined,
-                undefined,
-                true,
-            );
-        }
-        super.serializeFull();
     }
 
     update(dt: number): void {
@@ -2004,25 +1990,6 @@ export class Player extends BaseGameObject {
                         this.pickupLoot(closestLoot);
                         break;
                 }
-            }
-
-            // hacky hack to figure out the crash!!
-            if (!this.activeWeapon) {
-                console.error(
-                    "Mobile auto pickup: invalid active weapon, curIdx:",
-                    this.curWeapIdx,
-                    "lastIdx:",
-                    this.weaponManager.lastWeaponIdx,
-                    "weaps:",
-                    this.weapons,
-                );
-                this.weapons[GameConfig.WeaponSlot.Melee].type ||= "fists";
-                this.weaponManager.setCurWeapIndex(
-                    GameConfig.WeaponSlot.Melee,
-                    undefined,
-                    undefined,
-                    true,
-                );
             }
 
             const obstacles = this.getInteractableObstacles();
@@ -2763,7 +2730,9 @@ export class Player extends BaseGameObject {
 
         this.damageTaken += finalDamage;
         if (sourceIsPlayer && params.source !== this) {
-            (params.source as Player).damageDealt += finalDamage;
+            if ((params.source as Player).groupId !== this.groupId) {
+                (params.source as Player).damageDealt += finalDamage;
+            }
             this.lastDamagedBy = params.source as Player;
         }
 
@@ -3134,7 +3103,7 @@ export class Player extends BaseGameObject {
         this.emoteFromSlot(GameConfig.EmoteSlot.Death);
 
         // Building gore region (club pool)
-        const objs = this.game.grid.intersectCollider(this.collider);
+        const objs = this.game.grid.intersectGameObject(this);
         for (const obj of objs) {
             if (
                 obj.__type === ObjectType.Building &&
@@ -3593,27 +3562,6 @@ export class Player extends BaseGameObject {
                     this.revive(playerToRevive);
                 }
             }
-        }
-
-        // hacky hack to figure out the crash!!
-        if (!this.activeWeapon) {
-            console.error(
-                "InputMsg: invalid active weapon, curIdx:",
-                this.curWeapIdx,
-                "lastIdx:",
-                this.weaponManager.lastWeaponIdx,
-                "weaps:",
-                this.weapons,
-                "inputs:",
-                msg.inputs.map((input) => GameConfig.Input[input]).join(", "),
-            );
-            this.weapons[GameConfig.WeaponSlot.Melee].type ||= "fists";
-            this.weaponManager.setCurWeapIndex(
-                GameConfig.WeaponSlot.Melee,
-                undefined,
-                undefined,
-                true,
-            );
         }
 
         // no exceptions for any perks or roles
@@ -4410,29 +4358,6 @@ export class Player extends BaseGameObject {
 
         if (reloading && this.weapons[this.curWeapIdx].ammo == 0) {
             this.weaponManager.tryReload();
-        }
-
-        // hacky hack to figure out the crash!!
-        if (!this.activeWeapon) {
-            console.error(
-                "DropItemMsg: invalid active weapon, curIdx:",
-                this.curWeapIdx,
-                "lastIdx:",
-                this.weaponManager.lastWeaponIdx,
-                "weaps:",
-                this.weapons,
-                "item:",
-                dropMsg.item,
-                "weapIdx:",
-                dropMsg.weapIdx,
-            );
-            this.weapons[GameConfig.WeaponSlot.Melee].type ||= "fists";
-            this.weaponManager.setCurWeapIndex(
-                GameConfig.WeaponSlot.Melee,
-                undefined,
-                undefined,
-                true,
-            );
         }
     }
 

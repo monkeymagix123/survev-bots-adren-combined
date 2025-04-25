@@ -5,7 +5,7 @@ import type { Info } from "../../../shared/types/api";
 import { Config } from "../config";
 import { TeamMenu } from "../teamMenu";
 import { GIT_VERSION } from "../utils/gitRevision";
-import { Logger } from "../utils/logger";
+import { Logger, defaultLogger } from "../utils/logger";
 import type { FindGamePrivateBody, FindGamePrivateRes } from "../utils/types";
 
 class Region {
@@ -35,7 +35,7 @@ class Region {
                 return (await res.json()) as Data;
             }
         } catch (err) {
-            console.warn(`Error fetching region ${this.id}`, err);
+            defaultLogger.error(`Error fetching region ${this.id}`, err);
             return undefined;
         }
     }
@@ -62,6 +62,8 @@ export class ApiServer {
 
     modes = [...Config.modes];
 
+    captchaEnabled = Config.captchaEnabled;
+
     constructor() {
         for (const region in Config.regions) {
             this.regions[region] = new Region(region);
@@ -80,6 +82,7 @@ export class ApiServer {
             twitch: [],
             country: "US",
             gitRevision: GIT_VERSION,
+            captchaEnabled: this.captchaEnabled,
         };
 
         for (const region in this.regions) {

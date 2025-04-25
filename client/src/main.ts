@@ -316,6 +316,9 @@ class Application {
                 if (errMsg == "index-invalid-protocol") {
                     this.showInvalidProtocolModal();
                 }
+                if (errMsg == "rate_limited") {
+                    this.onJoinGameError(errMsg);
+                }
                 if (errMsg) {
                     this.showErrorModal(errMsg);
                 }
@@ -638,16 +641,23 @@ class Application {
             ban?: FindGameResponse & { banned: true },
         ) => void,
     ) {
-        (function findGameImpl(iter, maxAttempts) {
+        const findGameImpl = (iter: number, maxAttempts: number, token: string) => {
             if (iter >= maxAttempts) {
                 cb("full");
                 return;
             }
-            const retry = function () {
+            const retry = () => {
                 setTimeout(() => {
-                    findGameImpl(iter + 1, maxAttempts);
+                    helpers.verifyTurnstile(
+                        this.siteInfo.info.captchaEnabled,
+                        (token) => {
+                            findGameImpl(iter + 1, maxAttempts, token);
+                        },
+                    );
                 }, 500);
             };
+            matchArgs.turnstileToken = token;
+
             $.ajax({
                 type: "POST",
                 url: api.resolveUrl("/api/find_game"),
@@ -676,7 +686,10 @@ class Application {
                     retry();
                 },
             });
-        })(0, 2);
+        };
+        helpers.verifyTurnstile(this.siteInfo.info.captchaEnabled, (token) => {
+            findGameImpl(0, 2, token);
+        });
     }
 
     joinGame(matchData: FindGameMatchData) {
@@ -719,10 +732,19 @@ class Application {
         const errMap: Partial<Record<FindGameError, string>> = {
             full: this.localization.translate("index-failed-finding-game"),
             invalid_protocol: this.localization.translate("index-invalid-protocol"),
+            invalid_captcha: this.localization.translate("index-invalid-captcha"),
             join_game_failed: this.localization.translate("index-failed-joining-game"),
+            rate_limited: this.localization.translate("index-rate-limited"),
         };
         if (err == "invalid_protocol") {
             this.showInvalidProtocolModal();
+        }
+
+        // Forcefully set captcha to enabled if we fail the captcha
+        // This can happen if it was disabled when the page loaded which would meant it was sending an empty token
+        // And we only fetch the state when the page loads...
+        if (err === "invalid_captcha") {
+            this.siteInfo.info.captchaEnabled = true;
         }
         this.showErrorModal(err);
 
@@ -744,8 +766,8 @@ class Application {
             const expiresIn = new Date(ban.expiresIn);
             const timeLeft = expiresIn.getTime() - Date.now();
 
-            const daysLeft = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-            const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+            const daysLeft = Math.round(timeLeft / (1000 * 60 * 60 * 24));
+            const hoursLeft = Math.round(timeLeft / (1000 * 60 * 60));
 
             if (daysLeft > 1) {
                 expiration = `Expires in: ${daysLeft} days`;

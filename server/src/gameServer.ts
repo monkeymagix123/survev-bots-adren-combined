@@ -135,7 +135,7 @@ app.post("/api/find_game", async (res, req) => {
 });
 
 const gameHTTPRateLimit = new HTTPRateLimit(5, 1000);
-const gameWsRateLimit = new WebSocketRateLimit(500, 1000, 10);
+const gameWsRateLimit = new WebSocketRateLimit(500, 1000, 5);
 
 app.ws<GameSocketData>("/play", {
     idleTimeout: 30,
@@ -296,16 +296,10 @@ setInterval(() => {
     server.sendData();
 }, 20 * 1000);
 
-setInterval(() => {
-    const memoryUsage = process.memoryUsage().rss;
-
-    const perfString = `Memory usage: ${Math.round((memoryUsage / 1024 / 1024) * 100) / 100} MB`;
-
-    server.logger.log(perfString);
-}, 60000);
-
 app.listen(Config.gameServer.host, Config.gameServer.port, () => {
-    server.logger.log(`Survev Game Server v${version} - GIT ${GIT_VERSION}`);
-    server.logger.log(`Listening on ${Config.gameServer.host}:${Config.gameServer.port}`);
-    server.logger.log("Press Ctrl+C to exit.");
+    server.logger.info(`Survev Game Server v${version} - GIT ${GIT_VERSION}`);
+    server.logger.info(
+        `Listening on ${Config.gameServer.host}:${Config.gameServer.port}`,
+    );
+    server.logger.info("Press Ctrl+C to exit.");
 });

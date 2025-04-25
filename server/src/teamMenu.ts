@@ -19,12 +19,14 @@ import type { ApiServer } from "./api/apiServer";
 import { validateSessionToken } from "./api/auth";
 import { isBanned } from "./api/routes/private/ModerationRouter";
 import { Config } from "./config";
+import { Logger } from "./utils/logger";
 import {
     HTTPRateLimit,
     WebSocketRateLimit,
     getHonoIp,
     isBehindProxy,
     validateUserName,
+    verifyTurnsStile,
 } from "./utils/serverHelpers";
 
 interface SocketData {
@@ -225,6 +227,8 @@ class Room {
     async findGame(data: TeamPlayGameMsg["data"]) {
         if (this.data.findingGame) return;
         if (this.players.some((p) => p.inGame)) return;
+        const roomLeader = this.players[0];
+        if (!roomLeader) return;
 
         this.data.findingGame = true;
         this.sendState();
@@ -250,6 +254,27 @@ class Room {
         const mode = this.teamMenu.server.modes[this.data.gameModeIdx];
         if (!mode || !mode.enabled) {
             return;
+        }
+
+        if (this.teamMenu.server.captchaEnabled) {
+            if (!data.turnstileToken) {
+                this.data.lastError = "find_game_invalid_captcha";
+                this.sendState();
+                return;
+            }
+
+            try {
+                if (!(await verifyTurnsStile(data.turnstileToken, roomLeader.ip))) {
+                    this.data.lastError = "find_game_invalid_captcha";
+                    this.sendState();
+                    return;
+                }
+            } catch (err) {
+                this.teamMenu.logger.error("Failed verifying turnstile:", err);
+                this.data.lastError = "find_game_error";
+                this.sendState();
+                return;
+            }
         }
 
         const res = await this.teamMenu.server.findGame({
@@ -286,7 +311,7 @@ class Room {
             const token = tokenMap.get(player);
 
             if (!token) {
-                console.warn(`Missing token for player ${player.name}`);
+                this.teamMenu.logger.warn(`Missing token for player ${player.name}`);
                 continue;
             }
 
@@ -329,6 +354,8 @@ function randomString(len: number) {
 
 export class TeamMenu {
     rooms = new Map<string, Room>();
+
+    logger = new Logger("TeamMenu");
 
     constructor(public server: ApiServer) {
         setInterval(() => {
@@ -393,7 +420,7 @@ export class TeamMenu {
                         closeReason = "banned";
                     }
                 } catch (err) {
-                    console.error("/team_v2: Failed to check if IP is banned", err);
+                    this.logger.error("Failed to check if IP is banned", err);
                 }
 
                 wsRateLimit.ipConnected(ip!);
@@ -405,8 +432,12 @@ export class TeamMenu {
                     try {
                         const account = await validateSessionToken(sessionId);
                         userId = account.user?.id || null;
+
+                        if (account.user?.banned) {
+                            userId = null;
+                        }
                     } catch (err) {
-                        console.error(`TeamMenu: Failed to validate session:`, err);
+                        this.logger.error(`Failed to validate session:`, err);
                         userId = null;
                     }
                 }
@@ -448,7 +479,7 @@ export class TeamMenu {
                                 event.data as string,
                             );
                         } catch (err) {
-                            console.log(err);
+                            teamMenu.logger.error("Error processing message:", err);
                             ws.close();
                         }
                     },

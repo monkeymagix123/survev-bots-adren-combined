@@ -2,11 +2,13 @@ import { desc, eq, lt } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { Config } from "../../../config";
+import { validateUserName } from "../../../utils/serverHelpers";
 import type { SaveGameBody } from "../../../utils/types";
 import { server } from "../../apiServer";
 import { databaseEnabledMiddleware, validateParams } from "../../auth/middleware";
 import { db } from "../../db";
 import { bannedIpsTable, ipLogsTable, matchDataTable, usersTable } from "../../db/schema";
+import { sanitizeSlug } from "../user/auth/authUtils";
 
 export const ModerationRouter = new Hono();
 
@@ -18,11 +20,15 @@ ModerationRouter.post(
         z.object({
             slug: z.string(),
             banReason: z.string().default("Cheating"),
+            banAssociatedIps: z.boolean().default(true),
+            ipBanDuration: z.number().default(7),
+            ipBanPermanent: z.boolean().default(false),
         }),
     ),
     async (c) => {
         try {
-            const { slug, banReason } = c.req.valid("json");
+            const { slug, banReason, banAssociatedIps, ipBanDuration, ipBanPermanent } =
+                c.req.valid("json");
 
             const user = await db.query.usersTable.findFirst({
                 where: eq(usersTable.slug, slug),
@@ -42,9 +48,51 @@ ModerationRouter.post(
 
             await banAccount(user.id, banReason);
 
+            if (banAssociatedIps) {
+                const ips = await db
+                    .select({
+                        encodedIp: ipLogsTable.encodedIp,
+                        findGameEncodedIp: ipLogsTable.findGameEncodedIp,
+                    })
+                    .from(ipLogsTable)
+                    .where(eq(ipLogsTable.userId, user.id))
+                    .groupBy(ipLogsTable.encodedIp, ipLogsTable.findGameEncodedIp);
+
+                const expiresIn = new Date(
+                    Date.now() + ipBanDuration * 24 * 60 * 60 * 1000,
+                );
+
+                const bans = [
+                    ...new Set(
+                        ips
+                            .map((data) => [data.encodedIp, data.findGameEncodedIp])
+                            .flat(),
+                    ),
+                ].map((encodedIp) => {
+                    return {
+                        expiresIn: expiresIn,
+                        encodedIp,
+                        permanent: ipBanPermanent,
+                        reason: banReason,
+                    };
+                });
+
+                await db
+                    .insert(bannedIpsTable)
+                    .values(bans)
+                    .onConflictDoUpdate({
+                        target: bannedIpsTable.encodedIp,
+                        set: {
+                            expiresIn: expiresIn,
+                            reason: banReason,
+                            permanent: ipBanPermanent,
+                        },
+                    });
+            }
+
             return c.json({ message: "User has been banned." }, 200);
         } catch (err) {
-            server.logger.warn(
+            server.logger.error(
                 "/private/moderation/ban_account: Error banning account",
                 err,
             );
@@ -95,7 +143,7 @@ ModerationRouter.post(
 
             return c.json({ message: "User has been unbanned." }, 200);
         } catch (err) {
-            server.logger.warn(
+            server.logger.error(
                 "/private/moderation/unban_account: Error unbanning account",
                 err,
             );
@@ -170,7 +218,7 @@ ModerationRouter.post(
                 200,
             );
         } catch (err) {
-            server.logger.warn("/private/moderation/ban_ip: Error banning IP", err);
+            server.logger.error("/private/moderation/ban_ip: Error banning IP", err);
             return c.json({ error: "An unexpected error occurred." }, 500);
         }
     },
@@ -194,7 +242,7 @@ ModerationRouter.post(
                 .execute();
             return c.json({ message: `IP ${encodedIp} has been unbanned.` }, 200);
         } catch (err) {
-            server.logger.warn("/private/moderation/unban_ip: Error unbanning IP", err);
+            server.logger.error("/private/moderation/unban_ip: Error unbanning IP", err);
             return c.json({ error: "An unexpected error occurred." }, 500);
         }
     },
@@ -205,11 +253,33 @@ ModerationRouter.post(
     validateParams(
         z.object({
             name: z.string(),
+            useAccountSlug: z.boolean().default(false),
         }),
     ),
     async (c) => {
         try {
-            const { name } = c.req.valid("json");
+            const { name, useAccountSlug } = c.req.valid("json");
+
+            let userId: string | null = null;
+
+            if (useAccountSlug) {
+                const user = await db.query.usersTable.findFirst({
+                    where: eq(usersTable.slug, name),
+                    columns: {
+                        id: true,
+                    },
+                });
+
+                if (!user?.id) {
+                    return c.json(
+                        {
+                            message: `User not found`,
+                        },
+                        200,
+                    );
+                }
+                userId = user.id;
+            }
 
             const result = await db
                 .select({
@@ -219,7 +289,11 @@ ModerationRouter.post(
                     region: ipLogsTable.region,
                 })
                 .from(ipLogsTable)
-                .where(eq(ipLogsTable.username, name))
+                .where(
+                    userId
+                        ? eq(ipLogsTable.userId, userId)
+                        : eq(ipLogsTable.username, name),
+                )
                 .orderBy(desc(ipLogsTable.createdAt))
                 .limit(10);
 
@@ -245,7 +319,7 @@ ModerationRouter.post(
                 200,
             );
         } catch (err) {
-            server.logger.warn(
+            server.logger.error(
                 "/private/moderation/get_player_ip: Error getting player IP",
                 err,
             );
@@ -259,13 +333,104 @@ ModerationRouter.post("/clear_all_bans", async (c) => {
         await db.delete(bannedIpsTable).execute();
         return c.json({ message: `All bans have been cleared.` }, 200);
     } catch (err) {
-        server.logger.warn(
+        server.logger.error(
             "/private/moderation/clear_all_bans: Error clearing all bans",
             err,
         );
         return c.json({ error: "An unexpected error occurred." }, 500);
     }
 });
+
+// useful for purging bad names from leaderboards
+ModerationRouter.post(
+    "/set_match_data_name",
+    validateParams(
+        z.object({
+            currentName: z.string(),
+            newName: z.string(),
+        }),
+    ),
+    async (c) => {
+        try {
+            const { currentName, newName } = c.req.valid("json");
+
+            const res = await db
+                .update(matchDataTable)
+                .set({
+                    username: newName,
+                })
+                .where(eq(matchDataTable.username, currentName));
+
+            return c.json({ message: `Updated ${res.rowCount} rows` }, 200);
+        } catch (err) {
+            server.logger.error("/private/moderation/set_match_data_name:", err);
+            return c.json({ error: "An unexpected error occurred." }, 500);
+        }
+    },
+);
+
+ModerationRouter.post(
+    "/set_account_name",
+    validateParams(
+        z.object({
+            newName: z.string(),
+            currentSlug: z.string(),
+        }),
+    ),
+    async (c) => {
+        try {
+            const { newName, currentSlug } = c.req.valid("json");
+
+            const sanitized = validateUserName(newName);
+
+            if (sanitized.originalWasInvalid) {
+                return c.json({ message: "Invalid new username" }, 200);
+            }
+
+            const newSlug = sanitizeSlug(sanitized.validName);
+
+            const res = await db
+                .update(usersTable)
+                .set({
+                    username: sanitized.validName,
+                    slug: newSlug,
+                })
+                .where(eq(usersTable.slug, currentSlug));
+
+            if (res.rowCount) {
+                return c.json({ message: `Success` }, 200);
+            }
+
+            return c.json({ message: `User not found` }, 400);
+        } catch (err) {
+            server.logger.error("/private/moderation/set_match_data_name:", err);
+            return c.json({ error: "An unexpected error occurred." }, 500);
+        }
+    },
+);
+
+ModerationRouter.post(
+    "/delete_game",
+    validateParams(
+        z.object({
+            gameId: z.string(),
+        }),
+    ),
+    async (c) => {
+        try {
+            const { gameId } = c.req.valid("json");
+
+            const res = await db
+                .delete(matchDataTable)
+                .where(eq(matchDataTable.gameId, gameId));
+
+            return c.json({ message: `Deleted ${res.rowCount} rows` }, 200);
+        } catch (err) {
+            server.logger.error("/private/moderation/set_match_data_name:", err);
+            return c.json({ error: "An unexpected error occurred." }, 500);
+        }
+    },
+);
 
 async function banAccount(userId: string, banReason: string) {
     await db
@@ -289,7 +454,7 @@ export async function cleanupOldLogs() {
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         await db.delete(ipLogsTable).where(lt(ipLogsTable.createdAt, thirtyDaysAgo));
     } catch (err) {
-        console.log("Failed to cleanup old logs", err);
+        server.logger.error("Failed to cleanup old logs", err);
     }
 }
 
@@ -308,7 +473,7 @@ export async function isBanned(ip: string, isEncoded = false) {
     if (banned) {
         const { expiresIn, permanent, reason } = banned;
         if (permanent || expiresIn.getTime() > Date.now()) {
-            console.log(`${encodedIp} is banned.`);
+            server.logger.info(`${encodedIp} is banned.`);
             return {
                 permanent,
                 expiresIn,
@@ -334,7 +499,7 @@ export async function logPlayerIPs(data: SaveGameBody["matchData"]) {
         }));
         await db.insert(ipLogsTable).values(logsData);
     } catch (err) {
-        server.logger.warn("Failed to log player ip", err);
+        server.logger.error("Failed to log player ip", err);
     }
 }
 

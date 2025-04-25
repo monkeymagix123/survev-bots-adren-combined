@@ -31,7 +31,7 @@ leaderboardRouter.post(
             const cachedResult = await leaderboardCache.get(params);
 
             if (cachedResult) {
-                console.log(
+                server.logger.info(
                     `[CACHE HIT] -> ${leaderboardCache.getCacheKey("leaderboard", params)}`,
                 );
                 return c.json(cachedResult, 200);
@@ -51,7 +51,7 @@ leaderboardRouter.post(
 
             return c.json<LeaderboardResponse[]>(data, 200);
         } catch (err) {
-            server.logger.warn("/api/leaderboard: Error getting leaderboard data", err);
+            server.logger.error("/api/leaderboard: Error getting leaderboard data", err);
             return c.json({ error: "" }, 500);
         }
     },
@@ -61,10 +61,10 @@ leaderboardRouter.post(
 const MAX_RESULT_COUNT = 100;
 
 const typeToQuery: Record<LeaderboardRequest["type"], string> = {
-    kills: "match_data.kills",
+    kills: "SUM(match_data.kills)",
     most_damage_dealt: "MAX(match_data.damage_dealt)",
-    kpg: "SUM(match_data.kills) / COUNT(DISTINCT match_data.game_id)",
-    most_kills: "MAX(match_data.kills)",
+    kpg: "ROUND(SUM(match_data.kills) * 1.0 / COUNT(*), 1)",
+    most_kills: "match_data.kills",
     wins: "COUNT(CASE WHEN match_data.rank = 1 THEN 1 END)",
 };
 
@@ -76,10 +76,13 @@ async function soloLeaderboardQuery(params: LeaderboardRequest) {
     const loggedPlayersFilterQuery = `AND match_data.user_id IS NOT NULL`;
     const minGames = type === "kpg" ? MinGames[type][interval] : 1;
 
+    const usernameQuery =
+        type === "most_kills" ? "match_data.username" : "users.username";
+
     // SQL 🤮, migrate to drizzle once stable
     const query = sql.raw(`
     SELECT
-        match_data.username,
+        ${usernameQuery} AS username,
         match_data.map_id AS map_id,
         match_data.region,
         COUNT(DISTINCT(match_data.game_id)) as games,
@@ -89,17 +92,17 @@ async function soloLeaderboardQuery(params: LeaderboardRequest) {
     FROM match_data
     LEFT JOIN users ON match_data.user_id = users.id
     WHERE team_mode = ${teamMode}
-      ${userNotBannedQuery}
-      ${loggedPlayersFilterQuery}
-      ${intervalFilterQuery}
-      ${mapIdFilterQuery}
+        ${userNotBannedQuery}
+        ${loggedPlayersFilterQuery}
+        ${intervalFilterQuery}
+        ${mapIdFilterQuery}
     GROUP BY
-      map_id,
-      match_data.kills,
-      match_data.username,
-      match_data.region,
-      match_data.team_mode,
-      users.slug    
+        map_id,
+        users.slug,
+        match_data.region,
+        match_data.team_mode,
+        ${type === "most_kills" ? "match_data.kills," : ""}
+        ${usernameQuery}
     HAVING COUNT(DISTINCT(match_data.game_id)) >= ${minGames}
     ORDER BY val DESC
     LIMIT ${MAX_RESULT_COUNT};
@@ -167,7 +170,7 @@ async function multiplePlayersQuery({
             id: usersTable.id,
         })
         .from(usersTable)
-        .where(inArray(usersTable.id, userIds));
+        .where(and(inArray(usersTable.id, userIds), eq(usersTable.banned, false)));
 
     const slugMap = Object.fromEntries(
         slugsFromUserIds.map(({ id, slug }) => [id, slug]),

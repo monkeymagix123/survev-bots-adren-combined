@@ -189,7 +189,8 @@ export interface MapDef {
                 }>;
                 smoothness: number;
                 masks: Array<{
-                    pos: Vec2;
+                    pos?: Vec2;
+                    genOnShore?: boolean;
                     rad: number;
                 }>;
                 spawnCabins: boolean;

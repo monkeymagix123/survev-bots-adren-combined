@@ -19,6 +19,7 @@ import {
     getHonoIp,
     isBehindProxy,
     logErrorToWebhook,
+    verifyTurnsStile,
 } from "../utils/serverHelpers";
 import { server } from "./apiServer";
 import { deleteExpiredSessions, validateSessionToken } from "./auth";
@@ -94,10 +95,24 @@ app.post("/api/find_game", validateParams(zFindGameBody), async (c) => {
                 });
             }
         } catch (err) {
-            console.error("/api/find_game: Failed to check if IP is banned", err);
+            server.logger.error("/api/find_game: Failed to check if IP is banned", err);
         }
 
         const body = c.req.valid("json");
+        if (server.captchaEnabled) {
+            if (!body.turnstileToken) {
+                return c.json<FindGameResponse>({ error: "invalid_captcha" });
+            }
+
+            try {
+                if (!(await verifyTurnsStile(body.turnstileToken, ip))) {
+                    return c.json<FindGameResponse>({ error: "invalid_captcha" });
+                }
+            } catch (err) {
+                server.logger.error("/api/find_game: Failed verifying turnstile: ", err);
+                return c.json<FindGameResponse>({ error: "join_game_failed" }, 500);
+            }
+        }
 
         const token = randomUUID();
         let userId: string | null = null;
@@ -108,8 +123,12 @@ app.post("/api/find_game", validateParams(zFindGameBody), async (c) => {
             try {
                 const account = await validateSessionToken(sessionId);
                 userId = account.user?.id || null;
+
+                if (account.user?.banned) {
+                    userId = null;
+                }
             } catch (err) {
-                console.error("/api/find_game: Failed to validate session", err);
+                server.logger.error("/api/find_game: Failed to validate session", err);
                 userId = null;
             }
         }
@@ -151,7 +170,7 @@ app.post("/api/find_game", validateParams(zFindGameBody), async (c) => {
             ],
         });
     } catch (err) {
-        server.logger.warn("/api/find_game: Error retrieving body", err);
+        server.logger.error("/api/find_game: Error retrieving body", err);
         return c.json({}, 500);
     }
 });
@@ -159,16 +178,21 @@ app.post("/api/find_game", validateParams(zFindGameBody), async (c) => {
 app.post(
     "/api/report_error",
     rateLimitMiddleware(5, 60 * 1000),
-    validateParams(z.object({ loc: z.string(), data: z.any() })),
+    validateParams(z.object({ loc: z.string(), error: z.any(), data: z.any() })),
     async (c) => {
         try {
             const content = await c.req.json();
+            if ("error" in content) {
+                try {
+                    content.error = JSON.parse(content.error);
+                } catch {}
+            }
 
             logErrorToWebhook("client", content);
 
             return c.json({ success: true }, 200);
         } catch (err) {
-            server.logger.warn("/api/report_error: Invalid request", err);
+            server.logger.error("/api/report_error: Invalid request", err);
             return c.json({ error: "Invalid request" }, 400);
         }
     },
@@ -198,12 +222,12 @@ new Cron("0 0 * * *", async () => {
     try {
         await cleanupOldLogs();
         await deleteExpiredSessions();
-        server.logger.log("Deleted old logs and expired sessions");
+        server.logger.info("Deleted old logs and expired sessions");
     } catch (err) {
-        console.error("Failed to run cleanup script", err);
+        server.logger.error("Failed to run cleanup script", err);
     }
 });
 
-server.logger.log(`Survev API Server v${version} - GIT ${GIT_VERSION}`);
-server.logger.log(`Listening on ${Config.apiServer.host}:${Config.apiServer.port}`);
-server.logger.log("Press Ctrl+C to exit.");
+server.logger.info(`Survev API Server v${version} - GIT ${GIT_VERSION}`);
+server.logger.info(`Listening on ${Config.apiServer.host}:${Config.apiServer.port}`);
+server.logger.info("Press Ctrl+C to exit.");

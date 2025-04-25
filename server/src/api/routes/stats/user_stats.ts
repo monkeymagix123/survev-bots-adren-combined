@@ -35,6 +35,7 @@ UserStatsRouter.post(
                 where: eq(usersTable.slug, slug),
                 columns: {
                     id: true,
+                    banned: true,
                 },
             });
 
@@ -48,7 +49,7 @@ UserStatsRouter.post(
 
             return c.json<UserStatsResponse>(data, 200);
         } catch (err) {
-            server.logger.warn("/api/user_stats: Error getting user stats", err);
+            server.logger.error("/api/user_stats: Error getting user stats", err);
             return c.json({ error: "" }, 500);
         }
     },
