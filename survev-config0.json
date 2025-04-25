@@ -23,7 +23,7 @@
             "enabled": true
         },
         {
-            "mapName": "faction",
+            "mapName": "faction_bots",
             "teamMode": 4,
             "enabled": true
         }

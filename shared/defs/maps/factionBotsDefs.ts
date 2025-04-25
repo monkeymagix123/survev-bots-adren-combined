@@ -314,12 +314,12 @@ const mapDef: PartialMapDef = {
             },
         },
         places: [
-            { name: "Riverside", pos: v2.create(0.51, 0.5) },
+            /*{ name: "Riverside", pos: v2.create(0.51, 0.5) },
             {
                 name: "Pineapple",
                 pos: v2.create(0.84, 0.18),
             },
-            { name: "Tarkhany", pos: v2.create(0.21, 0.79) },
+            { name: "Tarkhany", pos: v2.create(0.21, 0.79) },*/
         ],
         bridgeTypes: {
             medium: "bridge_md_structure_01",
