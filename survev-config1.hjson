@@ -1,0 +1,31 @@
+{
+    apiKey: VNsPsAXD7coIJXGtghbHYiihAb9KDvG6MYIA3ggFiTM=
+    gameServer: {
+        apiServerUrl: https://test1.tailf587b3.ts.net/api
+        thisRegion: na
+    }
+    regions: {
+        na: {
+            https: true
+            address: test2.tailf587b3.ts.net:8001
+            l10n: index-north-america
+        }
+    }
+    modes: [
+        {
+            mapName: potato
+            teamMode: 1
+            enabled: true
+        },
+        {
+            mapName: cobalt
+            teamMode: 2
+            enabled: true
+        },
+        {
+            mapName: faction_bots
+            teamMode: 4
+            enabled: true
+        }
+    ]
+}
