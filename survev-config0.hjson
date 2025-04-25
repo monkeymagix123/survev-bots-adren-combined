@@ -1,0 +1,31 @@
+{
+    apiKey: VNsPsAXD7coIJXGtghbHYiihAb9KDvG6MYIA3ggFiTM=
+    gameServer: {
+        apiServerUrl: http://35.209.193.213/api
+    }
+    regions: {
+        na: {
+            https: false
+            address: 35.209.193.213:8001
+            l10n: index-north-america
+        }
+    }
+    thisRegion: na
+    modes: [
+        {
+            mapName: potato
+            teamMode: 1
+            enabled: true
+        },
+        {
+            mapName: cobalt
+            teamMode: 2
+            enabled: true
+        },
+        {
+            mapName: faction_bots
+            teamMode: 4
+            enabled: true
+        }
+    ]
+}
