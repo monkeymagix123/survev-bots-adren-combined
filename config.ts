@@ -31,7 +31,7 @@ export function getConfig(isProduction: boolean, dir: string) {
         modes: [
             { mapName: "potato", teamMode: TeamMode.Solo, enabled: true },
             { mapName: "cobalt", teamMode: TeamMode.Duo, enabled: true },
-            { mapName: "faction", teamMode: TeamMode.Squad, enabled: true },
+            { mapName: "faction_bots", teamMode: TeamMode.Squad, enabled: true },
         ],
         clientTheme: "main",
         gameTps: 100,
