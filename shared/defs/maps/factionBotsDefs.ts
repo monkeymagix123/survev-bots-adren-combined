@@ -107,7 +107,94 @@ const mapDef: PartialMapDef = {
     /* STRIP_FROM_PROD_CLIENT:START */
     gameConfig: {
         planes: {
-            timings: [],
+            timings: [
+                /*
+                {
+                    circleIdx: 1,
+                    wait: 10,
+                    options: {
+                        type: GameConfig.Plane.Airstrike,
+                        numPlanes: [
+                            { count: 3, weight: 5 },
+                            { count: 4, weight: 1 },
+                            { count: 5, weight: 0.1 },
+                        ],
+                        airstrikeZoneRad: 60,
+                        wait: 1.5,
+                        delay: 1,
+                    },
+                },
+                {
+                    circleIdx: 2,
+                    wait: 6,
+                    options: { type: GameConfig.Plane.Airdrop },
+                },
+                {
+                    circleIdx: 2,
+                    wait: 30,
+                    options: {
+                        type: GameConfig.Plane.Airstrike,
+                        numPlanes: [
+                            { count: 3, weight: 4 },
+                            { count: 4, weight: 1 },
+                            { count: 5, weight: 0.1 },
+                        ],
+                        airstrikeZoneRad: 55,
+                        wait: 1.5,
+                        delay: 1,
+                    },
+                },
+                {
+                    circleIdx: 3,
+                    wait: 8,
+                    options: {
+                        type: GameConfig.Plane.Airstrike,
+                        numPlanes: [
+                            { count: 3, weight: 3 },
+                            { count: 4, weight: 1 },
+                            { count: 5, weight: 0.1 },
+                        ],
+                        airstrikeZoneRad: 50,
+                        wait: 1.5,
+                        delay: 1,
+                    },
+                },
+                {
+                    circleIdx: 4,
+                    wait: 3,
+                    options: { type: GameConfig.Plane.Airdrop },
+                },
+                {
+                    circleIdx: 4,
+                    wait: 21,
+                    options: {
+                        type: GameConfig.Plane.Airstrike,
+                        numPlanes: [
+                            { count: 3, weight: 2 },
+                            { count: 4, weight: 1 },
+                            { count: 5, weight: 0.1 },
+                        ],
+                        airstrikeZoneRad: 45,
+                        wait: 1.5,
+                        delay: 1,
+                    },
+                },
+                {
+                    circleIdx: 5,
+                    wait: 6,
+                    options: {
+                        type: GameConfig.Plane.Airstrike,
+                        numPlanes: [
+                            { count: 3, weight: 1 },
+                            { count: 4, weight: 1 },
+                            { count: 5, weight: 0.1 },
+                        ],
+                        airstrikeZoneRad: 40,
+                        wait: 1.5,
+                        delay: 1,
+                    },
+                },*/
+            ],
             crates: [{ name: "airdrop_crate_03", weight: 1 }],
         },
         roles: {
@@ -116,31 +203,31 @@ const mapDef: PartialMapDef = {
                     role: "leader",
                     circleIdx: 0,
                     // wait: 50,
-                    wait: 15,
+                    wait: 20,
                 },
                 {
                     role: "lieutenant",
                     circleIdx: 0,
                     // wait: 54,
-                    wait: 16,
+                    wait: 24,
                 },
                 {
                     role: "marksman",
                     circleIdx: 0,
                     // wait: 58,
-                    wait: 17,
+                    wait: 28,
                 },
                 {
                     role: "recon",
                     circleIdx: 0,
                     // wait: 62,
-                    wait: 18,
+                    wait: 32,
                 },
                 {
                     role: "grenadier",
                     circleIdx: 0,
                     // wait: 66,
-                    wait: 19,
+                    wait: 36,
                 },
                 // {
                 //     role: () =>
@@ -157,13 +244,13 @@ const mapDef: PartialMapDef = {
                     role: "medic",
                     circleIdx: 0,
                     // wait: 70,
-                    wait: 20,
+                    wait: 40,
                 },
                 {
                     role: "bugler",
                     circleIdx: 0,
                     // wait: 74,
-                    wait: 21,
+                    wait: 44,
                 },
             ],
         },
@@ -299,7 +386,6 @@ const mapDef: PartialMapDef = {
         map: {
             baseWidth: devMode ? 64 : 512,
             baseHeight: devMode ? 64 : 512,
-            
             scale: { small: 1.5, large: 1.5 },
             extension: 112,
             shoreInset: 48,
@@ -314,12 +400,6 @@ const mapDef: PartialMapDef = {
             },
         },
         places: [
-            { name: "Riverside", pos: v2.create(0.51, 0.5) },
-            {
-                name: "Pineapple",
-                pos: v2.create(0.84, 0.18),
-            },
-            { name: "Tarkhany", pos: v2.create(0.21, 0.79) },
         ],
         bridgeTypes: {
             medium: "bridge_md_structure_01",
@@ -334,16 +414,14 @@ const mapDef: PartialMapDef = {
             devMode ? {} : {
                 // INCREASE STONE AND BARREL DENSITY (from 350 and 76 respectively)
                 stone_01: 600,
-                barrel_01: 250,
+                barrel_01: 100,
                 silo_01: 8,
                 crate_01: 38,
                 crate_02f: 5,
                 crate_22: 5,
                 crate_03: 8,
                 bush_01: 78,
-                // Increase tree density (from 320)
-                tree_08f: 500,
-                // hedgehog_01: 24,
+                tree_08f: 320,
                 container_01: 5,
                 container_02: 5,
                 container_03: 5,
@@ -355,7 +433,34 @@ const mapDef: PartialMapDef = {
             },
         ],
         fixedSpawns: [
-            {},
+            {
+                /* REMOVE LARGE STRUCUTRES (unsure which are large, uncomment those that are both convex and small)
+                warehouse_01f: 6,
+                house_red_01: 4,
+                house_red_02: 4,
+                barn_01: 4,
+                bank_01: 1,
+                police_01: 1,
+                hut_01: 4,
+                hut_02: 1,
+                shack_03a: 2,
+                shack_03b: 3,
+                greenhouse_01: 1,
+                cache_01: 1,
+                cache_02: 1,
+                cache_07: 1,
+                mansion_structure_01: 1,
+                bunker_structure_01: { odds: 1 },
+                bunker_structure_03: 1,
+                bunker_structure_04: 1,
+                warehouse_complex_01: 1,
+                chest_01: 1,
+                chest_03f: 1,
+                mil_crate_02: { odds: 1 },
+                tree_02: 3,
+                river_town_01: 1,
+                */
+            },
         ],
         randomSpawns: [],
         spawnReplacements: [
@@ -367,9 +472,17 @@ const mapDef: PartialMapDef = {
                 tree_01: "tree_08f",
             },
         ],
-        importantSpawns: [],
+        importantSpawns: [
+            /* REMOVE LARGE STRUCTURES
+            "river_town_01",
+            "police_01",
+            "bank_01",
+            "mansion_structure_01",
+            "warehouse_complex_01",*/
+        ],
     },
     /* STRIP_FROM_PROD_CLIENT:END */
 };
+
 
 export const FactionBots = util.mergeDeep({}, Main, mapDef) as MapDef;

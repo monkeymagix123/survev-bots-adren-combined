@@ -1,4 +1,4 @@
-export const devMode = true;
+export const devMode = false;
 
 export const ignoreDmg = false;
 

@@ -427,7 +427,7 @@ export class PlayerBarn {
                     }
                 }
             }
-            this.game.logger.log(`Bot ${bot.name} joined`);
+            this.game.logger.info(`Bot ${bot.name} joined`);
 
             this.newPlayers.push(bot);
             this.game.objectRegister.register(bot);
@@ -4860,8 +4860,8 @@ export class Bot extends Player {
         }
         
         // Heal if safe and target is not visible
-        if (!this.visible && s && this.tryHeal()) {
-            this.moveAway(this.target!.pos, true, true);
+        if (this.target != undefined && !this.visible && s && this.tryHeal()) {
+            this.moveAway(this.target.pos, true, true);
             return;
         }
         
