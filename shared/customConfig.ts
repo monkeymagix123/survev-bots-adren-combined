@@ -1,4 +1,6 @@
-export const devMode = false;
+export const devMode = true;
+
+export const ignoreDmg = false;
 
 const factionBotsN = 50;
 export const factionBots = devMode ? 1 : factionBotsN;
@@ -23,3 +25,8 @@ export const mosinBotRNG = 0.05; // in ur case its 0
 export const startTime = 300; // base 60 -- 1 min
 
 export const diffObstacleHP = false;
+
+export const safeConstants = {
+    OK_TIMER: 0.1, // bing chillin
+    BAD_TIMER: 2.5,
+}

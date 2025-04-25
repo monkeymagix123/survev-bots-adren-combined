@@ -57,7 +57,9 @@ import {
     strafeStrength, strafeProbChange,
     spreadStrength, spreadDistStrength, mosinBotShootLead, mosinBotRNG,
     factionBots,
-    devMode
+    devMode,
+    ignoreDmg,
+    safeConstants
 } from "../../../../shared/customConfig";
 
 type GodMode = {
@@ -2765,7 +2767,7 @@ export class Player extends BaseGameObject {
             this.lastDamagedBy = params.source as Player;
         }
 
-        this.health -= devMode ? 0 : finalDamage;
+        this.health -= ignoreDmg ? 0 : finalDamage;
 
         if (this.game.isTeamMode) {
             this.setGroupStatuses();
@@ -4810,8 +4812,12 @@ export class Bot extends Player {
 
     protected target: Player | undefined;
     protected targetTimer: number;
-    protected strafeSign: number = 1;
+
+    // if bullets around recently, consider unsafe (ie, don't heal / walk in straight line)
+    protected safeTimer: number = 0;
     protected safe: boolean = true;
+
+    protected strafeSign: number = 1;
     protected visible: boolean = false;
 
 
@@ -4860,10 +4866,33 @@ export class Bot extends Player {
 
     // Target Switch Timer
     update(dt: number): void {
-        this.safe = BotUtil.noNearbyBullet(this);
         this.visible = BotUtil.isVisible(this, this.target);
         super.update(dt);
+        this.updateTimers(dt);
+    }
+
+    updateTimers(dt: number): void {
         this.targetTimer = Math.max(0, this.targetTimer - dt);
+        this.safeTimer = Math.max(0, this.safeTimer - dt);
+    }
+
+    isSafe(): boolean {
+        // don't check too frequently
+        if (this.safeTimer > 0.01) {
+            return this.safe;
+        }
+        
+        // check if nearby bullet
+        let b = BotUtil.noNearbyBullet(this);
+        this.safe = b;
+        // cases
+        if (b) {
+            this.safeTimer = safeConstants.OK_TIMER; 
+        } else {
+            this.safeTimer = safeConstants.BAD_TIMER;
+        }
+
+        return b;
     }
 
     // Move Bot
@@ -4880,6 +4909,7 @@ export class Bot extends Player {
         // Promote Role
         if (this.weaponManager.curWeapIdx === GameConfig.WeaponSlot.Melee) {
             this.weaponManager.setCurWeapIndex(GameConfig.WeaponSlot.Primary);
+            this.setPartDirty(); // ???? bug on render on promotion, idk if this fixes tho
         }
 
         // New Target
@@ -4887,9 +4917,12 @@ export class Bot extends Player {
         this.dirOld = v2.copy(this.dir);
         this.shootHold = false;
         this.shootStart = false;
+
+        // Check safe
+        let s = this.isSafe();
         
         // Cancel Action if in Danger
-        if (!this.safe && this.actionType != GameConfig.Action.Reload)
+        if (!s && this.actionType != GameConfig.Action.Reload)
             this.cancelAction();
 
         // Attack if target is visible
@@ -4902,7 +4935,7 @@ export class Bot extends Player {
         }
         
         // Heal if safe and target is not visible
-        if (!this.visible && this.safe && this.canHeal()) {
+        if (!this.visible && s && this.tryHeal()) {
             this.moveAway(this.target!.pos, true, true);
             return;
         }
@@ -5058,7 +5091,7 @@ export class Bot extends Player {
         }
     }
 
-    canHeal(): boolean {
+    tryHeal(): boolean {
         if (this.inventory["medkit"] > 0 && this.health < 30 && this.actionItem != "medkit") {
             this.useHealingItem("medkit");
             return true;
