@@ -1,6 +1,7 @@
 export const devMode = false;
 
-export const factionBots = 50;
+const factionBotsN = 50;
+export const factionBots = devMode ? 1 : factionBotsN;
 
 export const adrenMode = true;
 export const adrenTotal = 400;  
@@ -9,7 +10,7 @@ export const adrenHealBoost = 0.015;
 
 export const botIgnoreObstacles = false;
 export const shootLead = 0.2;
-export const strafeStrength = 0.5;
+export const strafeStrength = 0.5; // this barely does anything
 export const strafeProbChange = 0.1;
 export const spreadStrength = 0.0001;
 export const spreadDistStrength = 0.5;
