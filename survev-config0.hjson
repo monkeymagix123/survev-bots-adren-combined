@@ -1,4 +1,8 @@
 {
+    secrets: {
+        SURVEV_API_KEY: lnuwU8hdiSAvzinuoWXB11MQNWC6jVUQkc6FN0eSR0PzrSPgqP35FzMxXw5XBY14MM1gum9MvjH+xHXrrcfXkw==
+        SURVEV_LOADOUT_SECRET: b3Bz+ObmK5HvYOhVBP1+Y7D6OD0GcCrG7OVB05v2MMc=
+    }
     apiKey: VNsPsAXD7coIJXGtghbHYiihAb9KDvG6MYIA3ggFiTM=
     gameServer: {
         apiServerUrl: http://35.209.193.213/api
