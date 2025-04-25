@@ -9,6 +9,8 @@ import type {
     StructureDef,
 } from "./mapObjectsTyping";
 
+import { diffObstacleHP } from "../customConfig";
+
 // some errors could be fixed by this but opted to using Partial and casting instead to avoid choking the lsp server
 // type DeepPartial<T> = T extends object ? {
 //     [P in keyof T]?: DeepPartial<T[P]>;
@@ -79,7 +81,7 @@ function createBarrel<T extends ObstacleDef>(params: Partial<T>): T {
         destructible: true,
         explosion: "explosion_barrel",
         // lowered health (now 70)
-        health: 70,
+        health: diffObstacleHP ? 70 : 150,
         hitParticle: "barrelChip",
         explodeParticle: "barrelBreak",
         reflectBullets: true,
@@ -1493,7 +1495,7 @@ function createStone<T extends ObstacleDef>(e: Partial<T>): T {
         collidable: true,
         destructible: true,
         // SIGNIFICANTLY INCREASE ROCK HEALTH FROM 250(can change other attributes)
-        health: 600,
+        health: diffObstacleHP ? 600 : 250,
         reflectBullets: false,
         hitParticle: "rockChip",
         explodeParticle: "rockBreak",
