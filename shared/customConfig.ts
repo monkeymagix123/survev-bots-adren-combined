@@ -18,3 +18,5 @@ export const targetMinRange = 100;
 
 export const mosinBotShootLead = true; // in ur case its true
 export const mosinBotRNG = 0.05; // in ur case its 0
+
+export const startTime = 300; // base 60 -- 1 min

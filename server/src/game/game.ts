@@ -30,6 +30,8 @@ import { ProjectileBarn } from "./objects/projectile";
 import { SmokeBarn } from "./objects/smoke";
 import { PluginManager } from "./pluginManager";
 
+import { startTime } from "../../../shared/customConfig";
+
 export interface JoinTokenData {
     expiresAt: number;
     userId: string | null;
@@ -243,7 +245,7 @@ export class Game {
         return (
             this.aliveCount < this.map.mapDef.gameMode.maxPlayers &&
             !this.over &&
-            this.startedTime < 60
+            this.startedTime < startTime
         );
     }
 
