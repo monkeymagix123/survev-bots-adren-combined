@@ -5,13 +5,13 @@
     }
     apiKey: VNsPsAXD7coIJXGtghbHYiihAb9KDvG6MYIA3ggFiTM=
     gameServer: {
-        apiServerUrl: https://test1.tailf587b3.ts.net/api
+        apiServerUrl: https://test1.tailf587b3.ts.net
         thisRegion: na
     }
     regions: {
         na: {
             https: true
-            address: test2.tailf587b3.ts.net:8001
+            address: test2.tailf587b3.ts.net
             l10n: index-north-america
         }
     }
