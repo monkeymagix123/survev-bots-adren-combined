@@ -14,7 +14,7 @@ import {
     SCOPE_LEVELS,
     type ScopeDef,
 } from "../../../../shared/defs/gameObjects/gearDefs";
-import type { GunDef } from "../../../../shared/defs/gameObjects/gunDefs";
+import { GunDefs, type GunDef } from "../../../../shared/defs/gameObjects/gunDefs";
 import { type MeleeDef, MeleeDefs } from "../../../../shared/defs/gameObjects/meleeDefs";
 import type { OutfitDef } from "../../../../shared/defs/gameObjects/outfitDefs";
 import { PerkProperties } from "../../../../shared/defs/gameObjects/perkDefs";
@@ -212,5 +212,74 @@ export const BotUtil = {
         }
 
         return o2;
+    },
+
+    // at some point also want to cache this?
+    getPrefDist(g: string): minMax {
+        // min: min distance at which chillin
+        // max: max distance at which chillin
+        // < min --> move farther, > min --> move closer
+
+        if (!GunDefs[g]) {
+            // prob melee / grenade
+            // assume melee
+            return new minMax(0, 0);
+        }
+
+        const zm = GameConfig.scopeZoomRadius["desktop"];
+
+        let z2 = zm["2xscope"];
+        let z4 = zm["4xscope"];
+        let z8 = zm["8xscope"];
+
+        let d = GunDefs[g];
+
+        // potato cannon, m79, etc (flare here cuz im lazy)
+        if (d.isLauncher || d.name.includes("flare")) {
+            // prob a bit larger than 4x scope to 2x scope
+            return new minMax(z2, z4 * 1.2);
+        }
+
+        // most guns that don't split
+        if (d.ammo != "12gauge") {
+            // usually no splitting
+            // function based on spread???
+            d.moveSpread;
+        }
+        
+        // smg / assault rifle: prob around 2x-4x scope
+
+        // maybe based on bullet speed? benchmark: prob 200 ~ great on 8x
+        // mosin: 178, sv: 182
+        // mac 10: 75, mp5: 85, vector: 88
+        // pkp: 120
+        // also include accuracy?
+
+
+        // spas
+        if (d.name === "spas12") {
+            return new minMax(z2, z4 * 1.2);
+        }
+
+        // super 90
+        if (d.name === "m1014") {
+            return new minMax(z4 * 0.9, (z4 + z8)/2);
+        }
+
+        // should be just shotguns left
+        return new minMax(1, z2);
+
+        // // safeguard, should not happen
+        // return new minMax(0, 0);
+    }
+}
+
+export class minMax {
+    min: number;
+    max: number;
+
+    constructor(min: number, max: number) {
+        this.min = min;
+        this.max = max;
     }
 }

@@ -4768,8 +4768,7 @@ export class Bot extends Player {
         this.collider = collider.createCircle(this.pos, this.rad);
         this.collider.pos = this.pos;
 
-        this.scopeZoomRadius =
-            GameConfig.scopeZoomRadius[this.isMobile ? "mobile" : "desktop"];
+        this.scopeZoomRadius = GameConfig.scopeZoomRadius["desktop"];
 
         this.zoom = this.scopeZoomRadius[this.scope];
 
@@ -4928,6 +4927,24 @@ export class Bot extends Player {
     sendData(buffer: ArrayBuffer | Uint8Array): void {
         // this.game.sendSocketMsg(this.socketId, buffer);
         this.move();
+    }
+
+    moveFight(p: Player): void {
+        let pd = BotUtil.getPrefDist(this.activeWeapon);
+
+        let d = BotUtil.dist2(this.pos, p.pos);
+
+        if (d < pd.min ** 2) {
+            // too close
+            this.moveAway(p.pos, true, true);
+        }
+        if (d > pd.max ** 2) {
+            // to far
+            this.moveTowards(p, true, true);
+        }
+
+        // hmm this should be staying towards middle? or just rng movement
+        this.moveTowards(p, true, true);
     }
 
     /**
