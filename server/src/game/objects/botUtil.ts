@@ -52,6 +52,7 @@ import { Player, Bot, DumBot} from "./player";
 import { MapObjectDefs } from "../../../../shared/defs/mapObjectDefs";
 import { ObstacleDef } from "../../../../shared/defs/mapObjectsTyping";
 import { targetMaxRange } from "../../../../shared/customConfig";
+import { BulletDefs } from "../../../../shared/defs/gameObjects/bulletDefs";
 
 export const BotUtil = {
     // basic utilities
@@ -216,6 +217,11 @@ export const BotUtil = {
 
     // at some point also want to cache this?
     getPrefDist(g: string): minMax {
+        // cache ??
+        if (gunDist[g]) {
+            return gunDist[g];
+        }
+
         // min: min distance at which chillin
         // max: max distance at which chillin
         // < min --> move farther, > min --> move closer
@@ -228,6 +234,7 @@ export const BotUtil = {
 
         const zm = GameConfig.scopeZoomRadius["desktop"];
 
+        let z1 = zm["1xscope"];
         let z2 = zm["2xscope"];
         let z4 = zm["4xscope"];
         let z8 = zm["8xscope"];
@@ -244,7 +251,17 @@ export const BotUtil = {
         if (d.ammo != "12gauge") {
             // usually no splitting
             // function based on spread???
-            d.moveSpread;
+            let b = BulletDefs[d.bulletType];
+
+            if (b.speed < 100) {
+                // prob smg / assault rifle
+                // mac10: 21 spread, mp5: 7, vector: 7 (move spread), shot spread: 10, 3, 2.5
+                let maxD = b.distance * 0.9; // Math.min(b.distance * 0.9, z1 * 5 / d.shotSpread)
+                return new minMax(z1 * 0.25, maxD);
+            } else {
+                // prob dmr / sniper
+                return new minMax(z2 * 1.2, z8 * 1.25);
+            }
         }
         
         // smg / assault rifle: prob around 2x-4x scope
@@ -258,21 +275,23 @@ export const BotUtil = {
 
         // spas
         if (d.name === "spas12") {
-            return new minMax(z2, z4 * 1.2);
+            return new minMax(z1, z4 * 1.2);
         }
 
         // super 90
         if (d.name === "m1014") {
-            return new minMax(z4 * 0.9, (z4 + z8)/2);
+            return new minMax(z2 * 0.9, (z4 + z8)/2);
         }
 
         // should be just shotguns left
-        return new minMax(1, z2);
+        return new minMax(5, z2);
 
         // // safeguard, should not happen
         // return new minMax(0, 0);
     }
 }
+
+let gunDist: Record<string, minMax> = {};
 
 export class minMax {
     min: number;
