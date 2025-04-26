@@ -4854,7 +4854,7 @@ export class Bot extends Player {
             this.shootHold = true;
             this.shootStart = true;
             this.aim(this.target);
-            this.moveTowards(this.target, true, true);
+            this.approach(this.target);
             return;
         }
         
@@ -4929,6 +4929,12 @@ export class Bot extends Player {
         this.move();
     }
 
+    // controls movement in a fight
+    approach(p: Player): void {
+        this.moveTowards(p, true, true);
+    }
+
+    // smart movement -- tries to get at suitable distance away
     moveFight(p: Player): void {
         let pd = BotUtil.getPrefDist(this.activeWeapon);
 
