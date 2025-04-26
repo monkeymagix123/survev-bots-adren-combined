@@ -5,7 +5,7 @@
     }
     apiKey: VNsPsAXD7coIJXGtghbHYiihAb9KDvG6MYIA3ggFiTM=
     gameServer: {
-        apiServerUrl: http://35.209.193.213/api
+        apiServerUrl: http://35.209.193.213
         thisRegion: na
     }
     regions: {

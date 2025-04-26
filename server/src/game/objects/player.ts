@@ -4745,6 +4745,8 @@ export class Bot extends Player {
     protected strafeSign: number = 1;
     protected visible: boolean = false;
 
+    spread = true;
+
 
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         super(game, pos, layer, socketId, joinMsg, "0.0.0.0", "0.0.0.0", null);
@@ -4860,13 +4862,13 @@ export class Bot extends Player {
         
         // Heal if safe and target is not visible
         if (this.target != undefined && !this.visible && s && this.tryHeal()) {
-            this.moveAway(this.target.pos, true, true);
+            this.moveAway(this.target.pos, true, this.spread);
             return;
         }
         
         // Move to Target
         else {
-            this.moveTowards(this.target, false, true);
+            this.moveTowards(this.target, false, this.spread);
         }
         
         // Aim at Obstacles (if target is not visible)
@@ -4931,7 +4933,7 @@ export class Bot extends Player {
 
     // controls movement in a fight
     approach(p: Player): void {
-        this.moveTowards(p, true, true);
+        this.moveTowards(p, true, this.spread);
     }
 
     // smart movement -- tries to get at suitable distance away
@@ -4942,15 +4944,15 @@ export class Bot extends Player {
 
         if (d < pd.min ** 2) {
             // too close
-            this.moveAway(p.pos, true, true);
+            this.moveAway(p.pos, true, this.spread);
         }
         if (d > pd.max ** 2) {
-            // to far
-            this.moveTowards(p, true, true);
+            // too far
+            this.moveTowards(p, true, this.spread);
         }
 
         // hmm this should be staying towards middle? or just rng movement
-        this.moveTowards(p, true, true);
+        this.moveTowards(p, true, this.spread);
     }
 
     /**
@@ -5132,6 +5134,8 @@ export class SoloBot extends DumBot {
         if (Math.random() > 0.3) {
             this.quickSwitch = false;
         }
+
+        this.spread = false;
     }
 
     update(dt: number): void {
