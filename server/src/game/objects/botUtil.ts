@@ -53,112 +53,49 @@ import { MapObjectDefs } from "../../../../shared/defs/mapObjectDefs";
 import { ObstacleDef } from "../../../../shared/defs/mapObjectsTyping";
 import { targetMaxRange } from "../../../../shared/customConfig";
 import { BulletDefs } from "../../../../shared/defs/gameObjects/bulletDefs";
+import { Bullet } from "./bullet";
 
 export const BotUtil = {
-    // basic utilities
     dist2(a: Vec2, b: Vec2) {
-        return ((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
+        return (b.x - a.x) ** 2 + (b.y - a.y) ** 2;
     },
 
-    same(one: Team | Group | undefined, two: Team | Group | undefined): boolean {
-        if (one === undefined) {
-            return false;
-        }
-        return (one === two);
+    same(one: Team | Group | undefined, two: Team | Group | undefined) {
+        return one !== undefined && one === two;
     },
 
-    sameTeam(a: Player | undefined, b: Player | undefined): boolean {
-        if (this.same(a?.team, b?.team))
-            return true;
-        if (this.same(a?.group, b?.group))
-            return true;
-
-        return false;
+    sameTeam(a: Player | undefined, b: Player | undefined) {
+        return (a && b) && (this.same(a.team, b.team) || this.same(a.group, b.group));
     },
 
-    randomSym(n: number): number {
-        let r = Math.random();
-
-        return (2 * r - 1) * n;
+    randomSym(n: number) {
+        return (Math.random() * 2 - 1) * n;
     },
 
-    // actual advanced functions / utilities
-    noNearbyBullet(bot: Player): boolean {
-        const nearbyBullet = bot.game.bulletBarn.bullets
-            .filter(
-                (obj) =>
-                    obj.active && obj.alive && obj.player != bot && (obj.player === undefined || !this.sameTeam(bot, obj.player)),
-            );
-
-        nearbyBullet.forEach((b) => {
-            // change logic -- where it will go to? but not too far away
-            let dir = b.dir;
-            let pos = b.pos;
-
-            let dist = this.dist2(bot.pos, pos); // distance bullet position to player
-            let perp = v2.perp(b.dir);
-            let perpDist = v2.lengthSqr(v2.proj(v2.sub(bot.pos, pos), perp));
-
-            let targetD = (GameConfig.player.reviveRange * 1.5) ** 2;
-
-            if (dist <= targetD * 200 && perpDist <= targetD) {
-                // stop moving in straight line
-                // testing below
-                // this.game.playerBarn.addEmote(
-                //     this.__id,
-                //     this.pos,
-                //     "emote_dabface",
-                //     false,
-                // );
-                return false;
-            }
-        });
-
-        return true;
+    noNearbyBullet(bot: Player) {
+        const targetD = (GameConfig.player.reviveRange * 1.5) ** 2;
+        return !bot.game.bulletBarn.bullets.some(b => 
+            b.active && b.alive && b.player !== bot && (!b.player || !this.sameTeam(bot, b.player)) &&
+            this.dist2(bot.pos, b.pos) <= targetD * 200 &&
+            v2.lengthSqr(v2.proj(v2.sub(bot.pos, b.pos), v2.perp(b.dir))) <= targetD
+        );
     },
 
-    /**
-     * Gets the closest player
-     * @param isInRange if it has to be in visible range, defaults to false
-     * @param needPlayer if it has to be an actual player (not a bot), defaults to false
-     * @param needEnemy if it cannot be a teammate, defaults to true
-     * @returns the closest player
-     */
-    getClosestPlayer(bot: Player, isInRange = false, needPlayer = false, needEnemy = true): Player | undefined {
-        const nearbyEnemy = this.getAllPlayers(bot, isInRange, needPlayer);
-
-        let closestPlayer: Player | undefined = undefined;
-        let closestDist = Number.MAX_VALUE;
-        for (const p of nearbyEnemy) {
-            if (!util.sameLayer(bot.layer, p.layer)) {
-                continue;
-            }
-
-            if (needEnemy && BotUtil.sameTeam(bot, p)) {
-                continue;
-            }
-
-            const dist = BotUtil.dist2(bot.pos, p.pos);
-            if (dist > targetMaxRange * targetMaxRange) {
-                continue;
-            }
-            if (dist < closestDist && p != bot) {
-                closestPlayer = p;
-                closestDist = dist;
+    getClosestPlayer(bot: Player, isInRange = false, needPlayer = false, needEnemy = true) {
+        let closest: Player | undefined;
+        let minDist = Number.MAX_VALUE;
+        for (const p of this.getAllPlayers(bot, isInRange, needPlayer)) {
+            if (!util.sameLayer(bot.layer, p.layer) || (needEnemy && this.sameTeam(bot, p)) || p === bot) continue;
+            const d = this.dist2(bot.pos, p.pos);
+            if (d < minDist && d <= targetMaxRange ** 2) {
+                minDist = d;
+                closest = p;
             }
         }
-
-        return closestPlayer;
+        return closest;
     },
 
-    /**
-     * Gets all players satisfying conditions
-     * @param isInRange if it has to be in visible range, defaults to false
-     * @param needPlayer if it has to be an actual player (not a bot), defaults to false
-     * @returns all such players
-     */
-    getAllPlayers(bot: Player, isInRange = false, needPlayer = false): Player[] {
-        // diff zone?
+    getAllPlayers(bot: Player, isInRange = false, needPlayer = false) {
         const radius = bot.zoom + 4;
         let rect = coldet.circleToAabb(bot.pos, radius * 0.7); // a bit less
         // vertical scaling: 2 since usually windows have aspect ratio 2:1
@@ -166,139 +103,60 @@ export const BotUtil = {
         rect.min = scaled.min;
         rect.max = scaled.max;
 
-        const coll = isInRange ? rect : collider.createCircle(bot.pos, 10000);
+        const coll = isInRange
+            ? rect
+            : collider.createCircle(bot.pos, 10000);
 
-        const nearbyEnemy = bot.game.grid
-            .intersectCollider(
-                coll,
-            )
-            .filter(
-                (obj): obj is Player =>
-                    obj.__type == ObjectType.Player && !obj.dead && !(needPlayer && obj instanceof Bot),
-            );
-
-        return nearbyEnemy;
+        return bot.game.grid.intersectCollider(coll).filter(
+            (obj): obj is Player => obj.__type === ObjectType.Player && !obj.dead && !(needPlayer && obj instanceof Bot)
+        );
     },
 
-    isVisible(bot: Player, player: Player | undefined): boolean {
-        if (player === undefined) {
-            return false;
-        }
-        return (this.getAllPlayers(bot, true).includes(player));
+    isVisible(bot: Player, player: Player | undefined) {
+        return player ? this.getAllPlayers(bot, true).includes(player) : false;
     },
 
-    getCollidingObstacles(bot: Player, needDestructible = false): Obstacle[] {
-        const coll1 = collider.createCircle(bot.posOld, bot.rad * 2);
-        // const coll = bot.collider;
-        
-        let o = bot.game.grid.intersectCollider(coll1).filter((obj) => 
-            obj.__type === ObjectType.Obstacle,
+    getCollidingObstacles(bot: Player, needDestructible = false) {
+        const coll = collider.createCircle(bot.posOld, bot.rad * 2);
+        let obs = bot.game.grid.intersectCollider(coll).filter(
+            (obj): obj is Obstacle => obj.__type === ObjectType.Obstacle && !obj.dead && !obj.destroyed && obj.collidable
         );
 
-        o = o.filter((obj) => !obj.dead && !obj.destroyed && obj.collidable,);
+        const collSmall = collider.createCircle(bot.posOld, bot.rad * 1.1);
+        obs = obs.filter(obj => collider.intersect(collSmall, obj.collider));
 
-        const coll = collider.createCircle(bot.posOld, bot.rad * 1.1);
-
-        let o2 : Obstacle[] = [];
-
-        for (let i = 0; i < o.length; i++) {
-            let obj = o[i];
-            if (collider.intersect(coll, obj.collider)) {
-                o2.push(obj);
-            }
-        }
-
-        if (needDestructible) {
-            o2 = o2.filter((obj) => obj.destructible && !(MapObjectDefs[obj.type] as ObstacleDef).armorPlated && !(MapObjectDefs[obj.type] as ObstacleDef).stonePlated && !(MapObjectDefs[obj.type] as ObstacleDef).explosion);
-        }
-
-        return o2;
+        return needDestructible
+            ? obs.filter(obj => obj.destructible && !(MapObjectDefs[obj.type] as ObstacleDef).armorPlated && !(MapObjectDefs[obj.type] as ObstacleDef).stonePlated && !(MapObjectDefs[obj.type] as ObstacleDef).explosion)
+            : obs;
     },
 
-    // at some point also want to cache this?
-    getPrefDist(g: string): minMax {
-        // cache ??
-        if (gunDist[g]) {
-            return gunDist[g];
+    getPrefDist(g: string) {
+        if (gunDist[g]) return gunDist[g];
+
+        const zm = GameConfig.scopeZoomRadius.desktop;
+        const d = GunDefs[g];
+        if (!d) return new minMax(0, 0);
+
+        if (d.isLauncher || d.name.includes("flare"))
+            return gunDist[g] = new minMax(zm["2xscope"], zm["4xscope"] * 1.2);
+
+        if (d.ammo !== "12gauge") {
+            const b = BulletDefs[d.bulletType];
+            return gunDist[g] = new minMax(zm["1xscope"] * 0.25, b.speed < 100 ? b.distance * 0.9 : zm["8xscope"] * 1.25);
         }
 
-        // min: min distance at which chillin
-        // max: max distance at which chillin
-        // < min --> move farther, > min --> move closer
+        if (d.name === "spas12")
+            return gunDist[g] = new minMax(zm["1xscope"], zm["4xscope"] * 1.2);
 
-        if (!GunDefs[g]) {
-            // prob melee / grenade
-            // assume melee
-            return new minMax(0, 0);
-        }
+        if (d.name === "m1014")
+            return gunDist[g] = new minMax(zm["2xscope"] * 0.9, (zm["4xscope"] + zm["8xscope"]) / 2);
 
-        const zm = GameConfig.scopeZoomRadius["desktop"];
+        return gunDist[g] = new minMax(5, zm["2xscope"]);
+    },
+};
 
-        let z1 = zm["1xscope"];
-        let z2 = zm["2xscope"];
-        let z4 = zm["4xscope"];
-        let z8 = zm["8xscope"];
-
-        let d = GunDefs[g];
-
-        // potato cannon, m79, etc (flare here cuz im lazy)
-        if (d.isLauncher || d.name.includes("flare")) {
-            // prob a bit larger than 4x scope to 2x scope
-            return new minMax(z2, z4 * 1.2);
-        }
-
-        // most guns that don't split
-        if (d.ammo != "12gauge") {
-            // usually no splitting
-            // function based on spread???
-            let b = BulletDefs[d.bulletType];
-
-            if (b.speed < 100) {
-                // prob smg / assault rifle
-                // mac10: 21 spread, mp5: 7, vector: 7 (move spread), shot spread: 10, 3, 2.5
-                let maxD = b.distance * 0.9; // Math.min(b.distance * 0.9, z1 * 5 / d.shotSpread)
-                return new minMax(z1 * 0.25, maxD);
-            } else {
-                // prob dmr / sniper
-                return new minMax(z2 * 1.2, z8 * 1.25);
-            }
-        }
-        
-        // smg / assault rifle: prob around 2x-4x scope
-
-        // maybe based on bullet speed? benchmark: prob 200 ~ great on 8x
-        // mosin: 178, sv: 182
-        // mac 10: 75, mp5: 85, vector: 88
-        // pkp: 120
-        // also include accuracy?
-
-
-        // spas
-        if (d.name === "spas12") {
-            return new minMax(z1, z4 * 1.2);
-        }
-
-        // super 90
-        if (d.name === "m1014") {
-            return new minMax(z2 * 0.9, (z4 + z8)/2);
-        }
-
-        // should be just shotguns left
-        return new minMax(5, z2);
-
-        // // safeguard, should not happen
-        // return new minMax(0, 0);
-    }
-}
-
-let gunDist: Record<string, minMax> = {};
+const gunDist: Record<string, minMax> = {};
 
 export class minMax {
-    min: number;
-    max: number;
-
-    constructor(min: number, max: number) {
-        this.min = min;
-        this.max = max;
-    }
+    constructor(public min: number, public max: number) {}
 }
