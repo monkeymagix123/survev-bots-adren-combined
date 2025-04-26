@@ -4945,13 +4945,16 @@ export class Bot extends Player {
         if (d < pd.min ** 2) {
             // too close
             this.moveAway(p.pos, true, this.spread);
+            return;
         }
         if (d > pd.max ** 2) {
             // too far
             this.moveTowards(p, true, this.spread);
+            return;
         }
 
         // hmm this should be staying towards middle? or just rng movement
+        // yeah strafing inside zone would probably be good
         this.moveTowards(p, true, this.spread);
     }
 
