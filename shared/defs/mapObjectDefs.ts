@@ -11,6 +11,8 @@ import type {
 
 import { diffObstacleHP } from "../customConfig";
 
+import { NewMapObjectDefs } from "./newMapObjectDefs";
+
 // some errors could be fixed by this but opted to using Partial and casting instead to avoid choking the lsp server
 // type DeepPartial<T> = T extends object ? {
 //     [P in keyof T]?: DeepPartial<T[P]>;
@@ -8486,7 +8488,7 @@ const MaterialDefs = {
     },
 };
 
-export const MapObjectDefs: Record<string, MapObjectDef> = {
+export const MapObjectDefs2: Record<string, MapObjectDef> = {
     barrel_01: createBarrel({}),
     barrel_01b: createBarrel({
         img: { tint: 13224393 },
@@ -29484,3 +29486,5 @@ export const MapObjectDefs: Record<string, MapObjectDef> = {
         },
     },
 };
+
+export const MapObjectDefs: Record<string, MapObjectDef> = util.mergeDeep(MapObjectDefs2, NewMapObjectDefs);
