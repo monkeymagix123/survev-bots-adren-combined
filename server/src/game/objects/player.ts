@@ -4994,10 +4994,12 @@ export class Bot extends Player {
         if (spread && this.team != undefined) {
             for (const i of this.team.livingPlayers) {
                 if (i != this) {
+                    let dist = Math.max(v2.distance(this.pos, i.pos), 1);
+
                     const push =
                         v2.mul(
-                            v2.sub(i.pos, this.touchMoveDir),
-                            spreadStrength / Math.pow(v2.distance(this.pos, i.pos), spreadDistStrength)
+                            v2.sub(this.pos, i.pos),
+                            spreadStrength / Math.pow(dist, spreadDistStrength)
                         );
                     this.touchMoveDir = v2.add(push, this.touchMoveDir);
                 }
@@ -5019,10 +5021,12 @@ export class Bot extends Player {
         if (spread && this.team != undefined) {
             for (const i of this.team.livingPlayers) {
                 if (i != this) {
+                    let dist = Math.max(v2.distance(this.pos, i.pos), 1);
+
                     const push =
                         v2.mul(
-                            v2.sub(i.pos, this.touchMoveDir),
-                            spreadStrength / Math.pow(v2.distance(this.pos, i.pos), spreadDistStrength)
+                            v2.sub(this.pos, i.pos),
+                            spreadStrength / Math.pow(dist, spreadDistStrength)
                         );
                     this.touchMoveDir = v2.add(push, this.touchMoveDir);
                 }

@@ -195,7 +195,7 @@ export const BotUtil = {
             obj.__type === ObjectType.Obstacle,
         );
 
-        o.filter((obj) => !obj.dead && !obj.destroyed && obj.collidable,);
+        o = o.filter((obj) => !obj.dead && !obj.destroyed && obj.collidable,);
 
         const coll = collider.createCircle(bot.posOld, bot.rad * 1.1);
 
