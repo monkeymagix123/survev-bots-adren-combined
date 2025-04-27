@@ -142,7 +142,10 @@ export const BotUtil = {
 
         if (d.ammo !== "12gauge") {
             const b = BulletDefs[d.bulletType];
-            return gunDist[g] = new minMax(zm["1xscope"] * 0.25, b.speed < 100 ? b.distance * 0.9 : zm["8xscope"] * 1.25);
+            if (b.speed < 100)
+                return gunDist[g] = new minMax(zm["1xscope"] * 0.25, b.distance * 0.9);
+            else
+                return gunDist[g] = new minMax(zm["2xscope"] * 1.2, zm["8xscope"] * 1.25);
         }
 
         if (d.name === "spas12")
