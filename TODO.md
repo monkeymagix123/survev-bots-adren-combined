@@ -13,6 +13,7 @@ Each emoji has a meaning:
 - ❌: Dodge grenades
 - ❌: Avoid barrels
 - ⚠️: Better movement around obstacles
+- ❌: Make strafe change direction chance exponential / increase with time
 
 **2. Aiming**
 - ❌: Bots melee at close range
