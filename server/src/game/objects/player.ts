@@ -393,7 +393,7 @@ export class PlayerBarn {
                 pos2 = this.game.map.getSpawnPos(group, team);
             }
 
-            let bot = new TeamBot(this.game, pos2, layer, socketId, joinMsg);
+            let bot = new DumBot(this.game, pos2, layer, socketId, joinMsg);
 
             bot.name = `Bot-${namesData.names[Math.floor(Math.random() * namesData.names.length)]}`;
             group.addPlayer(bot);
@@ -4874,7 +4874,7 @@ export class Bot extends Player {
         }
 
         // Get Out of Gas
-        if (BotUtil.d2(this.pos, this.game.gas.currentPos) >= (this.game.gas.currentRad ** 2) * 0.9) {
+        if (BotUtil.dist2(this.pos, this.game.gas.currentPos) >= (this.game.gas.currentRad ** 2) * 0.9) {
             this.moveTo(this.game.gas.currentPos, false, true);
         }
 
@@ -4900,7 +4900,16 @@ export class Bot extends Player {
             return;
         }
 
-        const closestPlayer = BotUtil.getClosestOpponent(this);
+        let closestPlayer = undefined;
+        if (!this.game.map.factionMode) {
+            const closestPlayer2 = BotUtil.getClosestPlayer(this, true, true);
+            if (BotUtil.isVisible(this, closestPlayer2)) {
+                closestPlayer = closestPlayer2;
+            }
+        }
+        else {
+            closestPlayer = BotUtil.getClosestPlayer(this);
+        }
 
         if (closestPlayer != this.target) {
             this.targetTimer = 0.4;
@@ -4925,7 +4934,7 @@ export class Bot extends Player {
     moveFight(p: Player): void {
         let pd = BotUtil.getPrefDist(this.activeWeapon);
 
-        let d = BotUtil.d2(this.pos, p.pos);
+        let d = BotUtil.dist2(this.pos, p.pos);
 
         if (d < pd.min ** 2) {
             // too close
@@ -5055,7 +5064,7 @@ export class Bot extends Player {
 }
 
 // 50v50 bots
-export class TeamBot extends Bot {
+export class DumBot extends Bot {
     // test
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         super(game, pos, layer, socketId, joinMsg);
@@ -5094,7 +5103,7 @@ export class TeamBot extends Bot {
     }
 }
 
-export class SoloBot extends TeamBot {
+export class SoloBot extends DumBot {
     protected aimTicker: number;
     protected aimType: number;
     protected aimK: number;
@@ -5141,7 +5150,7 @@ export class SoloBot extends TeamBot {
             return;
         }
 
-        let closestPlayer = BotUtil.getClosestOpponent(this);
+        let closestPlayer = BotUtil.getClosestPlayer(this);
 
         if (closestPlayer != this.target) {
             // start timer
@@ -5191,62 +5200,5 @@ export class SoloBot extends TeamBot {
         }
 
         this.dir = v2.directionNormalized(this.posOld, v2.add(target.pos, v2.mul(target.moveVel, this.aimK)));
-    }
-}
-
-export class PetBot extends TeamBot {
-    protected leader: Player;
-    constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg, leader: Player) {
-        super(game, pos, layer, socketId, joinMsg);
-        this.leader = leader;
-    }    
-
-    // Move Bot
-    move(): void {
-        if (this.downed || this.dead || this.shotSlowdownTimer > 2) {
-            return;
-        }
-
-        // New Target
-        this.newTarget();
-        this.dirOld = v2.copy(this.dir);
-        this.shootHold = false;
-        this.shootStart = false;
-
-        // Check safe
-        let s = this.isSafe();
-        
-        // Cancel Action if in Danger
-        if (!s && this.actionType != GameConfig.Action.Reload)
-            this.cancelAction();
-
-        // Attack Nearest Player
-
-        // 
-        
-        
-        // Aim at Obstacles (if target is not visible)
-        const obs = BotUtil.getCollidingObstacles(this, true);
-        if (obs.length > 0) {
-            this.shootStart = true;
-            this.shootHold = true;
-            this.dir = v2.directionNormalized(this.posOld, obs[0].pos);
-        }
-
-        this.quickswitch();
-    }
-
-    newTarget(): void {
-        if (this.targetTimer > 0 && this.target != undefined && !this.target.dead) {
-            return;
-        }
-
-        let closestPlayer = undefined;
-        closestPlayer = BotUtil.getClosestOpponent(this);
-
-        if (closestPlayer != this.target) {
-            this.targetTimer = 0.4;
-            this.target = closestPlayer;
-        }
     }
 }
