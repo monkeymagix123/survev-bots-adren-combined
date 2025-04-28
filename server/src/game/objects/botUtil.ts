@@ -47,7 +47,7 @@ import type { Loot } from "./loot";
 import type { MapIndicator } from "./mapIndicator";
 import type { Obstacle } from "./obstacle";
 
-import { Player, Bot, DumBot} from "./player";
+import { Player, Bot, TeamBot} from "./player";
 
 import { MapObjectDefs } from "../../../../shared/defs/mapObjectDefs";
 import { ObstacleDef } from "../../../../shared/defs/mapObjectsTyping";
@@ -56,8 +56,8 @@ import { BulletDefs } from "../../../../shared/defs/gameObjects/bulletDefs";
 import { Bullet } from "./bullet";
 
 export const BotUtil = {
-    dist2(a: Vec2, b: Vec2) {
-        return (b.x - a.x) ** 2 + (b.y - a.y) ** 2;
+    d2(v1: Vec2, v2: Vec2) {
+        return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y);
     },
 
     same(one: Team | Group | undefined, two: Team | Group | undefined) {
@@ -76,26 +76,25 @@ export const BotUtil = {
         const targetD = (GameConfig.player.reviveRange * 1.5) ** 2;
         return !bot.game.bulletBarn.bullets.some(b => 
             b.active && b.alive && b.player !== bot && (!b.player || !this.sameTeam(bot, b.player)) &&
-            this.dist2(bot.pos, b.pos) <= targetD * 200 &&
+            this.d2(bot.pos, b.pos) <= targetD * 200 &&
             v2.lengthSqr(v2.proj(v2.sub(bot.pos, b.pos), v2.perp(b.dir))) <= targetD
         );
     },
 
-    getClosestPlayer(bot: Player, isInRange = false, needPlayer = false, needEnemy = true) {
-        let closest: Player | undefined;
-        let minDist = Number.MAX_VALUE;
-        for (const p of this.getAllPlayers(bot, isInRange, needPlayer)) {
-            if (!util.sameLayer(bot.layer, p.layer) || (needEnemy && this.sameTeam(bot, p)) || p === bot) continue;
-            const d = this.dist2(bot.pos, p.pos);
-            if (d < minDist && d <= targetMaxRange ** 2) {
-                minDist = d;
-                closest = p;
-            }
+    getPlayers(bot: Player, visible = false, needPlayer = false) {
+        if (!visible) {
+            return bot.game.playerBarn.livingPlayers.filter(
+                (player) => !(needPlayer && player instanceof Bot)
+            );
         }
-        return closest;
-    },
-
-    getAllPlayers(bot: Player, isInRange = false, needPlayer = false) {
+        let scaled = coldet.scaleAabbAlongAxis(coldet.circleToAabb(bot.pos, (bot.zoom + 4) * 0.7), v2.create(0, 1), 1 / 2.2);
+        return bot.game.playerBarn.livingPlayers.filter(
+            (player) =>
+                scaled.min.x <= player.pos.x && player.pos.x <= scaled.max.x && 
+                scaled.min.y <= player.pos.y && player.pos.y <= scaled.max.y &&
+                !(needPlayer && player instanceof Bot)
+        );
+        /* 
         const radius = bot.zoom + 4;
         let rect = coldet.circleToAabb(bot.pos, radius * 0.7); // a bit less
         // vertical scaling: 2 since usually windows have aspect ratio 2:1
@@ -103,17 +102,39 @@ export const BotUtil = {
         rect.min = scaled.min;
         rect.max = scaled.max;
 
-        const coll = isInRange
+        const coll = visible
             ? rect
             : collider.createCircle(bot.pos, 10000);
 
+        
         return bot.game.grid.intersectCollider(coll).filter(
             (obj): obj is Player => obj.__type === ObjectType.Player && !obj.dead && !(needPlayer && obj instanceof Bot)
         );
+        */
+    },
+
+    getClosestOpponent(bot: Player, visible = false, needPlayer = false, maxRange = targetMaxRange) {
+        let closest: Player | undefined = undefined;
+        let minDist = Number.MAX_VALUE;
+        for (const p of this.getPlayers(bot, visible, needPlayer)) {
+            if (
+                !util.sameLayer(bot.layer, p.layer) ||
+                this.sameTeam(bot, p) ||
+                p === bot) {
+                continue;
+            }
+
+            const d = this.d2(bot.pos, p.pos);
+            if (d < minDist && d <= maxRange ** 2) {
+                minDist = d;
+                closest = p;
+            }
+        }
+        return closest;
     },
 
     isVisible(bot: Player, player: Player | undefined) {
-        return player ? this.getAllPlayers(bot, true).includes(player) : false;
+        return player ? this.getPlayers(bot, true).includes(player) : false;
     },
 
     getCollidingObstacles(bot: Player, needDestructible = false) {
