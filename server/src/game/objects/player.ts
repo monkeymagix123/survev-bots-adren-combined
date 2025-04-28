@@ -5097,6 +5097,10 @@ export class DumBot extends Bot {
         const gunDef1 = GameObjectDefs[this.weapons[slot1].type] as GunDef;
         this.weapons[slot1].ammo = gunDef1.maxClip;
     }
+
+    approach(p: Player): void {
+        this.moveFight(p);
+    }
 }
 
 export class SoloBot extends DumBot {
@@ -5154,10 +5158,6 @@ export class SoloBot extends DumBot {
         }
 
         this.target = closestPlayer;
-    }
-
-    approach(p: Player): void {
-        this.moveFight(p);
     }
 
     // override aim function
