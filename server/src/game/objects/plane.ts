@@ -21,7 +21,7 @@ interface ScheduledAirDrop {
 }
 
 // amount of seconds to travel to target
-const AIRDROP_PLANE_SPAWN_DIST = GameConfig.airdrop.planeVel * 15;
+const AIRDROP_PLANE_SPAWN_DIST = GameConfig.airdrop.planeVel * 3; // originally 15
 const AIRSTRIKE_PLANE_SPAWN_DIST = GameConfig.airstrike.planeVel * 3;
 /** relative to the target airstrike position, this is the maximum distance a bomb can be dropped from that position */
 const AIRSTRIKE_PLANE_MAX_BOMB_DIST = 48;
@@ -389,8 +389,6 @@ export class PlaneBarn {
             collider: collider.transform(def.collision, airdropPos, 0, 1),
         };
 
-        this.game.airdropBarn.addAirdrop(airdrop.pos, airdrop.type);
-        /*
         const planePos = v2.add(pos, v2.mul(v2.randomUnit(), AIRDROP_PLANE_SPAWN_DIST));
 
         const toPlanePos = v2.sub(airdropPos, planePos);
@@ -399,7 +397,6 @@ export class PlaneBarn {
 
         const plane = new AirdropPlane(this.game, id, planePos, dir, airdrop);
         this.planes.push(plane);
-        */
     }
 
     addAirStrike(pos: Vec2, dir: Vec2, playerId?: number) {
