@@ -4862,7 +4862,7 @@ export class Bot extends Player {
         
         // Move to Target
         else {
-            this.moveTowards(this.target, false, this.spread);
+            this.moveTowards(this.target, !s, this.spread);
         }
         
         // Aim at Obstacles (if target is not visible)
