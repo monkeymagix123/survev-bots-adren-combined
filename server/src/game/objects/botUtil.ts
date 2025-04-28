@@ -75,7 +75,10 @@ export const BotUtil = {
     noNearbyBullet(bot: Player) {
         const targetD = (GameConfig.player.reviveRange * 1.5) ** 2;
         return !bot.game.bulletBarn.bullets.some(b => 
-            b.active && b.alive && b.player !== bot && (!b.player || !this.sameTeam(bot, b.player)) &&
+            b.active &&
+            b.alive &&
+            b.player !== bot &&
+            (!b.player || !this.sameTeam(bot, b.player)) &&
             this.d2(bot.pos, b.pos) <= targetD * 200 &&
             v2.lengthSqr(v2.proj(v2.sub(bot.pos, b.pos), v2.perp(b.dir))) <= targetD
         );
