@@ -14,6 +14,8 @@ import { type Vec2, v2 } from "../../../../shared/utils/v2";
 import type { Game } from "../game";
 import type { Player } from "./player";
 
+import { airplaneTime } from "../../../../shared/customConfig";
+
 interface ScheduledAirDrop {
     type: string;
     pos: Vec2;
@@ -21,7 +23,7 @@ interface ScheduledAirDrop {
 }
 
 // amount of seconds to travel to target
-const AIRDROP_PLANE_SPAWN_DIST = GameConfig.airdrop.planeVel * 3; // originally 15
+const AIRDROP_PLANE_SPAWN_DIST = GameConfig.airdrop.planeVel * airplaneTime; // originally 15
 const AIRSTRIKE_PLANE_SPAWN_DIST = GameConfig.airstrike.planeVel * 3;
 /** relative to the target airstrike position, this is the maximum distance a bomb can be dropped from that position */
 const AIRSTRIKE_PLANE_MAX_BOMB_DIST = 48;

@@ -2,6 +2,8 @@ export const devMode = false;
 
 export const ignoreDmg = false;
 
+export const airplaneTime = 3; // usually 15, time for airplane to drop airdrop
+
 const factionBotsN = 50;
 export const factionBots = devMode ? 1 : factionBotsN;
 
