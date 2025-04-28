@@ -389,6 +389,8 @@ export class PlaneBarn {
             collider: collider.transform(def.collision, airdropPos, 0, 1),
         };
 
+        this.game.airdropBarn.addAirdrop(airdrop.pos, airdrop.type);
+        /*
         const planePos = v2.add(pos, v2.mul(v2.randomUnit(), AIRDROP_PLANE_SPAWN_DIST));
 
         const toPlanePos = v2.sub(airdropPos, planePos);
@@ -397,6 +399,7 @@ export class PlaneBarn {
 
         const plane = new AirdropPlane(this.game, id, planePos, dir, airdrop);
         this.planes.push(plane);
+        */
     }
 
     addAirStrike(pos: Vec2, dir: Vec2, playerId?: number) {
@@ -572,6 +575,7 @@ class AirdropPlane extends Plane {
         this.airDrop = airdrop;
     }
 
+    // Fix to make airdrop plane just immedately
     update(dt: number): void {
         super.update(dt);
         if (!this.actionComplete && v2.distance(this.pos, this.targetPos) < 5) {

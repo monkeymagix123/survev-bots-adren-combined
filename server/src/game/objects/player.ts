@@ -227,11 +227,6 @@ export class PlayerBarn {
         // for 50v50 bots
         if (this.game.map.factionMode) {
             this.setMaxItems(player);
-            if (player instanceof Bot) {
-                player.inventory["soda"] = 0;
-                player.inventory["painkiller"] = 0;
-                player.boost = 100;
-            }
 
             let containsBots = false;
             if (team != undefined) {
@@ -325,7 +320,7 @@ export class PlayerBarn {
         player.inventory["soda"] = adrenMode ? 0 : 15;
         player.inventory["painkiller"] = adrenMode ? 0 : 4;
 
-        player.inventory["frag"] = adrenMode ? 0 : 6;
+        player.inventory["frag"] = adrenMode ? 3 : 6;
         player.inventory["smoke"] = adrenMode ? 0 : 3;
         player.inventory["mirv"] = adrenMode ? 0 : 2;
 
@@ -366,7 +361,6 @@ export class PlayerBarn {
             const gunDef2 = GameObjectDefs[player.weapons[slot2].type] as GunDef;
             player.weapons[slot2].ammo = gunDef2.maxClip;
 
-            // higher scope
             player.inventory["4xscope"] = 1;
             player.inventory["8xscope"] = 1;
             player.scope = "8xscope";
