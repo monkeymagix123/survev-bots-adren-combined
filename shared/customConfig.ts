@@ -18,7 +18,6 @@ export const spreadStrength = 0.0002;
 export const spreadDistStrength = 0.5;
 export const targetMaxRange = 10000;
 export const targetMinRange = 100;
-export const botPetMaxRange = 100;
 
 export const mosinBotShootLead = true; // in ur case its true
 export const mosinBotRNG = 0.05; // in ur case its 0
