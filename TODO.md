@@ -44,7 +44,7 @@ Separate bot code
 
 ## New content
 **List of random ideas**
-1) ⚠️: spud gun, except it shoots snowballs instead (slow & drop random item) -- DONE
+1) ⚠️: spud gun, except it shoots snowballs instead (slow & drop random item)
   - working on balancing?
 2) ❌: perk that makes u faster (like 15% or smth)
 3) ❌: perk that makes gun bullets a lot more invisible (harder to see, like m4a1-s)
