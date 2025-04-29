@@ -15,6 +15,8 @@ Each emoji has a meaning:
 - ⚠️: Better movement around obstacles
 - ❌: Make strafe change direction chance exponential / increase with time
 - ❌: Building movement (ie moving while indoors)
+- ❌: go to main areas (depends on map -- normal --> like just wander around, or go to club / mansion / etc, 50v50 --> go to bridges)
+- ❌: pathfinding
 
 **2. Aiming**
 - ❌: Bots melee at close range
@@ -27,6 +29,8 @@ Each emoji has a meaning:
 
 **3. Other**
 - ❌: Looting / shooting potatoes
+- ❌: actually playing their roles in 50v50
+
 
 
 Separate bot code
