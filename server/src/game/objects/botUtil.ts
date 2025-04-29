@@ -51,7 +51,7 @@ import { Player, Bot, TeamBot} from "./player";
 
 import { MapObjectDefs } from "../../../../shared/defs/mapObjectDefs";
 import { ObstacleDef } from "../../../../shared/defs/mapObjectsTyping";
-import { targetMaxRange } from "../../../../shared/customConfig";
+import { ignoreBushcamp, ignoreSmoke, targetMaxRange } from "../../../../shared/customConfig";
 import { BulletDefs } from "../../../../shared/defs/gameObjects/bulletDefs";
 import { Bullet } from "./bullet";
 
@@ -81,18 +81,34 @@ export const BotUtil = {
     // player utils
     // Checks if player **p** is hidden from player **b**
     hidden(p: Player, b: Player): boolean {
-        let g = b.game;
+        let game = b.game;
 
         // smoke grenade testing
-        let s = g.smokeBarn.smokes.filter((obj) =>
-            !obj.destroyed && util.sameLayer(p.layer, obj.layer)
-        ).some((obj) =>
-            coldet.testCircleCircle(p.pos, p.rad, obj.pos, obj.rad)
-        );
+        if (ignoreSmoke) {
+            let s = game.smokeBarn.smokes.filter((obj) =>
+                !obj.destroyed && util.sameLayer(p.layer, obj.layer)
+            ).some((obj) =>
+                coldet.testCircleCircle(p.pos, p.rad, obj.pos, obj.rad)
+            );
 
-        if (s) {
-            return true;
+            if (s) {
+                return true;
+            }
         }
+
+        // bushes?
+        // must be entirely in
+        if (ignoreBushcamp) {
+            let bushes = game.grid.intersectCollider(collider.createCircle(p.pos, 0));
+            bushes = bushes.filter((obj) => obj.__type === ObjectType.Obstacle && !obj.destroyed &&
+                coldet.intersectCircleCircle(p.pos, -p.rad, obj.pos, obj.interactionRad)
+            );
+            bushes = bushes.filter((obj) => !(obj as Obstacle).collidable);
+            if (bushes.length > 0) {
+                return true;
+            }
+        }
+
 
         return false;
     },

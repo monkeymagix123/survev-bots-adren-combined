@@ -12,6 +12,10 @@ export const adrenTotal = 400;
 export const adrenSpeedBoost = 0.02;
 export const adrenHealBoost = 0.015;
 
+// bot hiding & anti-camping tester
+export const ignoreSmoke = true;
+export const ignoreBushcamp = true;
+
 export const closeEarly = true; // close if only bots left
 export const addBotsDelay = 0.1; // 1 sec to add 25 bots -- maybe that (0.04) is too fast
 // export const addBotsDelay = 0.5;
