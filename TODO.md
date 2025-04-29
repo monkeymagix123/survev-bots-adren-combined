@@ -40,23 +40,25 @@ Separate bot code
 
 ## New content
 **List of random ideas**
-1) spud gun, except it shoots snowballs instead (slow & drop random item) -- DONE
-2) perk that makes u faster (like 15% or smth)
-3) perk that makes gun bullets a lot more invisible (harder to see, like m4a1-s)
-4) perk that makes gun bullets invisible
-5) infection mode -- beating player adds them to your team
-6) alternate universe mode -- 50% faster but more dmg (25%) 
-7) perk that heals shots
-8) loot house
-9) temp fix - give bots flak jacket but worsen their aim
-10) everyone plays in one large maze (similar to that of diep)
-11) instant use adren items (perk? class? mode?)
-12) guns/perk that pierce stuff (ie go through obstacles)
-13) Slow effects (perk / weapon), maybe 3 sec?
-14) Maze building
-15) Loadout UI???
-16) gamerio mode or something (100% sv at docks, buff scope drop rates, etc)
-17) perk that buffs reload speed / fire delay?
+1) ⚠️: spud gun, except it shoots snowballs instead (slow & drop random item) -- DONE
+  - working on balancing?
+2) ❌: perk that makes u faster (like 15% or smth)
+3) ❌: perk that makes gun bullets a lot more invisible (harder to see, like m4a1-s)
+4) ❌: perk that makes gun bullets invisible
+5) ❌: infection mode -- beating player adds them to your team
+6) ❌: alternate universe mode -- 50% faster but more dmg (25%) 
+7) ❌: perk that heals shots
+8) ⚠️: loot house
+  - figure out what modes to add to
+9) ❌: temp fix - give bots flak jacket but worsen their aim
+10) ❌: everyone plays in one large maze (similar to that of diep)
+11) ❌: instant use adren items (perk? class? mode?)
+12) ❌: guns/perk that pierce stuff (ie go through obstacles)
+13) ❌: Slow effects (perk / weapon), maybe 3 sec?
+14) ❌: Maze building
+15) ❌: Loadout UI??? (starting weapons)
+16) ❌: gamerio mode or something (100% sv at docks, buff scope drop rates, etc)
+17) ❌: perk that buffs reload speed / fire delay?
 
 
 ## GPT
