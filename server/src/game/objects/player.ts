@@ -324,7 +324,7 @@ export class PlayerBarn {
         player.inventory["painkiller"] = adrenMode ? 0 : 4;
 
         player.inventory["frag"] = adrenMode ? 3 : 6;
-        player.inventory["smoke"] = adrenMode ? 0 : 3;
+        player.inventory["smoke"] = adrenMode ? 3 : 3;
         player.inventory["mirv"] = adrenMode ? 0 : 2;
 
         player.weaponManager.showNextThrowable(); // ???
@@ -4868,8 +4868,9 @@ export class Bot extends Player {
 
         // Attack if target is visible
         if (this.target != undefined && this.visible) {
-            this.shootHold = true;
-            this.shootStart = true;
+            let r = !BotUtil.hidden(this.target, this);
+            this.shootHold = r;
+            this.shootStart = r;
             this.aim(this.target);
             this.approach(this.target);
             return;

@@ -56,21 +56,49 @@ import { BulletDefs } from "../../../../shared/defs/gameObjects/bulletDefs";
 import { Bullet } from "./bullet";
 
 export const BotUtil = {
-    d2(v1: Vec2, v2: Vec2) {
+    // general utils
+
+    d2(v1: Vec2, v2: Vec2): number {
         return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y);
     },
 
-    same(one: Team | Group | undefined, two: Team | Group | undefined) {
+    same(one: Team | Group | undefined, two: Team | Group | undefined): boolean {
         return one !== undefined && one === two;
     },
 
-    sameTeam(a: Player | undefined, b: Player | undefined) {
-        return (a && b) && (this.same(a.team, b.team) || this.same(a.group, b.group));
+    sameTeam(a: Player | undefined, b: Player | undefined): boolean {
+        // check if defined
+        if (!a || !b) {
+            return false;
+        }
+        return this.same(a.team, b.team) || this.same(a.group, b.group);
     },
 
-    randomSym(n: number) {
+    randomSym(n: number): number {
         return (Math.random() * 2 - 1) * n;
     },
+
+    // player utils
+    // Checks if player **p** is hidden from player **b**
+    hidden(p: Player, b: Player): boolean {
+        let g = b.game;
+
+        // smoke grenade testing
+        let s = g.smokeBarn.smokes.filter((obj) =>
+            !obj.destroyed && util.sameLayer(p.layer, obj.layer)
+        ).some((obj) =>
+            coldet.testCircleCircle(p.pos, p.rad, obj.pos, obj.rad)
+        );
+
+        if (s) {
+            return true;
+        }
+
+        return false;
+    },
+
+
+    // utils for bot logic
 
     noNearbyBullet(bot: Player) {
         const targetD = (GameConfig.player.reviveRange * 1.5) ** 2;
