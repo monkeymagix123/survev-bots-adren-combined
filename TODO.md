@@ -14,6 +14,7 @@ Each emoji has a meaning:
 - ❌: Avoid barrels
 - ⚠️: Better movement around obstacles
 - ❌: Make strafe change direction chance exponential / increase with time
+- ❌: Building movement (ie moving while indoors)
 
 **2. Aiming**
 - ❌: Bots melee at close range
@@ -21,6 +22,8 @@ Each emoji has a meaning:
 - ❌: Shoot barrels
 
 - ❌: Throw grenades?
+
+- ❌: Not trying to shoot through walls
 
 **3. Other**
 - ❌: Looting / shooting potatoes
@@ -34,6 +37,26 @@ Separate bot code
 - ❌: Not infinite adren & buffed adren speed in solo
   - ❌: A problem is gear defs (maybe change logic in player.ts?)
 
+
+## New content
+**List of random ideas**
+1) spud gun, except it shoots snowballs instead (slow & drop random item) -- DONE
+2) perk that makes u faster (like 15% or smth)
+3) perk that makes gun bullets a lot more invisible (harder to see, like m4a1-s)
+4) perk that makes gun bullets invisible
+5) infection mode -- beating player adds them to your team
+6) alternate universe mode -- 50% faster but more dmg (25%) 
+7) perk that heals shots
+8) loot house
+9) temp fix - give bots flak jacket but worsen their aim
+10) everyone plays in one large maze (similar to that of diep)
+11) instant use adren items (perk? class? mode?)
+12) guns/perk that pierce stuff (ie go through obstacles)
+13) Slow effects (perk / weapon), maybe 3 sec?
+14) Maze building
+15) Loadout UI???
+16) gamerio mode or something (100% sv at docks, buff scope drop rates, etc)
+17) perk that buffs reload speed / fire delay?
 
 
 ## GPT

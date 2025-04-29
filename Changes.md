@@ -7,12 +7,13 @@
 ## Maps
 - Added loot house building (has LOTS of loot, except it looks like a cabin)
 
-ok here are the buffs/nerfs
 
-buffs
-decreased initial bot adren (from 100 to 0)
-instant airdrops (no waiting time)
-spread of bots is doubled (hopefully)
-intial frags is 3
-nerfs
-decreased container density
+**1. 4 vs 50**
+Buffs
+- decreased initial bot adren (from 100 to 0)
+- ~~instant airdrops (no waiting time)~~
+- spread of bots is doubled (hopefully)
+- intial frags is 3
+
+Nerfs
+- decreased container density
