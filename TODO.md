@@ -47,16 +47,18 @@ Separate bot code
 
 ## New content
 **List of random ideas**
-1) ⚠️: spud gun, except it shoots snowballs instead (slow & drop random item)
-  - working on balancing?
+1) ✅: spud gun, except it shoots snowballs instead (slow & drop random item)
+  - ❌: working on balancing?
+  - ❌: maybe more range?
 2) ❌: perk that makes u faster (like 15% or smth)
 3) ❌: perk that makes gun bullets a lot more invisible (harder to see, like m4a1-s)
 4) ❌: perk that makes gun bullets invisible
 5) ❌: infection mode -- beating player adds them to your team
 6) ❌: alternate universe mode -- 50% faster but more dmg (25%) 
 7) ❌: perk that heals shots
-8) ⚠️: loot house
-  - figure out what modes to add to
+8) ✅: loot house
+  - ❌: figure out what modes to add to
+  - ❌: balance it
 9) ❌: temp fix - give bots flak jacket but worsen their aim
 10) ❌: everyone plays in one large maze (similar to that of diep)
 11) ❌: instant use adren items (perk? class? mode?)
@@ -66,6 +68,7 @@ Separate bot code
 15) ❌: Loadout UI??? (starting weapons)
 16) ❌: gamerio mode or something (100% sv at docks, buff scope drop rates, etc)
 17) ❌: perk that buffs reload speed / fire delay?
+18) ❌: Water gun? / lasr gun / mines
 
 
 ## GPT
