@@ -29,6 +29,7 @@ Each emoji has a meaning:
 - ❌: Not trying to shoot through walls
 - ❌: Don't shoot into smoke area / hidden places (camping)
   - ❌: put grenades into smoke (like go in, throw some grenades, exit)
+- ❌: change leads (like scale down) based on distance (currently is prob fine for 4x-8x scope?)
 
 **3. Other**
 - ❌: Looting / shooting potatoes
