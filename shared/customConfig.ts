@@ -12,6 +12,8 @@ export const adrenTotal = 400;
 export const adrenSpeedBoost = 0.02;
 export const adrenHealBoost = 0.015;
 
+export const closeEarly = true; // close if only bots left
+
 export const botIgnoreObstacles = false;
 export const shootLead = 0.2;
 export const strafeStrength = 0.5; // this barely does anything

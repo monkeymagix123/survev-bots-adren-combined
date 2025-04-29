@@ -9,6 +9,8 @@ import type { Game } from "./game";
 import type { DamageParams } from "./objects/gameObject";
 import type { Player } from "./objects/player";
 
+import { closeEarly } from "../../../shared/customConfig";
+
 enum GameMode {
     /** default solos, any map besides factions */
     Solo,
