@@ -137,7 +137,7 @@ export const BotUtil = {
         return player ? this.getPlayers(bot, true).includes(player) : false;
     },
 
-    getCollidingObstacles(bot: Player, needDestructible = false) {
+    getCollidingObstacles(bot: Player, needDestructible = false, noExplosive = true) {
         const coll = collider.createCircle(bot.posOld, bot.rad * 2);
         let obs = bot.game.grid.intersectCollider(coll).filter(
             (obj): obj is Obstacle => obj.__type === ObjectType.Obstacle && !obj.dead && !obj.destroyed && obj.collidable
@@ -146,9 +146,11 @@ export const BotUtil = {
         const collSmall = collider.createCircle(bot.posOld, bot.rad * 1.1);
         obs = obs.filter(obj => collider.intersect(collSmall, obj.collider));
 
-        return needDestructible
+        obs = needDestructible
             ? obs.filter(obj => obj.destructible && !(MapObjectDefs[obj.type] as ObstacleDef).armorPlated && !(MapObjectDefs[obj.type] as ObstacleDef).stonePlated && !(MapObjectDefs[obj.type] as ObstacleDef).explosion)
             : obs;
+        
+        return noExplosive ? obs.filter(obj => !(MapObjectDefs[obj.type] as ObstacleDef).explosion) : obs;
     },
 
     getPrefDist(g: string) {
