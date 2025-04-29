@@ -61,7 +61,8 @@ import {
     ignoreDmg,
     safeConstants,
     maxBotsAtTime,
-    addBotsDelay
+    addBotsDelay,
+    scaleLead
 } from "../../../../shared/customConfig";
 
 type GodMode = {
@@ -4902,11 +4903,18 @@ export class Bot extends Player {
     }
 
     aim(target: Player, direct: boolean = false): void {
-        const k = mosinBotRNG && !direct ? shootLead + mosinBotRNG * Math.random() : 0;
+        let k = mosinBotRNG && !direct ? this.calculateLead() : 0;
+
+        k *= v2.distance(this.pos, target.pos) / this.scopeZoomRadius["4xscope"] * scaleLead;
+
         this.dir = v2.directionNormalized(
             this.posOld,
             v2.add(target.pos, v2.mul(target.moveVel, k))
         );
+    }
+
+    protected calculateLead(): number {
+        return shootLead + mosinBotRNG * Math.random();
     }
 
     stop(): void {
@@ -5172,7 +5180,19 @@ export class SoloBot extends TeamBot {
     }
 
     // override aim function
-    aim(target: Player): void {
+    aim(target: Player, direct: boolean = false): void {
+        let k = direct ? 0 : this.calculateLead();
+
+        // scale based on distance
+        k *= v2.distance(this.pos, target.pos) / this.scopeZoomRadius["4xscope"] * scaleLead;
+
+        this.dir = v2.directionNormalized(
+            this.posOld,
+            v2.add(target.pos, v2.mul(target.moveVel, k))
+        );
+    }
+
+    protected calculateLead(): number {
         // let k = this.shootLead ? 0.2 + 0.05 * Math.random() : 0;
         let k = 0;
         if (shootLead) {
@@ -5209,8 +5229,7 @@ export class SoloBot extends TeamBot {
                 this.aimK += BotUtil.randomSym(0.03);
             }
         }
-
-        this.dir = v2.directionNormalized(this.posOld, v2.add(target.pos, v2.mul(target.moveVel, this.aimK)));
+        return this.aimK;
     }
 }
 

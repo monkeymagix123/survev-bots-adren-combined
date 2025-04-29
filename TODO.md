@@ -13,10 +13,10 @@ Each emoji has a meaning:
 - ❌: Dodge grenades
 - ❌: Avoid barrels
 - ⚠️: Better movement around obstacles
+  - ❌: pathfinding
 - ❌: Make strafe change direction chance exponential / increase with time
 - ❌: Building movement (ie moving while indoors)
 - ❌: go to main areas (depends on map -- normal --> like just wander around, or go to club / mansion / etc, 50v50 --> go to bridges)
-- ❌: pathfinding
 - ❌: camping
 
 **2. Aiming**
@@ -29,7 +29,8 @@ Each emoji has a meaning:
 - ❌: Not trying to shoot through walls
 - ❌: Don't shoot into smoke area / hidden places (camping)
   - ❌: put grenades into smoke (like go in, throw some grenades, exit)
-- ❌: change leads (like scale down) based on distance (currently is prob fine for 4x-8x scope?)
+- ⚠️: change leads (like scale down) based on distance (currently is prob fine for 4x-8x scope?)
+  - ❌: maybe they shouldn't just be linear (since longer time --> not straight line as much?)
 
 **3. Other**
 - ❌: Looting / shooting potatoes
