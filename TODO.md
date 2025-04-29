@@ -27,8 +27,9 @@ Each emoji has a meaning:
 - ❌: Throw grenades?
 
 - ❌: Not trying to shoot through walls
-- ❌: Don't shoot into smoke area / hidden places (camping)
+- ⚠️: Don't shoot into smoke area / hidden places (camping)
   - ❌: put grenades into smoke (like go in, throw some grenades, exit)
+  - ❌: target is still the player (rather than new players)
 - ⚠️: change leads (like scale down) based on distance (currently is prob fine for 4x-8x scope?)
   - ❌: maybe they shouldn't just be linear (since longer time --> not straight line as much?)
 
