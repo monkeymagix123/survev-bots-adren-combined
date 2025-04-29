@@ -265,7 +265,7 @@ export class PlayerBarn {
         if (!this.game.isTeamMode) {
             this.setMaxItems(player);
             this.addBot(
-                math.clamp(80 - this.livingPlayers.length, 0, maxBotsAtTime),
+                math.clamp(Math.min(80 - this.livingPlayers.length, 175 - this.players.length), 0, maxBotsAtTime),
                 layer, undefined,
                 undefined,
                 undefined,
@@ -391,7 +391,8 @@ export class PlayerBarn {
         for (let i = 0; i < n; i++) {
             // timeNext.push(timeNext.at(timeNext.length - 1)! + addBotsDelay + BotUtil.randomSym(addBotsDelay * 0.35)); // so more random?
             const delay = addBotsDelay + BotUtil.randomSym(addBotsDelay * 0.35);
-            await this.sleep(delay * 1000);
+            let l = this.livingPlayers.length;
+            await this.sleep(delay * 1000 * (Math.sqrt((l + 30) / 30)));
 
             // bot
             let pos2: Vec2;
