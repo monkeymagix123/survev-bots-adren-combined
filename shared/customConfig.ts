@@ -13,6 +13,9 @@ export const adrenSpeedBoost = 0.02;
 export const adrenHealBoost = 0.015;
 
 export const closeEarly = true; // close if only bots left
+export const addBotsDelay = 0.4; // 1 sec to add 25 bots -- maybe that (0.04) is too fast
+// export const addBotsDelay = 0.5;
+export const maxBotsAtTime = 45; // max is 80 in solo game, was 80 earlier, but 25 in new-client
 
 export const botIgnoreObstacles = false;
 export const shootLead = 0.2;

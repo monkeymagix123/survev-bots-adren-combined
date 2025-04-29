@@ -59,7 +59,9 @@ import {
     factionBots,
     devMode,
     ignoreDmg,
-    safeConstants
+    safeConstants,
+    maxBotsAtTime,
+    addBotsDelay
 } from "../../../../shared/customConfig";
 
 type GodMode = {
@@ -263,7 +265,7 @@ export class PlayerBarn {
         if (!this.game.isTeamMode) {
             this.setMaxItems(player);
             this.addBot(
-                (80 - this.livingPlayers.length),
+                math.clamp(80 - this.livingPlayers.length, 0, maxBotsAtTime),
                 layer, undefined,
                 undefined,
                 undefined,
@@ -370,7 +372,7 @@ export class PlayerBarn {
         }
     }
 
-    addBot(
+    async addBot(
         n: number,
         layer: number,
         group: Group | undefined,
@@ -384,7 +386,13 @@ export class PlayerBarn {
         if (group == undefined) {
             group = this.addGroup(false);
         }
+        // let timeNext = {} as number[];
+        // timeNext.push(0);
         for (let i = 0; i < n; i++) {
+            // timeNext.push(timeNext.at(timeNext.length - 1)! + addBotsDelay + BotUtil.randomSym(addBotsDelay * 0.35)); // so more random?
+            const delay = addBotsDelay + BotUtil.randomSym(addBotsDelay * 0.35);
+            await this.sleep(delay * 1000);
+
             // bot
             let pos2: Vec2;
             if (!isFaction) {
@@ -422,13 +430,12 @@ export class PlayerBarn {
                 }
             }
             this.game.logger.info(`Bot ${bot.name} joined`);
-
             this.newPlayers.push(bot);
             this.game.objectRegister.register(bot);
             this.players.push(bot);
             this.livingPlayers.push(bot);
 
-            this.game.pluginManager.emit("playerJoin", player);
+            this.game.pluginManager.emit("playerJoin", bot);
 
             // faction???
             if (this.game.map.factionMode) {
@@ -437,7 +444,19 @@ export class PlayerBarn {
 
             // if (isFaction)
             this.setMaxItems(bot);
+
+            if (!this.game.modeManager.isSolo) {
+                this.livingPlayers.sort((a, b) => a.teamId - b.teamId);
+            }
+
+            this.aliveCountDirty = true;
+
+            this.game.updateData();
         }
+    }
+
+    private sleep(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     update(dt: number) {
