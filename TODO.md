@@ -17,6 +17,7 @@ Each emoji has a meaning:
 - ❌: Building movement (ie moving while indoors)
 - ❌: go to main areas (depends on map -- normal --> like just wander around, or go to club / mansion / etc, 50v50 --> go to bridges)
 - ❌: pathfinding
+- ❌: camping
 
 **2. Aiming**
 - ❌: Bots melee at close range
@@ -26,6 +27,8 @@ Each emoji has a meaning:
 - ❌: Throw grenades?
 
 - ❌: Not trying to shoot through walls
+- ❌: Don't shoot into smoke area / hidden places (camping)
+  - ❌: put grenades into smoke (like go in, throw some grenades, exit)
 
 **3. Other**
 - ❌: Looting / shooting potatoes
