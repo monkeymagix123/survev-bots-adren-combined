@@ -63,7 +63,8 @@ import {
     maxBotsAtTime,
     addBotsDelay,
     scaleLead,
-    MAX_BOOST
+    MAX_BOOST,
+    newStrafe
 } from "../../../../shared/customConfig";
 
 type GodMode = {
@@ -5008,9 +5009,13 @@ export class Bot extends Player {
         this.touchMoveDir = v2.normalizeSafe(v2.sub(pos, this.pos));
 
         if (strafe) {
-            if (this.strafeIncTimer < 0.01) {
-                this.strafeSign *= -1;
-                this.strafeIncTimer = beta.sample();
+            if (newStrafe) {
+                if (this.strafeIncTimer < 0.01) {
+                    this.strafeSign *= -1;
+                    this.strafeIncTimer = beta.sample();
+                }
+            } else {
+                this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
             }
             const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
@@ -5039,9 +5044,13 @@ export class Bot extends Player {
         this.touchMoveDir = v2.normalizeSafe(v2.sub(this.pos, pos));
 
         if (strafe) {
-            if (this.strafeIncTimer < 0.01) {
-                this.strafeSign *= -1;
-                this.strafeIncTimer = beta.sample();
+            if (newStrafe) {
+                if (this.strafeIncTimer < 0.01) {
+                    this.strafeSign *= -1;
+                    this.strafeIncTimer = beta.sample();
+                }
+            } else {
+                this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
             }
             const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);

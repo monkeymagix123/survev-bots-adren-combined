@@ -1,6 +1,9 @@
+// dev testing
 export const devMode = false;
-
 export const ignoreDmg = false;
+export const botIgnoreObstacles = false;
+
+export const newStrafe = true;
 
 export const airplaneTime = 3; // usually 15, time for airplane to drop airdrop
 
@@ -22,7 +25,6 @@ export const addBotsDelay = 0.1; // 1 sec to add 25 bots -- maybe that (0.04) is
 // export const addBotsDelay = 0.5;
 export const maxBotsAtTime = 45; // max is 80 in solo game, was 80 earlier, but 25 in new-client
 
-export const botIgnoreObstacles = false;
 export const shootLead = 0.2;
 export const scaleLead = 1.2; // how much extra after dividing by 4xscope distance
 export const strafeStrength = 0.5; // this barely does anything
