@@ -51,26 +51,70 @@ import { Player, Bot, TeamBot, PetBot} from "./player";
 
 import { MapObjectDefs } from "../../../../shared/defs/mapObjectDefs";
 import { ObstacleDef } from "../../../../shared/defs/mapObjectsTyping";
-import { targetMaxRange } from "../../../../shared/customConfig";
+import { ignoreBushcamp, ignoreSmoke, targetMaxRange } from "../../../../shared/customConfig";
 import { BulletDefs } from "../../../../shared/defs/gameObjects/bulletDefs";
 import { Bullet } from "./bullet";
 
 export const BotUtil = {
-    d2(v1: Vec2, v2: Vec2) {
+    // general utils
+
+    d2(v1: Vec2, v2: Vec2): number {
         return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y);
     },
 
-    same(one: Team | Group | undefined, two: Team | Group | undefined) {
+    same(one: Team | Group | undefined, two: Team | Group | undefined): boolean {
         return one !== undefined && one === two;
     },
 
-    sameTeam(a: Player | undefined, b: Player | undefined) {
-        return (a && b) && (this.same(a.team, b.team) || this.same(a.group, b.group));
+    sameTeam(a: Player | undefined, b: Player | undefined): boolean {
+        // check if defined
+        if (!a || !b) {
+            return false;
+        }
+        return this.same(a.team, b.team) || this.same(a.group, b.group);
     },
 
-    randomSym(n: number) {
+    randomSym(n: number): number {
         return (Math.random() * 2 - 1) * n;
     },
+
+    // player utils
+    // Checks if player **p** is hidden from player **b**
+    hidden(p: Player, b: Player): boolean {
+        let game = b.game;
+
+        // smoke grenade testing
+        if (ignoreSmoke) {
+            let s = game.smokeBarn.smokes.filter((obj) =>
+                !obj.destroyed && util.sameLayer(p.layer, obj.layer)
+            ).some((obj) =>
+                coldet.testCircleCircle(p.pos, p.rad, obj.pos, obj.rad)
+            );
+
+            if (s) {
+                return true;
+            }
+        }
+
+        // bushes?
+        // must be entirely in
+        if (ignoreBushcamp) {
+            let bushes = game.grid.intersectCollider(collider.createCircle(p.pos, 0));
+            bushes = bushes.filter((obj) => obj.__type === ObjectType.Obstacle && !obj.destroyed &&
+                coldet.intersectCircleCircle(p.pos, -p.rad, obj.pos, obj.interactionRad)
+            );
+            bushes = bushes.filter((obj) => !(obj as Obstacle).collidable);
+            if (bushes.length > 0) {
+                return true;
+            }
+        }
+
+
+        return false;
+    },
+
+
+    // utils for bot logic
 
     noNearbyBullet(bot: Player) {
         const targetD = (GameConfig.player.reviveRange * 1.5) ** 2;
@@ -87,18 +131,35 @@ export const BotUtil = {
                 (player) => !(needPlayer && player instanceof Bot)
             );
         }
-        const scaled = coldet.scaleAabbAlongAxis(coldet.circleToAabb(bot.pos, (bot.zoom + 4) * 0.7), v2.create(0, 1), 1 / 2.2);
+        let scaled = coldet.scaleAabbAlongAxis(coldet.circleToAabb(bot.pos, (bot.zoom + 4) * 0.7), v2.create(0, 1), 1 / 2.2);
         return bot.game.playerBarn.livingPlayers.filter(
             (player) =>
                 scaled.min.x <= player.pos.x && player.pos.x <= scaled.max.x && 
                 scaled.min.y <= player.pos.y && player.pos.y <= scaled.max.y &&
                 !(needPlayer && player instanceof Bot)
         );
+        /* 
+        const radius = bot.zoom + 4;
+        let rect = coldet.circleToAabb(bot.pos, radius * 0.7); // a bit less
+        // vertical scaling: 2 since usually windows have aspect ratio 2:1
+        let scaled = coldet.scaleAabbAlongAxis(rect, v2.create(0, 1), 1 / 2.2);
+        rect.min = scaled.min;
+        rect.max = scaled.max;
+
+        const coll = visible
+            ? rect
+            : collider.createCircle(bot.pos, 10000);
+
+        
+        return bot.game.grid.intersectCollider(coll).filter(
+            (obj): obj is Player => obj.__type === ObjectType.Player && !obj.dead && !(needPlayer && obj instanceof Bot)
+        );
+        */
     },
 
     getClosestOpponent(bot: Player, visible = false, needPlayer = false, maxRange = targetMaxRange) {
         let closest: Player | undefined = undefined;
-        let minDist = maxRange;
+        let minDist = maxRange ** 2;
         for (const p of this.getPlayers(bot, visible, needPlayer)) {
             if (
                 !util.sameLayer(bot.layer, p.layer) ||
@@ -118,9 +179,7 @@ export const BotUtil = {
     },
 
     isVisible(bot: Player, player: Player | undefined) {
-        const scaled = coldet.scaleAabbAlongAxis(coldet.circleToAabb(bot.pos, (bot.zoom + 4) * 0.7), v2.create(0, 1), 1 / 2.2);
-        return player !=  undefined && scaled.min.x <= player.pos.x && player.pos.x <= scaled.max.x &&
-            scaled.min.y <= player.pos.y && player.pos.y <= scaled.max.y;
+        return player ? this.getPlayers(bot, true).includes(player) : false;
     },
 
     getCollidingObstacles(bot: Player, needDestructible = false, noExplosive = true) {
