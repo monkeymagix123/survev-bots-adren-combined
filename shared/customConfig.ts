@@ -8,7 +8,8 @@ const factionBotsN = 50;
 export const factionBots = devMode ? 1 : factionBotsN;
 
 export const adrenMode = true;
-export const adrenTotal = 400;  
+export const adrenTotal = 400;
+export const MAX_BOOST = adrenMode ? adrenTotal : 100;
 export const adrenSpeedBoost = 0.02;
 export const adrenHealBoost = 0.015;
 

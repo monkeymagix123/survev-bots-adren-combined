@@ -62,7 +62,8 @@ import {
     safeConstants,
     maxBotsAtTime,
     addBotsDelay,
-    scaleLead
+    scaleLead,
+    MAX_BOOST
 } from "../../../../shared/customConfig";
 
 type GodMode = {
@@ -77,6 +78,7 @@ type GodMode = {
 import { BotUtil } from "./botUtil";
 
 import namesData from "./names.json";
+import { beta, rrand } from "./prob";
 
 interface Emote {
     playerId: number;
@@ -4817,7 +4819,7 @@ export class Bot extends Player {
     updateTimers(dt: number): void {
         this.targetTimer = Math.max(0, this.targetTimer - dt);
         this.safeTimer = Math.max(0, this.safeTimer - dt);
-        this.strafeIncTimer += dt;
+        this.strafeIncTimer = Math.max(0, this.strafeIncTimer - dt);
     }
 
     isSafe(): boolean {
@@ -5005,13 +5007,10 @@ export class Bot extends Player {
         this.touchMoveLen = speed;
         this.touchMoveDir = v2.normalizeSafe(v2.sub(pos, this.pos));
 
-        let probChange = 1 - Math.pow(1 - strafeProbChange, this.strafeIncTimer * Config.gameTps * 0.15);
-
         if (strafe) {
-            let r = Math.random();
-            if (r < probChange) {
+            if (this.strafeIncTimer < 0.01) {
                 this.strafeSign *= -1;
-                this.strafeIncTimer = 0;
+                this.strafeIncTimer = beta.sample();
             }
             const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
@@ -5039,13 +5038,10 @@ export class Bot extends Player {
         this.touchMoveLen = speed;
         this.touchMoveDir = v2.normalizeSafe(v2.sub(this.pos, pos));
 
-        let probChange = 1 - Math.pow(1 - strafeProbChange, this.strafeIncTimer * Config.gameTps);
-
         if (strafe) {
-            let r = Math.random();
-            if (r < probChange) {
+            if (this.strafeIncTimer < 0.01) {
                 this.strafeSign *= -1;
-                this.strafeIncTimer = 0;
+                this.strafeIncTimer = beta.sample();
             }
             const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
@@ -5087,11 +5083,11 @@ export class Bot extends Player {
             this.useHealingItem("bandage");
             return true;
         }
-        else if (this.inventory["painkiller"] > 0 && this.actionItem != "painkiller") {
+        else if (this.inventory["painkiller"] > 0 && this.boost < MAX_BOOST - 50 && this.actionItem != "painkiller") {
             this.useBoostItem("painkiller");
             return true;
         }
-        else if (this.inventory["soda"] > 0 && this.actionItem != "soda") {
+        else if (this.inventory["soda"] > 0 && this.boost < MAX_BOOST - 25 && this.actionItem != "soda") {
             this.useBoostItem("soda");
             return true;
         }
