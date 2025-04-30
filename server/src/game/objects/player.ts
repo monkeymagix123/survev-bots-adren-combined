@@ -2750,7 +2750,12 @@ export class Player extends BaseGameObject {
             this.lastDamagedBy = params.source as Player;
         }
 
-        this.health -= ignoreDmg ? 0 : finalDamage;
+        this.health -= (
+            ignoreDmg ||
+            (params.source as Player).teamId === this.teamId) ||
+            (params.source instanceof PetBot && (params.source as PetBot).leader === this) || 
+            (this instanceof PetBot && (this as PetBot).leader === params.source)
+            ? 0 : finalDamage;
 
         if (this.game.isTeamMode) {
             this.setGroupStatuses();
