@@ -18,6 +18,7 @@ import { WoodsSummer } from "./maps/woodsSummerDefs";
 import type { MapId } from "./types/misc";
 
 import { FactionBots } from "./maps/factionBotsDefs";
+import { SoloPetBot } from "./maps/soloPetBotDefs";
 
 export type Atlas =
     | "gradient"
@@ -55,6 +56,7 @@ export const MapDefs = {
 
     main_better_loot: MainBetterLoot,
     faction_bots: FactionBots,
+    solo_pet_bot: SoloPetBot
 } satisfies Record<string, MapDef>;
 
 export interface MapDef {

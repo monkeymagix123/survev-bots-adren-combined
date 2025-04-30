@@ -10,8 +10,8 @@
       enabled: true
     }
     {
-      mapName: cobalt
-      teamMode: 2
+      mapName: solo_pet_bot
+      teamMode: 1
       enabled: true
     }
     {
