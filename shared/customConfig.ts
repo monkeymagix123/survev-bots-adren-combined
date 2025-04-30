@@ -25,6 +25,7 @@ export const botIgnoreObstacles = false;
 export const shootLead = 0.2;
 export const scaleLead = 1.2; // how much extra after dividing by 4xscope distance
 export const strafeStrength = 0.5; // this barely does anything
+// change ~5 times a second optimal?
 export const strafeProbChange = 0.1;
 export const spreadStrength = 0.0002;
 export const spreadDistStrength = 0.5;

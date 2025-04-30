@@ -4753,6 +4753,8 @@ export class Bot extends Player {
     protected target: Player | undefined;
     protected targetTimer: number;
 
+    protected strafeIncTimer: number = 0;
+
     // if bullets around recently, consider unsafe (ie, don't heal / walk in straight line)
     protected safeTimer: number = 0;
     protected safe: boolean = true;
@@ -4815,6 +4817,7 @@ export class Bot extends Player {
     updateTimers(dt: number): void {
         this.targetTimer = Math.max(0, this.targetTimer - dt);
         this.safeTimer = Math.max(0, this.safeTimer - dt);
+        this.strafeIncTimer += dt;
     }
 
     isSafe(): boolean {
@@ -5002,8 +5005,14 @@ export class Bot extends Player {
         this.touchMoveLen = speed;
         this.touchMoveDir = v2.normalizeSafe(v2.sub(pos, this.pos));
 
+        let probChange = 1 - Math.pow(1 - strafeProbChange, this.strafeIncTimer * Config.gameTps * 0.15);
+
         if (strafe) {
-            this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
+            let r = Math.random();
+            if (r < probChange) {
+                this.strafeSign *= -1;
+                this.strafeIncTimer = 0;
+            }
             const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
@@ -5023,14 +5032,21 @@ export class Bot extends Player {
             }
         }
         this.touchMoveDir = v2.normalizeSafe(this.touchMoveDir);
+
     }
 
     moveAway(pos: Vec2, strafe: boolean = false, spread: boolean = false, speed: number = 255): void {
         this.touchMoveLen = speed;
         this.touchMoveDir = v2.normalizeSafe(v2.sub(this.pos, pos));
 
+        let probChange = 1 - Math.pow(1 - strafeProbChange, this.strafeIncTimer * Config.gameTps);
+
         if (strafe) {
-            this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
+            let r = Math.random();
+            if (r < probChange) {
+                this.strafeSign *= -1;
+                this.strafeIncTimer = 0;
+            }
             const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
@@ -5118,9 +5134,9 @@ export class TeamBot extends Bot {
         this.weapons[slot1].ammo = gunDef1.maxClip;
     }
 
-    approach(p: Player): void {
-        this.moveFight(p);
-    }
+    // approach(p: Player): void {
+    //     this.moveFight(p);
+    // }
 }
 
 export class SoloBot extends TeamBot {
