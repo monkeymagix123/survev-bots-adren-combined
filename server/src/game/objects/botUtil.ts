@@ -47,7 +47,7 @@ import type { Loot } from "./loot";
 import type { MapIndicator } from "./mapIndicator";
 import type { Obstacle } from "./obstacle";
 
-import { Player, Bot, TeamBot} from "./player";
+import { Player, Bot, TeamBot, PetBot} from "./player";
 
 import { MapObjectDefs } from "../../../../shared/defs/mapObjectDefs";
 import { ObstacleDef } from "../../../../shared/defs/mapObjectsTyping";
@@ -159,17 +159,18 @@ export const BotUtil = {
 
     getClosestOpponent(bot: Player, visible = false, needPlayer = false, maxRange = targetMaxRange) {
         let closest: Player | undefined = undefined;
-        let minDist = Number.MAX_VALUE;
+        let minDist = maxRange ** 2;
         for (const p of this.getPlayers(bot, visible, needPlayer)) {
             if (
                 !util.sameLayer(bot.layer, p.layer) ||
                 this.sameTeam(bot, p) ||
+                (p instanceof PetBot && p.leader == bot) ||
                 p === bot) {
                 continue;
             }
 
             const d = this.d2(bot.pos, p.pos);
-            if (d < minDist && d <= maxRange ** 2) {
+            if (d < minDist) {
                 minDist = d;
                 closest = p;
             }

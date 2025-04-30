@@ -64,7 +64,8 @@ import {
     addBotsDelay,
     scaleLead,
     MAX_BOOST,
-    newStrafe
+    newStrafe,
+    petMaxMoveRange
 } from "../../../../shared/customConfig";
 
 type GodMode = {
@@ -5256,7 +5257,7 @@ export class SoloBot extends TeamBot {
 }
 
 export class PetBot extends TeamBot {
-    protected leader: Player;
+    public leader: Player | undefined;
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg, leader: Player) {
         super(game, pos, layer, socketId, joinMsg);
         this.leader = leader;
@@ -5276,6 +5277,8 @@ export class PetBot extends TeamBot {
 
         // Check safe
         let s = this.isSafe();
+        this.newTarget();
+        this.visible = BotUtil.isVisible(this, this.target);
         
         // Cancel Action if in Danger
         if (!s && this.actionType != GameConfig.Action.Reload)
@@ -5283,16 +5286,45 @@ export class PetBot extends TeamBot {
 
         // Attack Nearest Player
 
-        // 
+        // Heal if no targets
+        if (!this.visible && !s && this.tryHeal()) {
+            // If wild, run from nearest threat
+            if (this.leader == undefined) {
+                this.moveTowards(this.target, true, false);
+            }
+            // Else run to leader
+            else {
+                this.moveTowards(this.leader, false, true);
+            }
+            return;
+        }
+        
+        // If no leader, move to target
+        if (this.leader == undefined) {
+            this.moveTowards(this.target, true, false);
+        }
+        // If target is within petMaxMoveRange from leader, move to target
+        else if (this.target != undefined && BotUtil.d2(this.target.pos, this.pos) < petMaxMoveRange) {
+            this.moveTowards(this.target, true, true);
+        }
+        // Else follow leader
+        else {
+            this.moveTowards(this.leader, false, true);
+        }
+
+        // If enemies are visible, shoot at closest one
+        if (this.target != undefined && this.visible) {
+            this.aim(this.target);
+        }
         
         
         // Aim at Obstacles (if target is not visible)
-        const obs = BotUtil.getCollidingObstacles(this, true);
-        if (obs.length > 0) {
-            this.shootStart = true;
-            this.shootHold = true;
-            this.dir = v2.directionNormalized(this.posOld, obs[0].pos);
-        }
+        // const obs = BotUtil.getCollidingObstacles(this, true);
+        // if (obs.length > 0) {
+        //     this.shootStart = true;
+        //     this.shootHold = true;
+        //     this.dir = v2.directionNormalized(this.posOld, obs[0].pos);
+        // }
 
         this.quickswitch();
     }
@@ -5302,8 +5334,7 @@ export class PetBot extends TeamBot {
             return;
         }
 
-        let closestPlayer = undefined;
-        closestPlayer = BotUtil.getClosestOpponent(this);
+        let closestPlayer = BotUtil.getClosestOpponent(this, true, false, Number.MAX_VALUE);
 
         if (closestPlayer != this.target) {
             this.targetTimer = 0.4;

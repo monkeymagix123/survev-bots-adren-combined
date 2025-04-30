@@ -112,6 +112,9 @@ export interface MapDef {
         perkModeRoles?: string[];
         turkeyMode?: number;
         spookyKillSounds?: boolean;
+
+        factionBots?: boolean;
+        botPetMode?: boolean;
     };
     gameConfig: {
         planes: {
@@ -224,5 +227,11 @@ export interface MapDef {
         }>;
         spawnReplacements: Array<Record<string, string>>;
         importantSpawns: string[];
+    };
+    adrenModeConfig: {
+        adrenMode: boolean;
+        adrenTotal: number;
+        adrenSpeedBoost: number;
+        adrenHealBoost: number;
     };
 }
