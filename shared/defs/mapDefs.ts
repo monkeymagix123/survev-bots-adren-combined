@@ -112,6 +112,9 @@ export interface MapDef {
         perkModeRoles?: string[];
         turkeyMode?: number;
         spookyKillSounds?: boolean;
+
+        factionBots?: boolean;
+        botPetMode?: boolean;
     };
     gameConfig: {
         planes: {
