@@ -62,6 +62,9 @@ import {
     safeConstants,
     maxBotsAtTime,
     addBotsDelay,
+    scaleLead,
+    MAX_BOOST,
+    newStrafe,
     petMaxMoveRange
 } from "../../../../shared/customConfig";
 
@@ -77,6 +80,7 @@ type GodMode = {
 import { BotUtil } from "./botUtil";
 
 import namesData from "./names.json";
+import { beta, rrand } from "./prob";
 
 interface Emote {
     playerId: number;
@@ -266,7 +270,7 @@ export class PlayerBarn {
         if (!this.game.isTeamMode) {
             this.setMaxItems(player);
             this.addBot(
-                math.clamp(80 - this.livingPlayers.length, 0, maxBotsAtTime),
+                math.clamp(Math.min(80 - this.livingPlayers.length, 175 - this.players.length), 0, maxBotsAtTime),
                 layer, undefined,
                 undefined,
                 undefined,
@@ -324,7 +328,7 @@ export class PlayerBarn {
         player.inventory["painkiller"] = adrenMode ? 0 : 4;
 
         player.inventory["frag"] = adrenMode ? 3 : 6;
-        player.inventory["smoke"] = adrenMode ? 0 : 3;
+        player.inventory["smoke"] = adrenMode ? 3 : 3;
         player.inventory["mirv"] = adrenMode ? 0 : 2;
 
         player.weaponManager.showNextThrowable(); // ???
@@ -392,7 +396,8 @@ export class PlayerBarn {
         for (let i = 0; i < n; i++) {
             // timeNext.push(timeNext.at(timeNext.length - 1)! + addBotsDelay + BotUtil.randomSym(addBotsDelay * 0.35)); // so more random?
             const delay = addBotsDelay + BotUtil.randomSym(addBotsDelay * 0.35);
-            await this.sleep(delay * 1000);
+            let l = this.livingPlayers.length;
+            await this.sleep(delay * 1000 * (Math.sqrt((l + 30) / 30)));
 
             // bot
             let pos2: Vec2;
@@ -2750,12 +2755,7 @@ export class Player extends BaseGameObject {
             this.lastDamagedBy = params.source as Player;
         }
 
-        this.health -= (
-            ignoreDmg ||
-            (params.source as Player).teamId === this.teamId) ||
-            (params.source instanceof PetBot && (params.source as PetBot).leader === this) || 
-            (this instanceof PetBot && (this as PetBot).leader === params.source)
-            ? 0 : finalDamage;
+        this.health -= ignoreDmg ? 0 : finalDamage;
 
         if (this.game.isTeamMode) {
             this.setGroupStatuses();
@@ -4757,6 +4757,8 @@ export class Bot extends Player {
     protected target: Player | undefined;
     protected targetTimer: number;
 
+    protected strafeIncTimer: number = 0;
+
     // if bullets around recently, consider unsafe (ie, don't heal / walk in straight line)
     protected safeTimer: number = 0;
     protected safe: boolean = true;
@@ -4811,6 +4813,7 @@ export class Bot extends Player {
 
     // Target Switch Timer
     update(dt: number): void {
+        this.visible = BotUtil.isVisible(this, this.target);
         super.update(dt);
         this.updateTimers(dt);
     }
@@ -4818,6 +4821,7 @@ export class Bot extends Player {
     updateTimers(dt: number): void {
         this.targetTimer = Math.max(0, this.targetTimer - dt);
         this.safeTimer = Math.max(0, this.safeTimer - dt);
+        this.strafeIncTimer = Math.max(0, this.strafeIncTimer - dt);
     }
 
     isSafe(): boolean {
@@ -4871,8 +4875,9 @@ export class Bot extends Player {
 
         // Attack if target is visible
         if (this.target != undefined && this.visible) {
-            this.shootHold = true;
-            this.shootStart = true;
+            let r = !BotUtil.hidden(this.target, this);
+            this.shootHold = r;
+            this.shootStart = r;
             this.aim(this.target);
             this.approach(this.target);
             return;
@@ -4906,11 +4911,18 @@ export class Bot extends Player {
     }
 
     aim(target: Player, direct: boolean = false): void {
-        const k = mosinBotRNG && !direct ? shootLead + mosinBotRNG * Math.random() : 0;
+        let k = mosinBotRNG && !direct ? this.calculateLead() : 0;
+
+        k *= v2.distance(this.pos, target.pos) / this.scopeZoomRadius["4xscope"] * scaleLead;
+
         this.dir = v2.directionNormalized(
             this.posOld,
             v2.add(target.pos, v2.mul(target.moveVel, k))
         );
+    }
+
+    protected calculateLead(): number {
+        return shootLead + mosinBotRNG * Math.random();
     }
 
     stop(): void {
@@ -4998,7 +5010,14 @@ export class Bot extends Player {
         this.touchMoveDir = v2.normalizeSafe(v2.sub(pos, this.pos));
 
         if (strafe) {
-            this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
+            if (newStrafe) {
+                if (this.strafeIncTimer < 0.01) {
+                    this.strafeSign *= -1;
+                    this.strafeIncTimer = beta.sample();
+                }
+            } else {
+                this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
+            }
             const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
@@ -5018,6 +5037,7 @@ export class Bot extends Player {
             }
         }
         this.touchMoveDir = v2.normalizeSafe(this.touchMoveDir);
+
     }
 
     moveAway(pos: Vec2, strafe: boolean = false, spread: boolean = false, speed: number = 255): void {
@@ -5025,7 +5045,14 @@ export class Bot extends Player {
         this.touchMoveDir = v2.normalizeSafe(v2.sub(this.pos, pos));
 
         if (strafe) {
-            this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
+            if (newStrafe) {
+                if (this.strafeIncTimer < 0.01) {
+                    this.strafeSign *= -1;
+                    this.strafeIncTimer = beta.sample();
+                }
+            } else {
+                this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
+            }
             const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
@@ -5066,11 +5093,11 @@ export class Bot extends Player {
             this.useHealingItem("bandage");
             return true;
         }
-        else if (this.inventory["painkiller"] > 0 && this.actionItem != "painkiller") {
+        else if (this.inventory["painkiller"] > 0 && this.boost < MAX_BOOST - 50 && this.actionItem != "painkiller") {
             this.useBoostItem("painkiller");
             return true;
         }
-        else if (this.inventory["soda"] > 0 && this.actionItem != "soda") {
+        else if (this.inventory["soda"] > 0 && this.boost < MAX_BOOST - 25 && this.actionItem != "soda") {
             this.useBoostItem("soda");
             return true;
         }
@@ -5113,9 +5140,9 @@ export class TeamBot extends Bot {
         this.weapons[slot1].ammo = gunDef1.maxClip;
     }
 
-    approach(p: Player): void {
-        this.moveFight(p);
-    }
+    // approach(p: Player): void {
+    //     this.moveFight(p);
+    // }
 }
 
 export class SoloBot extends TeamBot {
@@ -5176,7 +5203,19 @@ export class SoloBot extends TeamBot {
     }
 
     // override aim function
-    aim(target: Player): void {
+    aim(target: Player, direct: boolean = false): void {
+        let k = direct ? 0 : this.calculateLead();
+
+        // scale based on distance
+        k *= v2.distance(this.pos, target.pos) / this.scopeZoomRadius["4xscope"] * scaleLead;
+
+        this.dir = v2.directionNormalized(
+            this.posOld,
+            v2.add(target.pos, v2.mul(target.moveVel, k))
+        );
+    }
+
+    protected calculateLead(): number {
         // let k = this.shootLead ? 0.2 + 0.05 * Math.random() : 0;
         let k = 0;
         if (shootLead) {
@@ -5213,8 +5252,7 @@ export class SoloBot extends TeamBot {
                 this.aimK += BotUtil.randomSym(0.03);
             }
         }
-
-        this.dir = v2.directionNormalized(this.posOld, v2.add(target.pos, v2.mul(target.moveVel, this.aimK)));
+        return this.aimK;
     }
 }
 
@@ -5231,21 +5269,25 @@ export class PetBot extends TeamBot {
             return;
         }
 
+        // New Target
+        this.newTarget();
         this.dirOld = v2.copy(this.dir);
         this.shootHold = false;
         this.shootStart = false;
 
-        // Check safe and target
-        const safe = this.isSafe();
+        // Check safe
+        let s = this.isSafe();
         this.newTarget();
         this.visible = BotUtil.isVisible(this, this.target);
         
-        // Cancel action if in danger
-        if (!safe && this.actionType != GameConfig.Action.Reload)
+        // Cancel Action if in Danger
+        if (!s && this.actionType != GameConfig.Action.Reload)
             this.cancelAction();
 
+        // Attack Nearest Player
+
         // Heal if no targets
-        if (!this.visible && !safe && this.tryHeal()) {
+        if (!this.visible && !s && this.tryHeal()) {
             // If wild, run from nearest threat
             if (this.leader == undefined) {
                 this.moveTowards(this.target, true, false);
@@ -5256,7 +5298,7 @@ export class PetBot extends TeamBot {
             }
             return;
         }
-
+        
         // If no leader, move to target
         if (this.leader == undefined) {
             this.moveTowards(this.target, true, false);
@@ -5275,13 +5317,14 @@ export class PetBot extends TeamBot {
             this.aim(this.target);
         }
         
-        // Aim at Obstacles
-        /*const obs = BotUtil.getCollidingObstacles(this, true);
-        if (obs.length > 0) {
-            this.shootStart = true;
-            this.shootHold = true;
-            this.dir = v2.directionNormalized(this.posOld, obs[0].pos);
-        }*/ 
+        
+        // Aim at Obstacles (if target is not visible)
+        // const obs = BotUtil.getCollidingObstacles(this, true);
+        // if (obs.length > 0) {
+        //     this.shootStart = true;
+        //     this.shootHold = true;
+        //     this.dir = v2.directionNormalized(this.posOld, obs[0].pos);
+        // }
 
         this.quickswitch();
     }
@@ -5291,7 +5334,7 @@ export class PetBot extends TeamBot {
             return;
         }
 
-        const closestPlayer = BotUtil.getClosestOpponent(this, true, false, Infinity);
+        let closestPlayer = BotUtil.getClosestOpponent(this, true, false, Number.MAX_VALUE);
 
         if (closestPlayer != this.target) {
             this.targetTimer = 0.4;
