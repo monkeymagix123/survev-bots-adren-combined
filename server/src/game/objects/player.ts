@@ -316,7 +316,8 @@ export class PlayerBarn {
         player.addPerk("endless_ammo", false);
         player.backpack = "backpack03";
 
-        player.addPerk("speedy", true);
+        // speed buff
+        player.addPerk("speedy", false);
 
         player.inventory["2xscope"] = 1;
         player.scope = "2xscope";
