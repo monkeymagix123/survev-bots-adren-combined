@@ -316,6 +316,8 @@ export class PlayerBarn {
         player.addPerk("endless_ammo", false);
         player.backpack = "backpack03";
 
+        player.addPerk("speedy", true);
+
         player.inventory["2xscope"] = 1;
         player.scope = "2xscope";
         player.zoom = player.scopeZoomRadius[player.scope];
@@ -4733,6 +4735,10 @@ export class Player extends BaseGameObject {
             this.speed += PerkProperties.field_medic.speedBoost;
         }
 
+        if (this.hasPerk("speedy")) {
+            this.speed *= PerkProperties.speedy.speedBoost + 1;
+        }
+
         this.speed = math.clamp(this.speed, 1, 10000);
     }
 
@@ -5140,9 +5146,9 @@ export class TeamBot extends Bot {
         this.weapons[slot1].ammo = gunDef1.maxClip;
     }
 
-    // approach(p: Player): void {
-    //     this.moveFight(p);
-    // }
+    approach(p: Player): void {
+        this.moveFight(p);
+    }
 }
 
 export class SoloBot extends TeamBot {

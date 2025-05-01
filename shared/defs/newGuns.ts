@@ -1,1 +1,1 @@
-export const newGuns: string[] = ["m134", "pkm", "m79"];
+export const newGuns: string[] = ["m134", "pkm", "m79", "speed"];

@@ -31,6 +31,7 @@ import { newGuns } from "../../../shared/defs/newGuns";
 import { GunDefs } from "../../../shared/defs/gameObjects/gunDefs";
 
 import { adrenTotal, adrenMode } from "../../../shared/customConfig";
+import { PerkDefs } from "../../../shared/defs/gameObjects/perkDefs";
 
 const maxKillFeedLines = 6;
 const touchHoldDuration = 0.75 * 1000;
@@ -1004,7 +1005,12 @@ export class UiManager2 {
                 ? `url(img/loot/${lootDef.lootImg.border.slice(0, -4)}.svg)`
                 : "none";
             dom.rareLootMessage.imageWrapper.style.backgroundImage = bgImg;
-            const lootImg = helpers.getSvgFromGameType(lootType);
+            let lootImg = helpers.getSvgFromGameType(lootType);
+            newGuns.forEach((newgun) => {
+                if (lootType.includes(newgun)) {
+                    lootImg = `img/new/${PerkDefs[lootType].lootImg.sprite}`; 
+                }
+            });
             dom.rareLootMessage.icon.style.backgroundImage = lootImg
                 ? `url('${lootImg}')`
                 : "none";
@@ -1316,6 +1322,11 @@ export class UiManager2 {
                 );
                 pe.div.style.display = he.type ? "block" : "none";
                 pe.image.src = he.type ? helpers.getSvgFromGameType(he.type) : "";
+                newGuns.forEach((newgun) => {
+                    if (he.type.includes(newgun)) {
+                        pe.image.src = `img/new/${PerkDefs[he.type].lootImg.sprite}`; 
+                    }
+                });
             }
             if (me.droppable) {
                 if (he.droppable) {

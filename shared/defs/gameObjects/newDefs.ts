@@ -1,5 +1,6 @@
 import { BulletDef } from "./bulletDefs"
 import { GunDef } from "./gunDefs"
+import { PerkDef } from "./perkDefs";
 import { ThrowableDef } from "./throwableDefs";
 
 export const newGunDefs: Record<string, GunDef> = {
@@ -333,6 +334,29 @@ export const newThrowableDefs: Record<string, ThrowableDef> = {
             width: 2.8,
             alpha: 1,
             tint: 5916214,
+        },
+    },
+}
+
+export const newPerkProperties = {
+    speedy: {
+        speedBoost: 0.35 // multiplicative -- by +35%
+    },
+}
+
+export const newPerkDefs: Record<string, PerkDef> = {
+    speedy: {
+        name: "Speedster",
+        type: "perk",
+        lootImg: {
+            sprite: "loot-perk-speedy-gpt.png",
+            tint: 0xffffff,
+            border: "loot-circle-outer-03.img",
+            borderTint: 0xffffff,
+            scale: 0.275,
+        },
+        sound: {
+            pickup: "perk_pickup_01",
         },
     },
 }

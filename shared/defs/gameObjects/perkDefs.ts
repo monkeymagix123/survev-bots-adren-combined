@@ -1,4 +1,6 @@
-export const PerkProperties = {
+import { newPerkDefs, newPerkProperties } from "./newDefs";
+
+export let PerkProperties = {
     leadership: {
         scale: 0.25,
     },
@@ -57,6 +59,7 @@ export const PerkProperties = {
     } as Record<string, string[]>,
     ammoBonusDamageMult: 1.08,
 };
+PerkProperties = { ...PerkProperties, ...newPerkProperties };
 
 export interface PerkDef {
     readonly type: "perk";
@@ -74,7 +77,7 @@ export interface PerkDef {
     emoteOnPickup?: string;
 }
 
-export const PerkDefs: Record<string, PerkDef> = {
+export let PerkDefs: Record<string, PerkDef> = {
     leadership: {
         name: "Leadership",
         type: "perk",
@@ -657,3 +660,4 @@ export const PerkDefs: Record<string, PerkDef> = {
         },
     },
 };
+PerkDefs = { ...PerkDefs, ...newPerkDefs };
