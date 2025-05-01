@@ -10,7 +10,7 @@ export const airplaneTime = 3; // usually 15, time for airplane to drop airdrop
 const factionBotsN = 50;
 export const factionBots = devMode ? 1 : factionBotsN;
 
-export const adrenMode = true;
+export const adrenMode = false;
 export const adrenTotal = 400;
 export const MAX_BOOST = adrenMode ? adrenTotal : 100;
 export const adrenSpeedBoost = 0.02;
