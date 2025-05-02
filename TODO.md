@@ -76,6 +76,7 @@ Separate bot code
 19) ❌: Perk that removes speed debuffs (on water / using items / holding weapon / cooking grenade / recoil)
 20) ❌: perk that buffs reload time / fire rate
 21) ❌: fast things with 1 hp that move towards nearest player and explode on contact (prob usas-sized explosion but less dmg?)
+22) ❌: perk that makes u update faster (shoot faster, heal faster, move faster, etc), icon could be like clock speeding or something, name could be just "faster"
 
 
 ## GPT
