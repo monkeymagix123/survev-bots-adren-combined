@@ -53,7 +53,8 @@ Separate bot code
 1) ✅: spud gun, except it shoots snowballs instead (slow & drop random item)
   - ❌: working on balancing?
   - ❌: maybe more range?
-2) ❌: perk that makes u faster (like 15% or smth)
+2) ✅: perk that makes u faster (like 15% or smth)
+  - ❌: balancing -- currently 35%
 3) ❌: perk that makes gun bullets a lot more invisible (harder to see, like m4a1-s)
 4) ❌: perk that makes gun bullets invisible
 5) ❌: infection mode -- beating player adds them to your team
@@ -72,6 +73,9 @@ Separate bot code
 16) ❌: gamerio mode or something (100% sv at docks, buff scope drop rates, etc)
 17) ❌: perk that buffs reload speed / fire delay?
 18) ❌: Water gun? / lasr gun / mines
+19) ❌: Perk that removes speed debuffs (on water / using items / holding weapon / cooking grenade / recoil)
+20) ❌: perk that buffs reload time / fire rate
+21) ❌: fast things with 1 hp that move towards nearest player and explode on contact (prob usas-sized explosion but less dmg?)
 
 
 ## GPT
