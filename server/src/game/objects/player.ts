@@ -4794,11 +4794,10 @@ export class Bot extends Player {
 
 
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
-        super(game, pos, layer, socketId, joinMsg, "0.0.0.0", "0.0.0.0", null);
+        super(game, pos, layer, "Bot", socketId, joinMsg, "0.0.0.0", "0.0.0.0", null);
         this.touchMoveActive = true;
         this.isMobile = true;
 
-        this.name = "Bot";
         this.setOutfit("outfitDarkGloves");
 
         // Weapons (Mosin + SPAS12)
