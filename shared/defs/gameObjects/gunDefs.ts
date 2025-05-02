@@ -131,7 +131,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-mp5.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -139,7 +139,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-med-01.img",
             scale: { x: 0.5, y: 0.49 },
-            tint: 1184274,
+            tint: 0x121212,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -179,7 +179,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-mac10.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -187,7 +187,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-med-01.img",
             scale: { x: 0.5, y: 0.44 },
-            tint: 3684408,
+            tint: 0x383838,
             leftHandOffset: { x: 1.4, y: 0 },
             recoil: 1,
         },
@@ -229,7 +229,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-ump9.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -237,7 +237,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-med-01.img",
             scale: { x: 0.5, y: 0.515 },
-            tint: 1184274,
+            tint: 0x121212,
             leftHandOffset: { x: 5.6, y: 0 },
             recoil: 1,
         },
@@ -277,7 +277,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-vector.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -285,7 +285,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-med-01.img",
             scale: { x: 0.5, y: 0.5 },
-            tint: 9009504,
+            tint: 0x897960,
             leftHandOffset: { x: 7, y: 0 },
             recoil: 0.89,
         },
@@ -324,7 +324,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-vector45.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -332,7 +332,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-med-01.img",
             scale: { x: 0.5, y: 0.5 },
-            tint: 9009504,
+            tint: 0x897960,
             leftHandOffset: { x: 7, y: 0 },
             recoil: 0.89,
         },
@@ -372,7 +372,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-scorpion.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -420,7 +420,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-vss.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -470,7 +470,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-famas.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -518,7 +518,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-hk416.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -526,7 +526,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-med-01.img",
             scale: { x: 0.5, y: 0.52 },
-            tint: 14402714,
+            tint: 0xdbc49a,
             leftHandOffset: { x: 4.2, y: 0 },
             recoil: 1.33,
         },
@@ -565,7 +565,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-m4a1.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -613,7 +613,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-mk12.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -621,7 +621,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.485 },
-            tint: 10984586,
+            tint: 0xa79c8a,
             leftHandOffset: { x: 4.2, y: 0 },
             recoil: 1.66,
         },
@@ -660,7 +660,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-l86.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -668,7 +668,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.46 },
-            tint: 14469287,
+            tint: 0xdcc8a7,
             leftHandOffset: { x: -3, y: 0 },
             recoil: 1.66,
         },
@@ -707,7 +707,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: -4 },
         lootImg: {
             sprite: "loot-weapon-m249.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -757,7 +757,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: -2 },
         lootImg: {
             sprite: "loot-weapon-qbb97.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -765,7 +765,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.425 },
-            tint: 1973790,
+            tint: 0x1e1e1e,
             leftHandOffset: { x: 8.4, y: 0 },
             recoil: 1.33,
             magImg: {
@@ -810,7 +810,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 5 },
         lootImg: {
             sprite: "loot-weapon-scout.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -818,7 +818,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.52 },
-            tint: 3290683,
+            tint: 0x32363b,
             leftHandOffset: { x: 2.8, y: 0 },
             recoil: 2.33,
         },
@@ -859,7 +859,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-ak.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -867,7 +867,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.435 },
-            tint: 6433298,
+            tint: 0x622a12,
             leftHandOffset: { x: 2.8, y: 0 },
             recoil: 1.33,
         },
@@ -906,7 +906,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-scar.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -914,7 +914,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.435 },
-            tint: 10189640,
+            tint: 0x9b7b48,
             leftHandOffset: { x: 2.8, y: 0 },
             recoil: 1.33,
         },
@@ -953,7 +953,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-scarssr.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1003,7 +1003,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-an94.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1011,7 +1011,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.46 },
-            tint: 2960685,
+            tint: 0x2d2d2d,
             leftHandOffset: { x: 2.85, y: 0 },
             recoil: 1.33,
         },
@@ -1051,7 +1051,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-groza.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1100,7 +1100,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-grozas.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1148,7 +1148,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: -2 },
         lootImg: {
             sprite: "loot-weapon-dp28.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1156,7 +1156,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.53 },
-            tint: 1710618,
+            tint: 0x1a1a1a,
             leftHandOffset: { x: 8.4, y: 0 },
             recoil: 1.33,
             magImg: {
@@ -1200,7 +1200,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: -1.5 },
         lootImg: {
             sprite: "loot-weapon-bar.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1208,7 +1208,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.52 },
-            tint: 5065810,
+            tint: 0x4d4c52,
             leftHandOffset: { x: 6.8, y: 0 },
             recoil: 1.4,
         },
@@ -1247,7 +1247,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: -5 },
         lootImg: {
             sprite: "loot-weapon-pkp.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1303,7 +1303,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-model94.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1311,7 +1311,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.5175 },
-            tint: 10510624,
+            tint: 0xa06120,
             leftHandOffset: { x: 3.2, y: 0 },
             recoil: 2.33,
         },
@@ -1352,7 +1352,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-mkg45.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1360,7 +1360,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.47 },
-            tint: 3487029,
+            tint: 0x353535,
             leftHandOffset: { x: 4.2, y: 0 },
             recoil: 1.66,
         },
@@ -1400,7 +1400,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-blr.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1408,7 +1408,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.53 },
-            tint: 4663046,
+            tint: 0x472706,
             leftHandOffset: { x: 6.4, y: 0 },
             recoil: 2.75,
         },
@@ -1454,7 +1454,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-mosin.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1462,7 +1462,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.52 },
-            tint: 3348992,
+            tint: 0x331a00,
             leftHandOffset: { x: 2.8, y: 0 },
             recoil: 2.33,
         },
@@ -1506,7 +1506,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-sv98.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1514,7 +1514,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.4925 },
-            tint: 6654279,
+            tint: 0x658947,
             leftHandOffset: { x: 2.8, y: 0 },
             recoil: 2.33,
         },
@@ -1557,7 +1557,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-awc.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1607,7 +1607,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-m39.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1615,7 +1615,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.4925 },
-            tint: 3355443,
+            tint: 0x333333,
             leftHandOffset: { x: 2.8, y: 0 },
             recoil: 1.66,
         },
@@ -1654,7 +1654,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-svd.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1662,7 +1662,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.56 },
-            tint: 1842204,
+            tint: 0x1c1c1c,
             leftHandOffset: { x: 8, y: 0 },
             recoil: 2,
         },
@@ -1701,7 +1701,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-garand.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1751,7 +1751,7 @@ export let GunDefs: Record<string, GunDef> = {
         headshotMult: 1.5,
         lootImg: {
             sprite: "loot-weapon-m870.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1760,7 +1760,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.435 },
-            tint: 3348992,
+            tint: 0x331a00,
             leftHandOffset: { x: 7, y: 0 },
             recoil: 1.33,
         },
@@ -1801,7 +1801,7 @@ export let GunDefs: Record<string, GunDef> = {
         headshotMult: 1.5,
         lootImg: {
             sprite: "loot-weapon-m1100.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1810,7 +1810,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.435 },
-            tint: 3032110,
+            tint: 0x2e442e,
             leftHandOffset: { x: 7, y: 0 },
             recoil: 1.33,
         },
@@ -1850,7 +1850,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-mp220.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1898,7 +1898,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-saiga.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1948,7 +1948,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-spas12.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -1956,7 +1956,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.4 },
-            tint: 2966097,
+            tint: 0x2d4251,
             leftHandOffset: { x: 4.9, y: 0 },
             recoil: 1.33,
         },
@@ -1998,7 +1998,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-m1014.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2006,7 +2006,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-long-01.img",
             scale: { x: 0.5, y: 0.44 },
-            tint: 5656632,
+            tint: 0x565038,
             leftHandOffset: { x: 4.8, y: 0 },
             recoil: 1.33,
         },
@@ -2048,7 +2048,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: -1 },
         lootImg: {
             sprite: "loot-weapon-usas.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2098,7 +2098,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-m9.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2106,7 +2106,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.505 },
-            tint: 1973790,
+            tint: 0x1e1e1e,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -2149,7 +2149,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-m9-dual.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2157,7 +2157,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.505 },
-            tint: 1973790,
+            tint: 0x1e1e1e,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -2200,7 +2200,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-m9-cursed.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2208,7 +2208,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.505 },
-            tint: 1973790,
+            tint: 0x1e1e1e,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -2252,7 +2252,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-m93r.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2260,7 +2260,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.51 },
-            tint: 2766875,
+            tint: 0x2a381b,
             leftHandOffset: { x: 0.8, y: 0 },
             recoil: 0.5,
         },
@@ -2305,7 +2305,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-m93r-dual.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2313,7 +2313,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.51 },
-            tint: 2766875,
+            tint: 0x2a381b,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -2355,7 +2355,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-glock.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2363,7 +2363,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.49 },
-            tint: 1973790,
+            tint: 0x1e1e1e,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -2406,7 +2406,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-glock-dual.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2414,7 +2414,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.49 },
-            tint: 1973790,
+            tint: 0x1e1e1e,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -2456,7 +2456,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 1, attack: 1 },
         lootImg: {
             sprite: "loot-weapon-p30l.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2507,7 +2507,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-p30l-dual.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2556,7 +2556,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-ot38.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2606,7 +2606,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-ot38-dual.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2614,7 +2614,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.4625 },
-            tint: 7368816,
+            tint: 0x707070,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -2655,7 +2655,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-ots38.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2705,7 +2705,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-ots38-dual.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2754,7 +2754,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-colt45.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2762,7 +2762,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.52 },
-            tint: 12895428,
+            tint: 0xc4c4c4,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -2804,7 +2804,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-colt45-dual.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2812,7 +2812,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.52 },
-            tint: 12895428,
+            tint: 0xc4c4c4,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -2853,7 +2853,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-m1911.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2861,7 +2861,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.5 },
-            tint: 9605778,
+            tint: 0x929292,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -2903,7 +2903,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-m1911-dual.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2911,7 +2911,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.5 },
-            tint: 9605778,
+            tint: 0x929292,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -2950,7 +2950,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-m1a1.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -2958,7 +2958,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-med-01.img",
             scale: { x: 0.5, y: 0.53 },
-            tint: 3674112,
+            tint: 0x381000,
             leftHandOffset: { x: 5.8, y: 0 },
             recoil: 1,
         },
@@ -2999,7 +2999,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-deagle.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -3049,7 +3049,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-deagle-dual.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -3101,7 +3101,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-flare-gun.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -3109,7 +3109,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.4625 },
-            tint: 16733184,
+            tint: 0xff5400,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -3154,7 +3154,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-flare-gun-dual.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -3162,7 +3162,7 @@ export let GunDefs: Record<string, GunDef> = {
         worldImg: {
             sprite: "gun-short-01.img",
             scale: { x: 0.5, y: 0.4625 },
-            tint: 16733184,
+            tint: 0xff5400,
             leftHandOffset: { x: 0, y: 0 },
             recoil: 1,
         },
@@ -3207,7 +3207,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: -3, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-potato-cannon.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -3264,7 +3264,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-potato-smg.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
@@ -3325,7 +3325,7 @@ export let GunDefs: Record<string, GunDef> = {
         speed: { equip: 0, attack: 0 },
         lootImg: {
             sprite: "loot-weapon-bugle.img",
-            tint: 65280,
+            tint: 0xff00,
             border: "loot-circle-outer-01.img",
             borderTint: 0,
             scale: 0.3,
