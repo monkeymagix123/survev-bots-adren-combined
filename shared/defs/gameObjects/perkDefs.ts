@@ -1,6 +1,6 @@
 import { newPerkDefs, newPerkProperties } from "./newDefs";
 
-export let PerkProperties = {
+export let PerkProperties: any = {
     leadership: {
         scale: 0.25,
     },
