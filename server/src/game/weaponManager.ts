@@ -430,6 +430,9 @@ export class WeaponManager {
             duration = weaponDef.reloadTimeAlt!;
             action = GameConfig.Action.ReloadAlt;
         }
+        if (this.player.hasPerk("reloader")) {
+            duration *= 1 - PerkProperties["reloader"].reloadBoost;
+        }
 
         this.player.doAction(this.activeWeapon, action, duration);
     }

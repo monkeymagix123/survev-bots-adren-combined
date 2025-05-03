@@ -319,6 +319,9 @@ export class PlayerBarn {
         // speed buff
         player.addPerk("speedy", false);
 
+        // reload buff
+        player.addPerk("reloader", true);
+
         player.inventory["2xscope"] = 1;
         player.scope = "2xscope";
         player.zoom = player.scopeZoomRadius[player.scope];

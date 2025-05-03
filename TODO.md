@@ -38,6 +38,7 @@ Each emoji has a meaning:
 - ❌: Looting / shooting potatoes
 - ❌: actually playing their roles in 50v50
 - ❌: vary bots (ie their strafing, aiming, etc)
+- ❌: moving their cursor around when moving (like spinning / emoting, etc)
 
 
 
@@ -79,6 +80,7 @@ Separate bot code
 20) ❌: perk that buffs reload time / fire rate
 21) ❌: fast things with 1 hp that move towards nearest player and explode on contact (prob usas-sized explosion but less dmg?)
 22) ❌: perk that makes u update faster (shoot faster, heal faster, move faster, etc), icon could be like clock speeding or something, name could be just "faster"
+23) ❌: perk that gives infinite magazines / do not have to reload
 
 
 ## GPT
