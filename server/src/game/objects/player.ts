@@ -335,12 +335,6 @@ export class PlayerBarn {
         player.inventory["soda"] = adrenMode ? 0 : 15;
         player.inventory["painkiller"] = adrenMode ? 0 : 4;
 
-        player.inventory["frag"] = adrenMode ? 3 : 6;
-        player.inventory["smoke"] = adrenMode ? 3 : 3;
-        player.inventory["mirv"] = adrenMode ? 0 : 2;
-
-        player.weaponManager.showNextThrowable(); // ???
-
         // so don't need revive logic
         if (this.game.map.factionMode) {
             player.addPerk("self_revive");
@@ -375,6 +369,13 @@ export class PlayerBarn {
             // player.weapons[slot2].type = "spas12";
             const gunDef2 = GameObjectDefs[player.weapons[slot2].type] as GunDef;
             player.weapons[slot2].ammo = gunDef2.maxClip;
+
+            // starting grenades
+            player.inventory["frag"] = adrenMode ? 3 : 6;
+            player.inventory["smoke"] = adrenMode ? 3 : 3;
+            player.inventory["mirv"] = adrenMode ? 0 : 2;
+    
+            player.weaponManager.showNextThrowable(); // ???
 
             player.inventory["4xscope"] = 1;
             player.inventory["8xscope"] = 1;
