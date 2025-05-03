@@ -426,6 +426,11 @@ export class PlayerBarn {
             bot.group = group;
             bot.groupId = group.groupId;
             bot.teamId = bot.groupId;
+            if (!this.game.isTeamMode) {
+                bot.group = undefined;
+                bot.groupId = this.groupIdAllocator.getNextId();
+                bot.teamId = bot.groupId;
+            }
             if (isFaction) {
                 if (team != undefined) {
                     bot.team = team;
@@ -4780,7 +4785,7 @@ export class Bot extends Player {
 
 
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
-        super(game, pos, layer, socketId, joinMsg, "0.0.0.0", "0.0.0.0", null);
+        super(game, pos, layer, `abcd${Math.floor(Math.random() * 10000)}`, joinMsg, "0.0.0.0", "0.0.0.0", null);
         this.touchMoveActive = true;
         this.isMobile = true;
 
@@ -4956,11 +4961,11 @@ export class Bot extends Player {
 
     msgStream = new net.MsgStream(new ArrayBuffer(65536));
 
-    // Send Data and Move
-    sendData(buffer: ArrayBuffer | Uint8Array): void {
-        // this.game.sendSocketMsg(this.socketId, buffer);
-        this.move();
-    }
+    // // Send Data and Move
+    // sendData(buffer: ArrayBuffer | Uint8Array): void {
+    //     // this.game.sendSocketMsg(this.socketId, buffer);
+    //     this.move();
+    // }
 
     // controls movement in a fight
     approach(p: Player): void {
@@ -5095,8 +5100,8 @@ export class Bot extends Player {
     }
 
     tryHeal(): boolean {
-        if (this.inventory["medkit"] > 0 && this.health < 30 && this.actionItem != "medkit") {
-            this.useHealingItem("medkit");
+        if (this.inventory["healthkit"] > 0 && this.health < 30 && this.actionItem != "healthkit") {
+            this.useHealingItem("healthkit");
             return true;
         }
         else if (this.inventory["bandage"] > 0 && this.health < 65 && this.actionItem != "bandage") {
