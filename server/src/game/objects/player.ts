@@ -316,11 +316,13 @@ export class PlayerBarn {
         player.addPerk("endless_ammo", false);
         player.backpack = "backpack03";
 
-        // speed buff
-        player.addPerk("speedy", false);
+        if (!this.game.map.factionMode) {
+            // speed buff
+            player.addPerk("speedy", false);
 
-        // reload buff
-        player.addPerk("reloader", true);
+            // reload buff
+            player.addPerk("reloader", false);
+        }
 
         player.inventory["2xscope"] = 1;
         player.scope = "2xscope";
