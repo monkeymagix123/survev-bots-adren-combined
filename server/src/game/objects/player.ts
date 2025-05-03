@@ -4959,14 +4959,6 @@ export class Bot extends Player {
         }
     }
 
-    msgStream = new net.MsgStream(new ArrayBuffer(65536));
-
-    // // Send Data and Move
-    // sendData(buffer: ArrayBuffer | Uint8Array): void {
-    //     // this.game.sendSocketMsg(this.socketId, buffer);
-    //     this.move();
-    // }
-
     // controls movement in a fight
     approach(p: Player): void {
         this.moveTowards(p, true, this.spread);
