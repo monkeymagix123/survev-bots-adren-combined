@@ -228,7 +228,7 @@ export interface MapDef {
         spawnReplacements: Array<Record<string, string>>;
         importantSpawns: string[];
     };
-    adrenModeConfig: {
+    adrenModeConfig?: {
         adrenMode: boolean;
         adrenTotal: number;
         adrenSpeedBoost: number;
