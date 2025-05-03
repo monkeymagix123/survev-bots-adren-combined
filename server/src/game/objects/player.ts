@@ -4875,6 +4875,30 @@ export class Bot extends Player {
             this.setPartDirty(); // ???? bug on render on promotion, idk if this fixes tho
         }
 
+        // drop flares
+        if (this.activeWeapon.includes("flare")) {
+            this.weaponManager.dropGun(this.curWeapIdx);
+            // equip other gun
+
+            //priority list of slots to swap to
+            const slotTargets = [
+                GameConfig.WeaponSlot.Primary,
+                GameConfig.WeaponSlot.Secondary,
+                GameConfig.WeaponSlot.Melee,
+            ];
+
+            const currentTarget = slotTargets.indexOf(this.curWeapIdx);
+            if (currentTarget != -1) slotTargets.splice(currentTarget, 1);
+
+            for (let i = 0; i < slotTargets.length; i++) {
+                const slot = slotTargets[i];
+                if (this.weapons[slot].type) {
+                    this.weaponManager.setCurWeapIndex(slot);
+                    break;
+                }
+            }
+        }
+
         // New Target
         this.newTarget();
         this.dirOld = v2.copy(this.dir);
