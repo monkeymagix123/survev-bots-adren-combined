@@ -464,10 +464,17 @@ export class PlayerBarn {
             group = this.addGroup(false);
         }
         for (let i = 0; i < n; i++) {
+            // bug: 100 bots when team of 2 players
+            if (isFaction && team!.livingPlayers.length >= factionBots) {
+                break;
+            }
+
             // space out joining
             const delay = addBotsDelay + BotUtil.randomSym(addBotsDelay * 0.35);
             let l = this.livingPlayers.length;
             await this.sleep(delay * 1000 * (Math.sqrt((l + 30) / 30)));
+
+            let first = false;
 
             // get the group
             if (isSolo) {
@@ -483,6 +490,7 @@ export class PlayerBarn {
                     g = new Group(hash, id, false, this.game.teamMode);
                     this.groups.push(g);
                     this.groupsByHash.set(hash, g);
+                    first = true;
                 }
                 group = g;
             }
@@ -516,6 +524,10 @@ export class PlayerBarn {
             bot.group = group;
             bot.groupId = groupId;
             bot.teamId = teamId;
+
+            if (first && !isSolo) {
+                group!.spawnLeader = bot;
+            }
 
             bot.name = `Bot-${namesData.names[Math.floor(Math.random() * namesData.names.length)]}`;
 

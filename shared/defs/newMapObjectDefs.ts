@@ -79,12 +79,12 @@ export const NewMapObjectDefs: Record<string, MapObjectDef> = {
             terrain: {
                 grass: true,
                 beach: false,
-                riverShore: true,
-                nearbyRiver: {
-                    radMin: 0.75,
-                    radMax: 1.5,
-                    facingOri: 1,
-                },
+                // riverShore: true,
+                // nearbyRiver: {
+                //     radMin: 0.75,
+                //     radMax: 1.5,
+                //     facingOri: 1,
+                // },
             },
             zIdx: 1,
             floor: {
