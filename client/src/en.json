@@ -713,5 +713,7 @@
   "game-bullet_m79": "M79",
 
   "game-speedy": "Speedster",
-  "game-speedy-desc": "Move much faster."
+  "game-speedy-desc": "Move much faster.",
+  "game-reloader": "Faster Reload",
+  "game-reloader-desc": "Reload faster."
 }

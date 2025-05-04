@@ -342,6 +342,9 @@ export const newPerkProperties = {
     speedy: {
         speedBoost: 0.35 // multiplicative -- by +35%
     },
+    reloader: {
+        reloadBoost: 0.25 // decrease reload time by 25%
+    }
 }
 
 export const newPerkDefs: Record<string, PerkDef> = {
@@ -359,4 +362,18 @@ export const newPerkDefs: Record<string, PerkDef> = {
             pickup: "perk_pickup_01",
         },
     },
+    reloader: {
+        name: "Faster Reload",
+        type: "perk",
+        lootImg: {
+            sprite: "loot-perk-reloader-gpt.png",
+            tint: 0xffffff,
+            border: "loot-circle-outer-03.img",
+            borderTint: 0xffffff,
+            scale: 0.275,
+        },
+        sound: {
+            pickup: "perk_pickup_01",
+        },
+    }
 }

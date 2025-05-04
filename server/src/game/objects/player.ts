@@ -333,8 +333,13 @@ export class PlayerBarn {
         player.addPerk("endless_ammo", false);
         player.backpack = "backpack03";
 
-        // speed buff
-        player.addPerk("speedy", false);
+        if (!this.game.map.factionMode) {
+            // speed buff
+            player.addPerk("speedy", false);
+
+            // reload buff
+            player.addPerk("reloader", false);
+        }
 
         player.inventory["2xscope"] = 1;
         player.scope = "2xscope";
@@ -347,12 +352,6 @@ export class PlayerBarn {
         player.inventory["soda"] = adrenMode ? 0 : 15;
         player.inventory["painkiller"] = adrenMode ? 0 : 4;
 
-        player.inventory["frag"] = adrenMode ? 3 : 6;
-        player.inventory["smoke"] = adrenMode ? 3 : 3;
-        player.inventory["mirv"] = adrenMode ? 0 : 2;
-
-        player.weaponManager.showNextThrowable(); // ???
-
         // so don't need revive logic
         if (this.game.map.factionMode) {
             player.addPerk("self_revive");
@@ -361,6 +360,16 @@ export class PlayerBarn {
         if (player instanceof Bot) {
             player.chest = "chest01";
             player.helmet = "helmet01";
+
+            // drop some frags & smoke grenades
+            let k = adrenMode ? 1 : 2;
+            for (let i = 0; i < k; i++) {
+                let grenades = this.game.lootBarn.getLootTable("tier_throwables");
+                for (const g of grenades) {
+                    player.inventory[g.name] += g.count;
+                }
+            }
+
         } else {
             player.chest = "chest02";
             player.helmet = "helmet02";
@@ -387,6 +396,13 @@ export class PlayerBarn {
             // player.weapons[slot2].type = "spas12";
             const gunDef2 = GameObjectDefs[player.weapons[slot2].type] as GunDef;
             player.weapons[slot2].ammo = gunDef2.maxClip;
+
+            // starting grenades
+            player.inventory["frag"] = adrenMode ? 3 : 6;
+            player.inventory["smoke"] = adrenMode ? 3 : 3;
+            player.inventory["mirv"] = adrenMode ? 0 : 2;
+
+            player.weaponManager.showNextThrowable(); // ???
 
             player.inventory["4xscope"] = 1;
             player.inventory["8xscope"] = 1;
@@ -440,6 +456,11 @@ export class PlayerBarn {
             bot.group = group;
             bot.groupId = group.groupId;
             bot.teamId = bot.groupId;
+            if (!this.game.isTeamMode) {
+                bot.group = undefined;
+                bot.groupId = this.groupIdAllocator.getNextId();
+                bot.teamId = bot.groupId;
+            }
             if (isFaction) {
                 if (team != undefined) {
                     bot.team = team;
@@ -4883,6 +4904,30 @@ export class Bot extends Player {
             this.setPartDirty(); // ???? bug on render on promotion, idk if this fixes tho
         }
 
+        // drop flares
+        if (this.activeWeapon.includes("flare")) {
+            this.weaponManager.dropGun(this.curWeapIdx);
+            // equip other gun
+
+            //priority list of slots to swap to
+            const slotTargets = [
+                GameConfig.WeaponSlot.Primary,
+                GameConfig.WeaponSlot.Secondary,
+                GameConfig.WeaponSlot.Melee,
+            ];
+
+            const currentTarget = slotTargets.indexOf(this.curWeapIdx);
+            if (currentTarget != -1) slotTargets.splice(currentTarget, 1);
+
+            for (let i = 0; i < slotTargets.length; i++) {
+                const slot = slotTargets[i];
+                if (this.weapons[slot].type) {
+                    this.weaponManager.setCurWeapIndex(slot);
+                    break;
+                }
+            }
+        }
+
         // New Target
         this.newTarget();
         this.dirOld = v2.copy(this.dir);
@@ -4965,14 +5010,6 @@ export class Bot extends Player {
             this.targetTimer = 0.4;
             this.target = closestPlayer;
         }
-    }
-
-    msgStream = new net.MsgStream(new ArrayBuffer(65536));
-
-    // Send Data and Move
-    sendData(buffer: ArrayBuffer | Uint8Array): void {
-        // this.game.sendSocketMsg(this.socketId, buffer);
-        this.move();
     }
 
     // controls movement in a fight
@@ -5108,8 +5145,8 @@ export class Bot extends Player {
     }
 
     tryHeal(): boolean {
-        if (this.inventory["medkit"] > 0 && this.health < 30 && this.actionItem != "medkit") {
-            this.useHealingItem("medkit");
+        if (this.inventory["healthkit"] > 0 && this.health < 30 && this.actionItem != "healthkit") {
+            this.useHealingItem("healthkit");
             return true;
         }
         else if (this.inventory["bandage"] > 0 && this.health < 65 && this.actionItem != "bandage") {
