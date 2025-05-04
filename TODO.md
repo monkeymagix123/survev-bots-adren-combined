@@ -39,6 +39,7 @@ Each emoji has a meaning:
 - ❌: actually playing their roles in 50v50
 - ❌: vary bots (ie their strafing, aiming, etc)
 - ❌: moving their cursor around when moving (like spinning / emoting, etc)
+- ❌: reload also when call heal()
 
 
 
