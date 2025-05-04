@@ -4900,6 +4900,7 @@ export class Bot extends Player {
         this.visible = BotUtil.isVisible(this, this.target);
         super.update(dt);
         this.updateTimers(dt);
+        this.move();
     }
 
     updateTimers(dt: number): void {
@@ -5281,10 +5282,9 @@ export class SoloBot extends TeamBot {
         this.spread = false;
     }
 
-    update(dt: number): void {
-        super.update(dt);
+    updateTimers(dt: number): void {
+        super.updateTimers(dt);
         this.aimTicker = Math.max(0, this.aimTicker - dt);
-        this.move();
     }
 
     newTarget(): void {
