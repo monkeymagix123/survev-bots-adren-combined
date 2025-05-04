@@ -278,7 +278,6 @@ export class PlayerBarn {
                         player,
                         socketId,
                         joinMsg,
-                        true
                     );
                 }
             }
@@ -294,7 +293,20 @@ export class PlayerBarn {
                 player,
                 socketId,
                 joinMsg,
-                false
+            );
+        }
+
+        if (this.game.map.pvbMode) {
+            this.setMaxItems(player);
+            this.addBot(
+                1,
+                layer,
+                player.group,
+                player.team,
+                undefined,
+                player,
+                socketId,
+                joinMsg,
             );
         }
 
@@ -422,9 +434,10 @@ export class PlayerBarn {
         player: Player,
         socketId: string,
         joinMsg: net.JoinMsg,
-        isFaction = false
     ) {
-        if (group == undefined) {
+        let isFaction: boolean = this.game.map.factionMode;
+
+        if (group === undefined) {
             group = this.addGroup(false);
         }
         // let timeNext = {} as number[];
@@ -444,9 +457,7 @@ export class PlayerBarn {
             }
 
             let bot = new TeamBot(this.game, pos2, layer, socketId, joinMsg);
-
-            bot.name = `Bot-${namesData.names[Math.floor(Math.random() * namesData.names.length)]}`;
-            group.addPlayer(bot);
+                group.addPlayer(bot);
 
             if (!isFaction) {
                 group = this.addGroup(false);
@@ -456,11 +467,40 @@ export class PlayerBarn {
             bot.group = group;
             bot.groupId = group.groupId;
             bot.teamId = bot.groupId;
+
+            bot.name = `Bot-${namesData.names[Math.floor(Math.random() * namesData.names.length)]}`;
+
             if (!this.game.isTeamMode) {
+                // solo
                 bot.group = undefined;
                 bot.groupId = this.groupIdAllocator.getNextId();
                 bot.teamId = bot.groupId;
+            } else if (this.game.map.pvbMode) {
+                let hash: string = group.hash + "a";
+                let g : Group;
+                if (this.groupsByHash.has(hash)) {
+                    // already added bots for this group
+                    g = this.groupsByHash.get(hash)!;
+                } else {
+                    let id = this.groupIdAllocator.getNextId();
+                    g = new Group(hash, id, false, this.game.teamMode);
+                    this.groups.push(g);
+                    this.groupsByHash.set(hash, g);
+
+                    // const b2 = new SoloBot(this.game, pos2, layer, socketId, joinMsg);
+                }
+                g.addPlayer(bot);
+                bot.group = g;
+                bot.groupId = g.groupId;
+                bot.teamId = bot.groupId;
+
+                // if (group) {
+                //     //
+                // }
+                // group = group ? this.groupsByHash.set(group.hash + "a");
+                // this.groupIdAllocator.getNextId();
             }
+
             if (isFaction) {
                 if (team != undefined) {
                     bot.team = team;
@@ -485,7 +525,7 @@ export class PlayerBarn {
             this.game.pluginManager.emit("playerJoin", bot);
 
             // faction???
-            if (this.game.map.factionMode) {
+            if (isFaction) {
                 bot.playerStatusDirty = true;
             }
 
