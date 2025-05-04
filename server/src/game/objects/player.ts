@@ -384,8 +384,8 @@ export class PlayerBarn {
                 }
             } else {
                 // pvb mode
-                player.chest = "chest02";
-                player.helmet = "helmet02";
+                player.chest = "chest03";
+                player.helmet = "helmet03";
 
                 // starting grenades
                 player.inventory["frag"] = adrenMode ? 3 : 6;
