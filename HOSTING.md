@@ -102,7 +102,7 @@ pnpm run survev-setup
 
 Build the client & server:
 ```sh
-pnpm -r build
+pnpm build
 ```
 
 ### Setting up NGINX

@@ -61,7 +61,7 @@ export function getConfig(isProduction: boolean, dir: string) {
         captchaEnabled: false,
         cachingEnabled: false,
         rateLimitsEnabled: false,
-        randomizeDefaultPlayerName: false,
+        uniqueInGameNames: true,
         debug: {
             spawnMode: "default",
             allowBots: isDev,

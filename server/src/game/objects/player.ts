@@ -201,10 +201,27 @@ export class PlayerBarn {
             layer = 0;
         }
 
+        const originalName = validateUserName(joinMsg.name).validName;
+        let finalName = originalName;
+
+        if (Config.uniqueInGameNames) {
+            let count = 0;
+
+            while (this.game.playerBarn.players.find((p) => p.name === finalName)) {
+                const postFix = `-${++count}`;
+                const trimmed = originalName.substring(
+                    0,
+                    net.Constants.PlayerNameMaxLen - postFix.length,
+                );
+                finalName = trimmed + postFix;
+            }
+        }
+
         const player = new Player(
             this.game,
             pos,
             layer,
+            finalName,
             socketId,
             joinMsg,
             ip,
@@ -1474,6 +1491,7 @@ export class Player extends BaseGameObject {
         game: Game,
         pos: Vec2,
         layer: number,
+        name: string,
         socketId: string,
         joinMsg: net.JoinMsg,
         ip: string,
@@ -1486,12 +1504,11 @@ export class Player extends BaseGameObject {
 
         this.layer = layer;
 
+        this.name = name;
         this.socketId = socketId;
         this.ip = ip;
         this.findGameIp = findGameIp;
         this.userId = userId;
-
-        this.name = validateUserName(joinMsg.name).validName;
 
         this.isMobile = joinMsg.isMobile;
 
@@ -4798,11 +4815,10 @@ export class Bot extends Player {
 
 
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
-        super(game, pos, layer, `abcd${Math.floor(Math.random() * 10000)}`, joinMsg, "0.0.0.0", "0.0.0.0", null);
+        super(game, pos, layer, "Bot", `abcd${Math.floor(Math.random() * 10000)}`, joinMsg, "0.0.0.0", "0.0.0.0", null);
         this.touchMoveActive = true;
         this.isMobile = true;
 
-        this.name = "Bot";
         this.setOutfit("outfitDarkGloves");
 
         // Weapons (Mosin + SPAS12)

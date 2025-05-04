@@ -426,9 +426,9 @@ export const RoleDefs: Record<string, RoleDef> = {
         },
         mapIndicator: {
             sprite: "player-the-hunted.img",
-            tint: 16745472,
+            tint: 0xff8400,
             pulse: true,
-            pulseTint: 16745472,
+            pulseTint: 0xff8400,
         },
         perks: ["hunted"],
     },
@@ -448,7 +448,7 @@ export const RoleDefs: Record<string, RoleDef> = {
             spriteScale: 0.3,
         },
         guiImg: "img/gui/role-healer.svg",
-        color: 11468975,
+        color: 0xaf00af,
     },
     tank: {
         type: "role",
@@ -464,7 +464,7 @@ export const RoleDefs: Record<string, RoleDef> = {
             spriteScale: 0.3,
         },
         guiImg: "img/gui/role-tank.svg",
-        color: 13862400,
+        color: 0xd38600,
     },
     sniper: {
         type: "role",
@@ -482,7 +482,7 @@ export const RoleDefs: Record<string, RoleDef> = {
             spriteScale: 0.3,
         },
         guiImg: "img/gui/role-sniper.svg",
-        color: 30696,
+        color: 0x77e8,
     },
     scout: {
         type: "role",
@@ -500,7 +500,7 @@ export const RoleDefs: Record<string, RoleDef> = {
             spriteScale: 0.3,
         },
         guiImg: "img/gui/role-scout.svg",
-        color: 6725632,
+        color: 0x66a000,
     },
     demo: {
         type: "role",
@@ -516,7 +516,7 @@ export const RoleDefs: Record<string, RoleDef> = {
             spriteScale: 0.3,
         },
         guiImg: "img/gui/role-demo.svg",
-        color: 6750976,
+        color: 0x670300,
     },
     assault: {
         type: "role",
@@ -534,6 +534,6 @@ export const RoleDefs: Record<string, RoleDef> = {
             spriteScale: 0.3,
         },
         guiImg: "img/gui/role-assault.svg",
-        color: 16772119,
+        color: 0xffec17,
     },
 };
