@@ -241,6 +241,8 @@ export class GameMap {
     objectCount!: Record<string, number>;
     grid!: MapGrid;
 
+    pvbMode: boolean;
+
     incrementCount(type: string) {
         if (!this.objectCount[type]) {
             this.objectCount[type] = 1;
@@ -303,6 +305,8 @@ export class GameMap {
         this.desertMode = !!this.mapDef.gameMode.desertMode;
         this.potatoMode = !!this.mapDef.gameMode.potatoMode;
         this.sniperMode = !!this.mapDef.gameMode.sniperMode;
+
+        this.pvbMode = !!this.mapDef.gameMode.pvbMode;
 
         this.center = v2.create(this.width / 2, this.height / 2);
         this.grassInset = mapConfig.grassInset;

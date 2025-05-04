@@ -34,6 +34,7 @@ export type Atlas =
     | "savannah";
 
 import { MainBetterLoot } from "./maps/mainBetterLoot";
+import { Pvb } from "./maps/pvbDefs";
 
 export const MapDefs = {
     main: Main,
@@ -55,6 +56,8 @@ export const MapDefs = {
 
     main_better_loot: MainBetterLoot,
     faction_bots: FactionBots,
+
+    pvb: Pvb,
 } satisfies Record<string, MapDef>;
 
 export interface MapDef {
@@ -115,6 +118,7 @@ export interface MapDef {
 
         factionBots?: boolean;
         botPetMode?: boolean;
+        pvbMode?: boolean // players vs bots
     };
     gameConfig: {
         planes: {
