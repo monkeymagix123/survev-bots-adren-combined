@@ -436,47 +436,25 @@ export class PlayerBarn {
         joinMsg: net.JoinMsg,
     ) {
         let isFaction: boolean = this.game.map.factionMode;
+        let isPvb: boolean = this.game.map.pvbMode;
+        let isSolo: boolean = !this.game.isTeamMode;
 
+        // make a group
         if (group === undefined) {
+            // should be solo mode
             group = this.addGroup(false);
         }
-        // let timeNext = {} as number[];
-        // timeNext.push(0);
         for (let i = 0; i < n; i++) {
-            // timeNext.push(timeNext.at(timeNext.length - 1)! + addBotsDelay + BotUtil.randomSym(addBotsDelay * 0.35)); // so more random?
+            // space out joining
             const delay = addBotsDelay + BotUtil.randomSym(addBotsDelay * 0.35);
             let l = this.livingPlayers.length;
             await this.sleep(delay * 1000 * (Math.sqrt((l + 30) / 30)));
 
-            // bot
-            let pos2: Vec2;
-            if (!isFaction) {
-                pos2 = this.game.map.getSpawnPos();
-            } else {
-                pos2 = this.game.map.getSpawnPos(group, team);
-            }
-
-            let bot = new TeamBot(this.game, pos2, layer, socketId, joinMsg);
-                group.addPlayer(bot);
-
-            if (!isFaction) {
-                group = this.addGroup(false);
-                bot = new SoloBot(this.game, pos2, layer, socketId, joinMsg);
-            }
-
-            bot.group = group;
-            bot.groupId = group.groupId;
-            bot.teamId = bot.groupId;
-
-            bot.name = `Bot-${namesData.names[Math.floor(Math.random() * namesData.names.length)]}`;
-
-            if (!this.game.isTeamMode) {
-                // solo
-                bot.group = undefined;
-                bot.groupId = this.groupIdAllocator.getNextId();
-                bot.teamId = bot.groupId;
-            } else if (this.game.map.pvbMode) {
-                let hash: string = group.hash + "a";
+            // get the group
+            if (isSolo) {
+                group = undefined;
+            } else if (isPvb && !isSolo) {
+                let hash: string = group!.hash + "a";
                 let g : Group;
                 if (this.groupsByHash.has(hash)) {
                     // already added bots for this group
@@ -486,20 +464,41 @@ export class PlayerBarn {
                     g = new Group(hash, id, false, this.game.teamMode);
                     this.groups.push(g);
                     this.groupsByHash.set(hash, g);
-
-                    // const b2 = new SoloBot(this.game, pos2, layer, socketId, joinMsg);
                 }
-                g.addPlayer(bot);
-                bot.group = g;
-                bot.groupId = g.groupId;
-                bot.teamId = bot.groupId;
-
-                // if (group) {
-                //     //
-                // }
-                // group = group ? this.groupsByHash.set(group.hash + "a");
-                // this.groupIdAllocator.getNextId();
+                group = g;
             }
+
+            let groupId = group ? group.groupId : this.groupIdAllocator.getNextId();
+            let teamId = groupId; // overriden in later faction logic
+
+            // bot spawn pos
+            let pos2: Vec2;
+            if (isSolo && isFaction) {
+                pos2 = this.game.map.getSpawnPos(undefined, team);
+            } else if (isSolo) {
+                pos2 = this.game.map.getSpawnPos();
+            } else if (isFaction) {
+                pos2 = this.game.map.getSpawnPos(group, team);
+            } else {
+                // team mode, not faction
+                pos2 = this.game.map.getSpawnPos(group);
+            }
+
+            // initialize the bot
+            let bot: Bot;
+            if (isFaction) {
+                bot = new TeamBot(this.game, pos2, layer, socketId, joinMsg);
+            } else {
+                bot = new SoloBot(this.game, pos2, layer, socketId, joinMsg);
+            }
+            
+            // set ids
+            if (!isSolo) group!.addPlayer(bot);
+            bot.group = group;
+            bot.groupId = groupId;
+            bot.teamId = teamId;
+
+            bot.name = `Bot-${namesData.names[Math.floor(Math.random() * namesData.names.length)]}`;
 
             if (isFaction) {
                 if (team != undefined) {

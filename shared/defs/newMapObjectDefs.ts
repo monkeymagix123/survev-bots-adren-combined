@@ -283,18 +283,6 @@ export const NewMapObjectDefs: Record<string, MapObjectDef> = {
                     scale: 1,
                     ori: 0,
                 },
-                // {
-                //     type: "house_door_01",
-                //     pos: v2.create(-10.5, 2.5),
-                //     scale: 1,
-                //     ori: 0,
-                // },
-                // {
-                //     type: "house_door_01",
-                //     pos: v2.create(-4, 2),
-                //     scale: 1,
-                //     ori: 1,
-                // },
                 {
                     type: "",
                     pos: v2.create(-1, -13.5),
@@ -304,7 +292,7 @@ export const NewMapObjectDefs: Record<string, MapObjectDef> = {
             ],
         };
         t.mapObjects.push({
-            type: "loot_tier_A",
+            type: "loot_tier_B",
             pos: v2.create(0, 0),
             scale: 1,
             ori: 0,
@@ -321,6 +309,21 @@ export const NewMapObjectDefs: Record<string, MapObjectDef> = {
             //     preloadGuns: true,
             // }),
             tierLoot("tier_airdrop_uncommon", 10, 10, {
+                preloadGuns: true,
+            }),
+        ],
+        terrain: { grass: true, beach: true, riverShore: true },
+    }),
+    loot_tier_B: createCrate({
+        health: 1,
+        loot: [
+            tierLoot("tier_world", 90, 90, {
+                preloadGuns: true,
+            }),
+            // tierLoot("tier_airdrop_rare", 2, 2, {
+            //     preloadGuns: true,
+            // }),
+            tierLoot("tier_airdrop_uncommon", 2, 2, {
                 preloadGuns: true,
             }),
         ],

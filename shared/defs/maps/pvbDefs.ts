@@ -150,6 +150,7 @@ const mapDef: PartialMapDef = {
                 tree_02: 3,
                 teahouse_complex_01su: { odds: 0.5 },
                 // stone_04: 1,
+                loot_house: 2,
             },
         ],
         randomSpawns: [
