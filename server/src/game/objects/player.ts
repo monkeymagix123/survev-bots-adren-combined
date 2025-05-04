@@ -370,18 +370,37 @@ export class PlayerBarn {
         }
 
         if (player instanceof Bot) {
-            player.chest = "chest01";
-            player.helmet = "helmet01";
+            if (!this.game.map.pvbMode) {
+                player.chest = "chest01";
+                player.helmet = "helmet01";
 
-            // drop some frags & smoke grenades
-            let k = adrenMode ? 1 : 2;
-            for (let i = 0; i < k; i++) {
-                let grenades = this.game.lootBarn.getLootTable("tier_throwables");
-                for (const g of grenades) {
-                    player.inventory[g.name] += g.count;
+                // drop some frags & smoke grenades
+                let k = adrenMode ? 1 : 2;
+                for (let i = 0; i < k; i++) {
+                    let grenades = this.game.lootBarn.getLootTable("tier_throwables");
+                    for (const g of grenades) {
+                        player.inventory[g.name] += g.count;
+                    }
                 }
-            }
+            } else {
+                // pvb mode
+                player.chest = "chest02";
+                player.helmet = "helmet02";
 
+                // starting grenades
+                player.inventory["frag"] = adrenMode ? 3 : 6;
+                player.inventory["smoke"] = adrenMode ? 3 : 3;
+                player.inventory["mirv"] = adrenMode ? 0 : 2;
+
+                player.weaponManager.showNextThrowable(); // ???
+
+                player.inventory["4xscope"] = 1;
+                player.inventory["8xscope"] = 1;
+                player.scope = "8xscope";
+                player.zoom = player.scopeZoomRadius[player.scope];
+
+                player.addPerk("takedown", false);
+            }
         } else {
             player.chest = "chest02";
             player.helmet = "helmet02";
