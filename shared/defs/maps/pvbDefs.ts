@@ -11,6 +11,26 @@ const config = {
     spawnDensity: { large: 44, small: 37 },
 } as const;
 
+let a = Main.mapGen.densitySpawns.reduce(
+    (array, item) => {
+        let object: Record<string, number> = {};
+        for (const [key, value] of Object.entries(item)) {
+            object[key] =
+                (value * config.spawnDensity[config.mapSize]) / 100;
+        }
+        array.push(object);
+        return array;
+    },
+    [] as Record<string, number>[]);
+
+let b = Array(config.places)
+    .fill(false)
+    .map(() => {
+        return Main.mapGen?.places[
+            Math.floor(Math.random() * Main.mapGen.places.length)
+        ];
+    });
+
 const mapDef: PartialMapDef = {
     // mapGen: {
     //     densitySpawns: [
@@ -82,26 +102,9 @@ const mapDef: PartialMapDef = {
                 weights: [{ weight: 0.1, widths: [0] }],
             },
         },
-        places: Array(config.places)
-            .fill(false)
-            .map(() => {
-                return Main.mapGen?.places[
-                    Math.floor(Math.random() * Main.mapGen.places.length)
-                ];
-            }),
+        places: b,
         // densitySpawns: [{}],
-        densitySpawns: Main.mapGen.densitySpawns.reduce(
-            (array, item) => {
-                let object: Record<string, number> = {};
-                for (const [key, value] of Object.entries(item)) {
-                    object[key] =
-                        (value * config.spawnDensity[config.mapSize]) / 100;
-                }
-                array.push(object);
-                return array;
-            },
-            [] as Record<string, number>[],
-        ),
+        densitySpawns: a,
         fixedSpawns: [
             {
                 club_complex_01: 1,
