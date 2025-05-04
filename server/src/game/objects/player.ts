@@ -5204,6 +5204,9 @@ export class Bot extends Player {
     }
 
     tryHeal(): boolean {
+        if (this.game.gas.isInGas(this.pos)) {
+            return false;
+        }
         if (this.inventory["healthkit"] > 0 && this.health < 30 && this.actionItem != "healthkit") {
             this.useHealingItem("healthkit");
             return true;
