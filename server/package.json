@@ -16,7 +16,8 @@
     "db:studio": "drizzle-kit studio --config=src/api/drizzle.config.ts",
     "db:wipe": "rm -rf src/api/db/drizzle && tsx src/api/db/wipe.ts",
     "stressTest": "tsx src/stressTest.ts",
-    "lint": "cd .. && pnpm lint"
+    "lint": "cd .. && pnpm lint",
+    "replay": "tsx src/readReplay.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.1",

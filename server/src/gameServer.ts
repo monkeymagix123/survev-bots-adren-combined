@@ -27,6 +27,8 @@ import {
     zFindGamePrivateBody,
 } from "./utils/types";
 
+import { logPacketForReplay } from "./packetLog";
+
 process.on("uncaughtException", async (err) => {
     console.error(err);
 
@@ -236,6 +238,27 @@ app.ws<GameSocketData>("/play", {
             socket.close();
             return;
         }
+        
+        const userData = socket.getUserData();
+
+        // logPacketForReplay({
+        //     socketId: id,
+        //     ip,
+        //     timestamp: Date.now(),
+        //     rawData: message,
+        // });
+
+        // Convert ArrayBuffer to Buffer safely
+        const rawData = Buffer.from(new Uint8Array(message));
+
+        logPacketForReplay({
+            socketId: userData.id,
+            ip: userData.ip,
+            timestamp: Date.now(),
+            rawData, // now it's a Node.js Buffer
+        });
+
+
         server.manager.onMsg(socket.getUserData().id, message);
     },
 
@@ -296,6 +319,19 @@ app.ws<pingSocketData>("/ptc", {
             socket.close();
             return;
         }
+
+        // const userData = socket.getUserData();
+
+        // // Convert ArrayBuffer to Buffer safely
+        // const rawData = Buffer.from(new Uint8Array(message));
+
+        // logPacketForReplay({
+        //     socketId: userData.id,
+        //     ip: userData.ip,
+        //     timestamp: Date.now(),
+        //     rawData, // now it's a Node.js Buffer
+        // });
+
         socket.send(message, true, false);
     },
 
