@@ -12,6 +12,7 @@ import type {
     ServerGameConfig,
 } from "../utils/types";
 import { Game } from "./game";
+import { logGameUpdate } from "../packetLog";
 
 export abstract class GameManager {
     abstract sockets: Map<string, WebSocket<GameSocketData>>;
@@ -104,6 +105,11 @@ export class SingleThreadGameManager implements GameManager {
             config,
             (id, data) => {
                 this.sockets.get(id)?.send(data, true, false);
+                const rawData = Buffer.from(data);
+                logGameUpdate({
+                    timestamp: Date.now(),
+                    rawData, // now it's a Node.js Buffer
+                });
             },
             (id, reason) => {
                 const socket = this.sockets.get(id);

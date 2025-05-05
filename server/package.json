@@ -17,7 +17,8 @@
     "db:wipe": "rm -rf src/api/db/drizzle && tsx src/api/db/wipe.ts",
     "stressTest": "tsx src/stressTest.ts",
     "lint": "cd .. && pnpm lint",
-    "replay": "tsx src/readReplay.ts"
+    "replay": "tsx src/readReplay.ts",
+    "replayGame": "tsx src/readGameData.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.1",

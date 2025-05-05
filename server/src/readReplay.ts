@@ -3,8 +3,6 @@ import * as net from "../../shared/net/net";
 import { Buffer } from "buffer";
 import * as readline from "readline";
 
-import { Game } from "../../client/src/game";
-
 const exportPath = "./export.log";
 const importPath = "./replay.log";
 
@@ -163,8 +161,3 @@ for await (const line of rl) {
         }
     }
 };
-
-
-
-
-// const base64 = undefined;
