@@ -320,18 +320,6 @@ app.ws<pingSocketData>("/ptc", {
             return;
         }
 
-        // const userData = socket.getUserData();
-
-        // // Convert ArrayBuffer to Buffer safely
-        // const rawData = Buffer.from(new Uint8Array(message));
-
-        // logPacketForReplay({
-        //     socketId: userData.id,
-        //     ip: userData.ip,
-        //     timestamp: Date.now(),
-        //     rawData, // now it's a Node.js Buffer
-        // });
-
         socket.send(message, true, false);
     },
 
