@@ -80,7 +80,7 @@ type GodMode = {
 import { BotUtil } from "./botUtil";
 
 import namesData from "./names.json";
-import { beta, rrand } from "./prob";
+import { beta, BetaDist, rrand } from "./prob";
 
 interface Emote {
     playerId: number;
@@ -4883,6 +4883,7 @@ export class Bot extends Player {
 
     spread = true;
 
+    private beta: BetaDist;
 
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         super(game, pos, layer, "Bot", `abcd${Math.floor(Math.random() * 10000)}`, joinMsg, "0.0.0.0", "0.0.0.0", null);
@@ -4923,6 +4924,8 @@ export class Bot extends Player {
         this.targetTimer = 0;
 
         this.shotSlowdownTimer = 6;
+
+        this.beta = new BetaDist(7 + BotUtil.randomSym(1), 6 + BotUtil.randomSym(1), 0.3 + 0.2 * Math.random());
     }
 
     // Target Switch Timer
@@ -5144,7 +5147,7 @@ export class Bot extends Player {
             if (newStrafe) {
                 if (this.strafeIncTimer < 0.01) {
                     this.strafeSign *= -1;
-                    this.strafeIncTimer = beta.sample();
+                    this.strafeIncTimer = this.beta.sample();
                 }
             } else {
                 this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
@@ -5179,7 +5182,7 @@ export class Bot extends Player {
             if (newStrafe) {
                 if (this.strafeIncTimer < 0.01) {
                     this.strafeSign *= -1;
-                    this.strafeIncTimer = beta.sample();
+                    this.strafeIncTimer = this.beta.sample();
                 }
             } else {
                 this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;

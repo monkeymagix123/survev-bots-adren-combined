@@ -24,7 +24,7 @@ class Rayleigh {
 
 export const rrand = new Rayleigh(0.3);
 
-class BetaDist {
+export class BetaDist {
     private alpha: number;
     private beta: number;
     scale: number; // most common value -- default is 0.5
