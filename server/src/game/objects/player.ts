@@ -5098,7 +5098,7 @@ export class Bot extends Player {
 
         let d = BotUtil.d2(this.pos, p.pos);
 
-        if (d < pd.min ** 2 || Math.random() > 0.5) {
+        if (d < pd.min ** 2) {
             // too close
             this.moveAway(p.pos, true, this.spread);
             return;

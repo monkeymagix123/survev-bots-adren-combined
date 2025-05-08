@@ -205,11 +205,12 @@ export const BotUtil = {
         const d = GunDefs[g];
         if (!d) return new minMax(0, 0);
 
+        const b = BulletDefs[d.bulletType];
+
         if (d.isLauncher || d.name.includes("flare"))
             return gunDist[g] = new minMax(zm["2xscope"], zm["4xscope"] * 1.2);
 
         if (d.ammo !== "12gauge") {
-            const b = BulletDefs[d.bulletType];
             if (b.speed < 100)
                 return gunDist[g] = new minMax(zm["1xscope"] * 0.25, b.distance * 0.9);
             else
@@ -222,7 +223,7 @@ export const BotUtil = {
         if (d.name === "m1014")
             return gunDist[g] = new minMax(zm["2xscope"] * 0.9, (zm["4xscope"] + zm["8xscope"]) / 2);
 
-        return gunDist[g] = new minMax(5, zm["2xscope"]);
+        return gunDist[g] = new minMax(5, Math.min(zm["2xscope"], b.distance * 0.9));
     },
 };
 
