@@ -82,6 +82,7 @@ Separate bot code
 21) ❌: fast things with 1 hp that move towards nearest player and explode on contact (prob usas-sized explosion but less dmg?)
 22) ❌: perk that makes u update faster (shoot faster, heal faster, move faster, etc), icon could be like clock speeding or something, name could be just "faster"
 23) ❌: perk that gives infinite magazines / do not have to reload
+  - oop that's called firepower
 
 
 ## GPT

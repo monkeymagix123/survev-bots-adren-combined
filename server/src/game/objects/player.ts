@@ -4872,18 +4872,19 @@ export class Bot extends Player {
     protected target: Player | undefined;
     protected targetTimer: number;
 
-    protected strafeIncTimer: number = 0;
-
     // if bullets around recently, consider unsafe (ie, don't heal / walk in straight line)
     protected safeTimer: number = 0;
     protected safe: boolean = true;
 
+    // strafing logic
     protected strafeSign: number = 1;
+    protected strafeIncTimer: number = 0;
+
     protected visible: boolean = false;
 
     spread = true;
 
-    private beta: BetaDist;
+    protected beta: BetaDist;
 
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         super(game, pos, layer, "Bot", `abcd${Math.floor(Math.random() * 10000)}`, joinMsg, "0.0.0.0", "0.0.0.0", null);
@@ -5097,7 +5098,7 @@ export class Bot extends Player {
 
         let d = BotUtil.d2(this.pos, p.pos);
 
-        if (d < pd.min ** 2) {
+        if (d < pd.min ** 2 || Math.random() > 0.5) {
             // too close
             this.moveAway(p.pos, true, this.spread);
             return;
@@ -5287,6 +5288,8 @@ export class SoloBot extends TeamBot {
     protected aimType: number;
     protected aimK: number;
 
+    protected strafeChangeTimer: number = 0;
+
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         super(game, pos, layer, socketId, joinMsg);
 
@@ -5321,6 +5324,13 @@ export class SoloBot extends TeamBot {
     updateTimers(dt: number): void {
         super.updateTimers(dt);
         this.aimTicker = Math.max(0, this.aimTicker - dt);
+
+        // change strafe pattern
+        this.strafeChangeTimer = Math.max(0, this.strafeChangeTimer - dt);
+        if (this.strafeChangeTimer < 0.01) {
+            this.strafeChangeTimer = 0.5 + BotUtil.randomSym(0.3);
+            this.beta.setScale(0.5 + BotUtil.randomSym(0.3));
+        }
     }
 
     newTarget(): void {

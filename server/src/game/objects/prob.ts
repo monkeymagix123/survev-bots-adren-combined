@@ -38,6 +38,10 @@ export class BetaDist {
         this.scale = scale;
     }
 
+    setScale(scale: number): void {
+        this.scale = scale;
+    }
+
     private gammaSample(shape: number): number {
         const d = shape - 1 / 3;
         const c = 1 / Math.sqrt(9 * d);
