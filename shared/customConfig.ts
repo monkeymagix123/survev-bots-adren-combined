@@ -27,7 +27,7 @@ export const maxBotsAtTime = 45; // max is 80 in solo game, was 80 earlier, but 
 
 export const shootLead = 0.2;
 export const scaleLead = 1.2; // how much extra after dividing by 4xscope distance
-export const strafeStrength = 4; // this barely does anything
+export const strafeStrength = 3; // this barely does anything
 // change ~5 times a second optimal?
 export const strafeProbChange = 0.1;
 export const spreadStrength = 0.0002;
