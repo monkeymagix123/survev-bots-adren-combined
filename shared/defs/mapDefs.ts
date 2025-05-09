@@ -18,6 +18,7 @@ import { WoodsSummer } from "./maps/woodsSummerDefs";
 import type { MapId } from "./types/misc";
 
 import { FactionBots } from "./maps/factionBotsDefs";
+import { SoloPetBot } from "./maps/soloPetBotDefs";
 
 export type Atlas =
     | "gradient"
