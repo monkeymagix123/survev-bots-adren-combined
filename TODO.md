@@ -18,6 +18,7 @@ Each emoji has a meaning:
 - ❌: Building movement (ie moving while indoors)
 - ❌: go to main areas (depends on map -- normal --> like just wander around, or go to club / mansion / etc, 50v50 --> go to bridges)
 - ❌: camping
+- Vary strafe strength based on distance to player
 
 **2. Aiming**
 - ❌: Bots melee at close range

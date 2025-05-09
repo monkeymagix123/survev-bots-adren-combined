@@ -83,6 +83,15 @@ export const BotUtil = {
     hidden(p: Player, b: Player): boolean {
         let game = b.game;
 
+        // don't try to shoot through walls?
+        let lineObj = game.grid.intersectLineSegment(p.pos, b.pos);
+        lineObj = lineObj.filter((obj): obj is Obstacle => obj.__type === ObjectType.Obstacle && !obj.destroyed
+            && !obj.destructible && !obj.isWindow && obj.collidable
+        );
+        if (lineObj.length > 0) {
+            return true;
+        }
+
         // smoke grenade testing
         if (ignoreSmoke) {
             let s = game.smokeBarn.smokes.filter((obj) =>
@@ -99,7 +108,9 @@ export const BotUtil = {
         // bushes?
         // must be entirely in
         if (ignoreBushcamp) {
-            let bushes = game.grid.intersectCollider(collider.createCircle(p.pos, 0));
+            // check if contains center of player
+            let bushes = game.grid.intersectPos(p.pos);
+            // fully contained in bush
             bushes = bushes.filter((obj) => obj.__type === ObjectType.Obstacle && !obj.destroyed &&
                 coldet.intersectCircleCircle(p.pos, -p.rad, obj.pos, obj.interactionRad)
             );
@@ -183,12 +194,12 @@ export const BotUtil = {
     },
 
     getCollidingObstacles(bot: Player, needDestructible = false, noExplosive = true) {
-        const coll = collider.createCircle(bot.posOld, bot.rad * 2);
+        const coll = collider.createCircle(bot.pos, bot.rad * 2);
         let obs = bot.game.grid.intersectCollider(coll).filter(
             (obj): obj is Obstacle => obj.__type === ObjectType.Obstacle && !obj.dead && !obj.destroyed && obj.collidable
         );
 
-        const collSmall = collider.createCircle(bot.posOld, bot.rad * 1.1);
+        const collSmall = collider.createCircle(bot.pos, bot.rad * 1.1);
         obs = obs.filter(obj => collider.intersect(collSmall, obj.collider));
 
         obs = needDestructible

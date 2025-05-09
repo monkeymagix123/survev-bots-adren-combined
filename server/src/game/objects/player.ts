@@ -345,7 +345,7 @@ export class PlayerBarn {
         player.addPerk("endless_ammo", false);
         player.backpack = "backpack03";
 
-        if (!this.game.map.factionMode) {
+        if (!this.game.map.factionMode && !this.game.map.pvbMode) {
             // speed buff
             player.addPerk("speedy", false);
 
