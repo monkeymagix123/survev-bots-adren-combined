@@ -56,7 +56,7 @@ import {
     botIgnoreObstacles, shootLead,
     strafeStrength, strafeProbChange,
     spreadStrength, spreadDistStrength, mosinBotShootLead, mosinBotRNG,
-    factionBots,
+    factionBots, 
     devMode,
     ignoreDmg,
     safeConstants,
