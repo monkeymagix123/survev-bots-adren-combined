@@ -65,7 +65,8 @@ import {
     scaleLead,
     MAX_BOOST,
     newStrafe,
-    petMaxMoveRange
+    petMaxMoveRange,
+    strafeStrengthSolo
 } from "../../../../shared/customConfig";
 
 type GodMode = {
@@ -4880,6 +4881,8 @@ export class Bot extends Player {
     protected strafeSign: number = 1;
     protected strafeIncTimer: number = 0;
 
+    protected strafeStrength: number = strafeStrength;
+
     protected visible: boolean = false;
 
     spread = true;
@@ -5153,7 +5156,7 @@ export class Bot extends Player {
             } else {
                 this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
             }
-            const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
+            const perp = v2.mul(v2.perp(this.touchMoveDir), this.strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
 
@@ -5188,7 +5191,7 @@ export class Bot extends Player {
             } else {
                 this.strafeSign *= Math.random() < strafeProbChange ? -1 : 1;
             }
-            const perp = v2.mul(v2.perp(this.touchMoveDir), strafeStrength * this.strafeSign);
+            const perp = v2.mul(v2.perp(this.touchMoveDir), this.strafeStrength * this.strafeSign);
             this.touchMoveDir = v2.add(perp, this.touchMoveDir);
         }
 
@@ -5289,6 +5292,8 @@ export class SoloBot extends TeamBot {
     protected aimK: number;
 
     protected strafeChangeTimer: number = 0;
+
+    strafeStrength = strafeStrengthSolo;
 
     constructor(game: Game, pos: Vec2, layer: number, socketId: string, joinMsg: net.JoinMsg) {
         super(game, pos, layer, socketId, joinMsg);
